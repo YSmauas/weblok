@@ -84,5 +84,4 @@ export const fields: FieldDef[] = [
 
 export function defaultValues(): BlockValues {
   return Object.fromEntries(fields.map((f) => [f.id, f.default]));
-       }
-        
+}
