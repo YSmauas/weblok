@@ -23,5 +23,4 @@ export function BrowserFrame({
       <div className="relative">{children}</div>
     </div>
   );
-          }
-      
+}
