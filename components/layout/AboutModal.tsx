@@ -103,5 +103,4 @@ export function AboutModal({
       </div>
     </div>
   );
-  }
-
+}
