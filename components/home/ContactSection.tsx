@@ -54,5 +54,4 @@ export function ContactSection() {
       </form>
     </section>
   );
-        }
-          
+}
