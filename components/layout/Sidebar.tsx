@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { IconChevronDown, IconClose } from "../ui/Icons";
 
-// TODO: יוחלף בבדיקת session אמיתית מ-Auth.js (useSession) בהמשך
+// TODO: יוחלף בבדיקת session/role אמיתית (ראו lib/auth/session.ts)
 const isLoggedIn = false;
 const isAdmin = false;
 
-const BLOCKS_SUBMENU = [
-  { slug: "chatbot-assistant", name: "העוזר החכם" },
-];
+const BLOCKS_SUBMENU = [{ slug: "chatbot-assistant", name: "העוזר החכם" }];
 
 export function Sidebar({
   open,
@@ -22,6 +21,7 @@ export function Sidebar({
   onOpenAbout: (tab: "about" | "privacy" | "accessibility") => void;
 }) {
   const [blocksExpanded, setBlocksExpanded] = useState(false);
+  const { t } = useLocale();
 
   return (
     <>
@@ -34,16 +34,16 @@ export function Sidebar({
       />
 
       <aside
-        className={`fixed top-0 bottom-0 right-0 z-[56] w-[300px] glass border-l-0 border-base-border
+        className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] glass
           transition-transform duration-300 ease-out flex flex-col
-          ${open ? "translate-x-0" : "translate-x-full"}`}
+          ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full"}`}
         aria-hidden={!open}
       >
         <div className="flex items-center justify-between px-5 py-5 border-b border-base-border">
-          <span className="font-extrabold text-lg">תפריט</span>
+          <span className="font-extrabold text-lg">{t("sidebar.title")}</span>
           <button
             onClick={onClose}
-            aria-label="סגירת תפריט"
+            aria-label={t("header.menu")}
             className="text-ink-muted hover:text-ink-primary transition-colors"
           >
             <IconClose className="w-5 h-5" />
@@ -52,10 +52,10 @@ export function Sidebar({
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 text-sm">
           <Link href="/" onClick={onClose} className="sidebar-link">
-            בית
+            {t("sidebar.home")}
           </Link>
           <Link href="/auth/login" onClick={onClose} className="sidebar-link">
-            התחברות / הרשמה
+            {t("sidebar.login")}
           </Link>
 
           <div>
@@ -63,15 +63,13 @@ export function Sidebar({
               onClick={() => setBlocksExpanded((v) => !v)}
               className="sidebar-link w-full flex items-center justify-between"
             >
-              בלוקים
+              {t("sidebar.blocks")}
               <IconChevronDown
-                className={`w-4 h-4 transition-transform ${
-                  blocksExpanded ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${blocksExpanded ? "rotate-180" : ""}`}
               />
             </button>
             {blocksExpanded && (
-              <div className="pr-4 border-r border-base-border mr-4 mt-1 mb-1 space-y-1">
+              <div className="ps-4 border-s border-base-border ms-4 mt-1 mb-1 space-y-1">
                 {BLOCKS_SUBMENU.map((b) => (
                   <Link
                     key={b.slug}
@@ -87,29 +85,23 @@ export function Sidebar({
                   onClick={onClose}
                   className="block px-3 py-2 rounded-lg text-accent hover:underline"
                 >
-                  כל הבלוקים
+                  {t("sidebar.allBlocks")}
                 </Link>
               </div>
             )}
           </div>
 
-          <button
-            onClick={() => onOpenAbout("about")}
-            className="sidebar-link w-full text-right"
-          >
-            עלינו
+          <button onClick={() => onOpenAbout("about")} className="sidebar-link w-full text-start">
+            {t("sidebar.aboutUs")}
           </button>
-          <button
-            onClick={() => onOpenAbout("privacy")}
-            className="sidebar-link w-full text-right"
-          >
-            פרטיות
+          <button onClick={() => onOpenAbout("privacy")} className="sidebar-link w-full text-start">
+            {t("sidebar.privacy")}
           </button>
           <button
             onClick={() => onOpenAbout("accessibility")}
-            className="sidebar-link w-full text-right"
+            className="sidebar-link w-full text-start"
           >
-            נגישות
+            {t("sidebar.accessibility")}
           </button>
 
           <div className="mt-4 pt-4 border-t border-base-border">
@@ -118,26 +110,26 @@ export function Sidebar({
               onClick={onClose}
               className="block px-3 py-2.5 rounded-lg font-bold text-ink-primary hover:bg-base-panel2 transition-colors"
             >
-              אזור אישי
+              {t("sidebar.personalArea")}
             </Link>
 
             {isLoggedIn && (
-              <div className="pr-4 border-r border-base-border mr-4 mt-1 space-y-1">
+              <div className="ps-4 border-s border-base-border ms-4 mt-1 space-y-1">
                 <Link href="/dashboard/profile" onClick={onClose} className="submenu-link">
-                  פרופיל
+                  {t("sidebar.profile")}
                 </Link>
                 <Link href="/dashboard/saved" onClick={onClose} className="submenu-link">
-                  עיצובים שמורים
+                  {t("sidebar.saved")}
                 </Link>
                 <Link href="/dashboard/contact" onClick={onClose} className="submenu-link">
-                  יצירת קשר
+                  {t("sidebar.contact")}
                 </Link>
               </div>
             )}
 
             {isLoggedIn && isAdmin && (
               <Link href="/admin" onClick={onClose} className="sidebar-link">
-                ניהול
+                {t("sidebar.admin")}
               </Link>
             )}
           </div>
