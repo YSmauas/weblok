@@ -1,23 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 // TODO: יוחלף בבדיקת session אמיתית מ-Auth.js
 const isLoggedIn = false;
 
 export function ContactSection() {
+  const { t } = useLocale();
+
   if (isLoggedIn) {
     return (
       <section className="max-w-xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-2xl font-bold">משתמש רשום?</h2>
-        <p className="mt-3 text-ink-secondary">
-          אפשר לשלוח לנו הודעה ישירות מהאזור האישי שלכם.
-        </p>
+        <h2 className="text-2xl font-bold">{t("contact.loggedInTitle")}</h2>
+        <p className="mt-3 text-ink-secondary">{t("contact.loggedInText")}</p>
         <Link
           href="/dashboard/contact"
           className="mt-6 inline-block bg-accent text-base-bg font-semibold rounded-full px-6 py-3 hover:bg-accent-hover transition-colors"
         >
-          מעבר ליצירת קשר באזור האישי
+          {t("contact.loggedInCta")}
         </Link>
       </section>
     );
@@ -25,23 +26,21 @@ export function ContactSection() {
 
   return (
     <section className="max-w-xl mx-auto px-6 py-20">
-      <h2 className="text-2xl font-bold text-center">יש שאלה? דברו איתנו</h2>
-      <p className="mt-3 text-ink-secondary text-center">
-        משתמש רשום? אפשר לשלוח ישירות מהאזור האישי.
-      </p>
+      <h2 className="text-2xl font-bold text-center">{t("contact.title")}</h2>
+      <p className="mt-3 text-ink-secondary text-center">{t("contact.subtitle")}</p>
       <form className="mt-8 space-y-4">
         <input
           type="text"
-          placeholder="שם מלא"
+          placeholder={t("contact.name")}
           className="w-full bg-base-panel border border-base-border rounded-xl px-4 py-3 text-sm outline-none focus:border-accent transition-colors"
         />
         <input
           type="email"
-          placeholder="אימייל"
+          placeholder={t("contact.email")}
           className="w-full bg-base-panel border border-base-border rounded-xl px-4 py-3 text-sm outline-none focus:border-accent transition-colors"
         />
         <textarea
-          placeholder="ההודעה שלכם"
+          placeholder={t("contact.message")}
           rows={4}
           className="w-full bg-base-panel border border-base-border rounded-xl px-4 py-3 text-sm outline-none focus:border-accent transition-colors resize-y"
         />
@@ -49,7 +48,7 @@ export function ContactSection() {
           type="submit"
           className="w-full bg-accent text-base-bg font-semibold rounded-full px-6 py-3 hover:bg-accent-hover transition-colors"
         >
-          שליחה
+          {t("contact.submit")}
         </button>
       </form>
     </section>

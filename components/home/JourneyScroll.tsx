@@ -1,25 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
-const FEATURES = [
-  {
-    title: "בלוקים מוכנים, לא תבניות",
-    text: "כל בלוק בנוי לעריכה חיה - משנים ערכים ורואים תוצאה מיידית, בלי לגעת בקוד.",
-  },
-  {
-    title: "מפתחות API בטוחים",
-    text: "המפתחות שלכם נשמרים בצד שרת בלבד. קוד ההטמעה שיוצא לאתר שלכם לעולם לא חושף אותם.",
-  },
-  {
-    title: "עריכה עם AI",
-    text: "משתמשים רשומים עם מפתח API אישי יכולים לבקש מה-AI לעדכן ולשפר את העיצוב ישירות.",
-  },
-  {
-    title: "מהעורך לאתר החי",
-    text: "מעתיקים קטע קוד קצר אחד ומדביקים אותו באתר - הבלוק עולה לאוויר מיד.",
-  },
-];
+export function JourneyScroll() {
+  const { t } = useLocale();
+  const FEATURES = [
+    { title: t("journey.f1.title"), text: t("journey.f1.text") },
+    { title: t("journey.f2.title"), text: t("journey.f2.text") },
+    { title: t("journey.f3.title"), text: t("journey.f3.text") },
+    { title: t("journey.f4.title"), text: t("journey.f4.text") },
+  ];
 
 export function JourneyScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,7 +90,7 @@ export function JourneyScroll() {
                 {activeIndex + 1}
               </span>
               <span className="text-xs text-ink-muted">
-                מתוך {FEATURES.length}
+                {t("journey.of")} {FEATURES.length}
               </span>
             </div>
           </div>
