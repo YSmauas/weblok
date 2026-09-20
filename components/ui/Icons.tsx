@@ -95,3 +95,55 @@ export function IconGithub({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function IconKey({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <circle cx="8" cy="15" r="4" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M11 12l9-9M17 3l3 3M14 6l2.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function IconTrash({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function IconGlobe({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M3 12h18M12 3c2.5 2.5 3.8 5.7 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.7-3.8-9S9.5 5.5 12 3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+export function IconGoogle({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className}>
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3 14.7 2 12 2 6.9 2 2.8 6.1 2.8 11.2S6.9 20.4 12 20.4c5.5 0 8.4-3.9 8.4-8.9 0-.6-.06-1-.14-1.3H12Z"
+      />
+    </svg>
+  );
+}
