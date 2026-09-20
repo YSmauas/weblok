@@ -74,6 +74,7 @@ html.light {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
+    box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 30px -12px var(--accent);
   }
 }
 
@@ -86,5 +87,4 @@ html.light {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  }
-    
+}
