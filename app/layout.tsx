@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
 import "../styles/globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { LocaleProvider } from "@/lib/i18n/locale-provider";
 
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
@@ -16,10 +17,15 @@ export const metadata: Metadata = {
     "ספריית בלוקים מוכנים להטמעה באתרים, עם עריכה חיה והורדת קוד עצמאי.",
 };
 
-const themeInitScript = `
+const initScript = `
 try {
   var t = localStorage.getItem('weblok-theme');
   if (t === 'light') document.documentElement.classList.add('light');
+  var l = localStorage.getItem('weblok-locale');
+  if (l && l !== 'he') {
+    document.documentElement.lang = l;
+    document.documentElement.dir = 'ltr';
+  }
 } catch (e) {}
 `;
 
@@ -31,10 +37,12 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: initScript }} />
       </head>
       <body className="font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
