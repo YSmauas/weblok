@@ -1,34 +1,40 @@
+import { createClient } from "@/lib/supabase/server";
 import type { Role } from "./roles";
+
+export type AccountStatus = "active" | "warned" | "suspended";
 
 export interface SessionUser {
   id: string;
   name: string;
   email: string;
   role: Role;
+  status: AccountStatus;
 }
 
 /**
- * TODO: להחליף במימוש אמיתי מול Supabase Auth, לדוגמה:
- *
- *   import { createServerClient } from '@supabase/ssr';
- *   import { cookies } from 'next/headers';
- *
- *   export async function getSession(): Promise<SessionUser | null> {
- *     const supabase = createServerClient(url, publishableKey, { cookies: () => cookies() });
- *     const { data: { user } } = await supabase.auth.getUser();
- *     if (!user) return null;
- *     const { data: profile } = await supabase
- *       .from('profiles')
- *       .select('role, name')
- *       .eq('id', user.id)
- *       .single();
- *     return { id: user.id, name: profile?.name ?? '', email: user.email!, role: profile?.role ?? 'user' };
- *   }
- *
- * שדה ה-role חייב להיות עמודה בטבלת profiles ב-Supabase, מוגנת ב-RLS כך
- * שרק פונקציה מאובטחת בצד שרת (לא המשתמש עצמו) יכולה לשנות אותה - בדיוק
- * כמו שראינו בסכמה של כושרמט לגבי is_admin.
+ * מחזיר את המשתמש המחובר (מאומת מול Supabase) יחד עם התפקיד שלו מטבלת profiles,
+ * או null אם אין משתמש מחובר. התפקיד נקרא מה-DB בלבד - לעולם לא מעוגייה או מהלקוח.
+ * מיועד ל-Server Components ול-Route Handlers.
  */
 export async function getSession(): Promise<SessionUser | null> {
-  return null;
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name, role, status")
+    .eq("id", user.id)
+    .single();
+
+  return {
+    id: user.id,
+    name: profile?.name ?? user.email ?? "",
+    email: user.email ?? "",
+    role: (profile?.role as Role) ?? "user",
+    status: (profile?.status as AccountStatus) ?? "active",
+  };
 }
