@@ -1,63 +1,48 @@
 import { Card } from "@/components/ui/Card";
+import { T } from "@/components/ui/T";
 import { ApiKeysManager } from "@/components/dashboard/ApiKeysManager";
 import { AvatarPicker } from "@/components/dashboard/AvatarPicker";
+import { ProfileNameForm } from "@/components/dashboard/ProfileNameForm";
+import { GithubConnect } from "@/components/dashboard/GithubConnect";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-// TODO: יוחלף בנתוני session אמיתיים מ-Auth.js
-const mockUser = { name: "אורח", email: "guest@example.com", githubConnected: false };
+export default async function ProfilePage() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login?redirectedFrom=/dashboard/profile");
 
-export default function ProfilePage() {
+  const [{ data: profile }, { data: keys }] = await Promise.all([
+    supabase.from("profiles").select("name, avatar").eq("id", user.id).single(),
+    // רק שמות הספקים - הערכים המוצפנים לא נשלפים לצד הלקוח בכלל.
+    supabase.from("api_keys").select("provider").eq("user_id", user.id),
+  ]);
+
+  const githubConnected = !!user.identities?.some((i) => i.provider === "github");
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">פרופיל</h1>
-        <p className="text-ink-secondary mt-1">
-          פרטים אישיים, מפתחות API וחיבורים חיצוניים.
-        </p>
+        <h1 className="text-2xl font-bold"><T k="profile.title" /></h1>
+        <p className="text-ink-secondary mt-1"><T k="profile.subtitle" /></p>
       </div>
 
-      <Card title="תמונת פרופיל" description="בוחרים אחד מהאווטארים המוכנים - בלי צורך בהעלאת קובץ.">
-        <AvatarPicker />
+      <Card title={<T k="profile.avatarTitle" />} description={<T k="profile.avatarDesc" />}>
+        <AvatarPicker userId={user.id} initial={profile?.avatar ?? "leaf"} />
       </Card>
 
-      <Card title="פרטים אישיים">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-ink-muted mb-1 block">שם מלא</label>
-            <input
-              defaultValue={mockUser.name}
-              className="w-full bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-ink-muted mb-1 block">אימייל</label>
-            <input
-              defaultValue={mockUser.email}
-              disabled
-              dir="ltr"
-              className="w-full bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm text-ink-muted"
-            />
-          </div>
-        </div>
+      <Card title={<T k="profile.detailsTitle" />}>
+        <ProfileNameForm userId={user.id} name={profile?.name ?? ""} email={user.email ?? ""} />
       </Card>
 
-      <Card
-        title="מפתחות API"
-        description="דרושים כדי להשתמש בעריכה מבוססת AI על הבלוקים שלך. לא חובה עבור בלוקים שלא נעזרים ב-AI."
-      >
-        <ApiKeysManager />
+      <Card title={<T k="profile.keysTitle" />} description={<T k="profile.keysDesc" />}>
+        <ApiKeysManager configuredProviders={(keys ?? []).map((k) => k.provider)} />
       </Card>
 
-      <Card
-        title="חיבור לגיטהאב"
-        description="מאפשר ייצוא ודחיפה ישירה של פרויקטים קטנים לריפו שלך."
-      >
-        {mockUser.githubConnected ? (
-          <span className="text-sm text-success">מחובר ✓</span>
-        ) : (
-          <button className="text-sm bg-base-panel2 border border-base-border rounded-full px-5 py-2 hover:border-accent transition-colors">
-            התחברות עם GitHub
-          </button>
-        )}
+      <Card title={<T k="profile.githubTitle" />} description={<T k="profile.githubDesc" />}>
+        <GithubConnect connected={githubConnected} />
       </Card>
     </div>
   );
