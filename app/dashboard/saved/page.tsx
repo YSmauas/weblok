@@ -1,48 +1,51 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { T } from "@/components/ui/T";
+import { DeleteRow } from "@/components/dashboard/RowActions";
+import { createClient } from "@/lib/supabase/server";
 
-// TODO: יוחלף בשליפה אמיתית מה-DB לפי משתמש
-const MOCK_SAVED = [
-  { id: "1", blockName: "העוזר החכם", updatedAt: "לפני יומיים" },
-  { id: "2", blockName: "העוזר החכם - גרסת מובייל", updatedAt: "לפני שבוע" },
-];
+export default async function SavedDesignsPage() {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("saved_designs")
+    .select("id, block_slug, name, config, updated_at")
+    .order("updated_at", { ascending: false });
+  const items = data ?? [];
+  const usedKb = items.reduce((n, i) => n + JSON.stringify(i.config).length, 0) / 1024;
 
-export default function SavedDesignsPage() {
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">עיצובים שמורים</h1>
-          <p className="text-ink-secondary mt-1">
-            כל הבלוקים שערכת ושמרת לשימוש חוזר.
-          </p>
+          <h1 className="text-2xl font-bold"><T k="saved.title" /></h1>
+          <p className="text-ink-secondary mt-1"><T k="saved.subtitle" /></p>
         </div>
-        <span className="text-xs text-ink-muted">0.4MB מתוך 10MB בשימוש</span>
+        <span className="text-xs text-ink-muted">
+          {(usedKb / 1024).toFixed(2)}MB <T k="saved.usageSuffix" />
+        </span>
       </div>
 
       <div className="mt-6 grid sm:grid-cols-2 gap-4">
-        {MOCK_SAVED.map((item) => (
+        {items.map((item) => (
           <Card key={item.id}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold">{item.blockName}</h3>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="font-semibold truncate">{item.name}</h3>
                 <p className="text-xs text-ink-muted mt-1">
-                  עודכן {item.updatedAt}
+                  <T k="saved.updated" /> {new Date(item.updated_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button className="text-xs text-accent hover:underline">
-                  עריכה
-                </button>
-                <button className="text-xs text-danger hover:underline">
-                  מחיקה
-                </button>
+              <div className="flex gap-3 shrink-0">
+                <Link href={`/blocks/${encodeURIComponent(item.block_slug)}`} className="text-xs text-accent hover:underline">
+                  <T k="common.edit" />
+                </Link>
+                <DeleteRow table="saved_designs" id={item.id} />
               </div>
             </div>
           </Card>
         ))}
-
-        {MOCK_SAVED.length === 0 && (
-          <p className="text-sm text-ink-muted">עדיין אין עיצובים שמורים.</p>
+        {items.length === 0 && (
+          <p className="text-sm text-ink-muted"><T k="saved.empty" /></p>
         )}
       </div>
     </div>
