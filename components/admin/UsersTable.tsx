@@ -1,40 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { canManageAdmins, type Role } from "@/lib/auth/roles";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 type Status = "active" | "warned" | "suspended";
 
-interface UserRow {
+export interface UserRow {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
-  joined: string;
-  lastSeen: string;
+  role: Exclude<Role, "guest">;
   status: Status;
-  role: Role;
+  created_at: string;
+  last_sign_in_at: string | null;
 }
-
-// TODO: יוחלף בשליפה אמיתית מה-DB, ו-currentUserRole ב-session אמיתי
-const currentUserRole: Role = "owner";
-
-const INITIAL: UserRow[] = [
-  {
-    id: "1",
-    name: "דוגמה בלבד",
-    email: "demo@example.com",
-    joined: "01.09.2026",
-    lastSeen: "היום",
-    status: "active",
-    role: "user",
-  },
-];
-
-const STATUS_LABEL: Record<Status, string> = {
-  active: "פעיל",
-  warned: "הוזהר",
-  suspended: "מושעה",
-};
 
 const STATUS_COLOR: Record<Status, string> = {
   active: "text-success",
@@ -42,105 +23,110 @@ const STATUS_COLOR: Record<Status, string> = {
   suspended: "text-danger",
 };
 
-export function UsersTable() {
-  const [rows, setRows] = useState<UserRow[]>(INITIAL);
+/**
+ * הכפתורים כאן הם נוחות בלבד. כל פעולה נשלחת ל-/api/admin/users/:id, שבודק
+ * הרשאה בשרת, ומשם לפונקציות DB שבודקות אותה שוב - אין אמון ב-UI.
+ */
+export function UsersTable({
+  rows,
+  currentUserId,
+  currentUserRole,
+}: {
+  rows: UserRow[];
+  currentUserId: string;
+  currentUserRole: Role;
+}) {
+  const { t, locale } = useLocale();
+  const router = useRouter();
+  const [error, setError] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const canManage = canManageAdmins(currentUserRole);
 
-  const setStatus = (id: string, status: Status) => {
-    // TODO: קריאה ל-/api/admin/users/:id (מאומת ומוגן ב-RLS בצד השרת)
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-  };
+  async function patch(id: string, body: { status?: Status; role?: "user" | "admin" }) {
+    setBusyId(id);
+    setError(false);
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).catch(() => null);
+    setBusyId(null);
+    if (res?.ok) router.refresh();
+    else setError(true);
+  }
 
-  const toggleAdmin = (id: string) => {
-    // TODO: פעולה זו חייבת להיבדק גם בצד השרת ש-currentUser.role === 'owner',
-    // לא רק כאן ב-UI - זו רק הגנה קוסמטית, לא אבטחה אמיתית.
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, role: r.role === "admin" ? "user" : "admin" } : r))
-    );
-  };
+  const fmt = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(locale) : t("admin.never");
+  const roleLabel = (r: UserRow["role"]) =>
+    t(r === "owner" ? "admin.roleOwner" : r === "admin" ? "admin.roleAdmin" : "admin.roleUser");
+  const btn = "text-xs border border-base-border rounded-full px-3 py-1 transition-colors disabled:opacity-50";
 
   return (
     <div className="overflow-x-auto rounded-card border border-base-border">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-base-panel2 text-ink-secondary text-start">
-            <th className="px-4 py-3 font-medium">משתמש</th>
-            <th className="px-4 py-3 font-medium">הצטרפות</th>
-            <th className="px-4 py-3 font-medium">כניסה אחרונה</th>
-            <th className="px-4 py-3 font-medium">תפקיד</th>
-            <th className="px-4 py-3 font-medium">סטטוס</th>
-            <th className="px-4 py-3 font-medium">פעולות</th>
+            {["admin.colUser", "admin.colJoined", "admin.colLast", "admin.colRole", "admin.colStatus", "admin.colActions"].map((k) => (
+              <th key={k} className="px-4 py-3 font-medium text-start">{t(k)}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-base-border">
-              <td className="px-4 py-3">
-                <p className="font-medium">{r.name}</p>
-                <p className="text-xs text-ink-muted" dir="ltr">
-                  {r.email}
-                </p>
-              </td>
-              <td className="px-4 py-3 text-ink-secondary">{r.joined}</td>
-              <td className="px-4 py-3 text-ink-secondary">{r.lastSeen}</td>
-              <td className="px-4 py-3">
-                <span
-                  className={`text-xs px-2 py-1 rounded-full border ${
-                    r.role === "admin"
-                      ? "border-accent text-accent"
-                      : "border-base-border text-ink-secondary"
-                  }`}
-                >
-                  {r.role === "admin" ? "מנהל" : "משתמש"}
-                </span>
-              </td>
-              <td className={`px-4 py-3 font-medium ${STATUS_COLOR[r.status]}`}>
-                {STATUS_LABEL[r.status]}
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setStatus(r.id, "warned")}
-                    className="text-xs border border-base-border rounded-full px-3 py-1 hover:border-accent transition-colors"
-                  >
-                    הזהרה
-                  </button>
-                  {r.status === "suspended" ? (
-                    <button
-                      onClick={() => setStatus(r.id, "active")}
-                      className="text-xs border border-base-border rounded-full px-3 py-1 hover:border-success transition-colors"
-                    >
-                      ביטול השעיה
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setStatus(r.id, "suspended")}
-                      className="text-xs border border-base-border text-danger rounded-full px-3 py-1 hover:border-danger transition-colors"
-                    >
-                      השעיה
-                    </button>
+          {rows.map((r) => {
+            // בעלים לא ניתן לשינוי; מנהל ניתן לשינוי רק ע"י בעלים; לא משנים את עצמך.
+            const locked = r.role === "owner" || r.id === currentUserId || (r.role === "admin" && !canManage);
+            return (
+              <tr key={r.id} className="border-t border-base-border">
+                <td className="px-4 py-3">
+                  <p className="font-medium">{r.name || "—"}</p>
+                  <p className="text-xs text-ink-muted" dir="ltr">{r.email}</p>
+                </td>
+                <td className="px-4 py-3 text-ink-secondary">{fmt(r.created_at)}</td>
+                <td className="px-4 py-3 text-ink-secondary">{fmt(r.last_sign_in_at)}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-1 rounded-full border ${r.role === "user" ? "border-base-border text-ink-secondary" : "border-accent text-accent"}`}>
+                    {roleLabel(r.role)}
+                  </span>
+                </td>
+                <td className={`px-4 py-3 font-medium ${STATUS_COLOR[r.status]}`}>
+                  {t(`admin.status.${r.status}`)}
+                </td>
+                <td className="px-4 py-3">
+                  {!locked && (
+                    <div className="flex gap-2 flex-wrap">
+                      <button disabled={busyId === r.id} onClick={() => patch(r.id, { status: "warned" })} className={`${btn} hover:border-accent`}>
+                        {t("admin.warn")}
+                      </button>
+                      {r.status === "suspended" ? (
+                        <button disabled={busyId === r.id} onClick={() => patch(r.id, { status: "active" })} className={`${btn} hover:border-success`}>
+                          {t("admin.unsuspend")}
+                        </button>
+                      ) : (
+                        <button disabled={busyId === r.id} onClick={() => patch(r.id, { status: "suspended" })} className={`${btn} text-danger hover:border-danger`}>
+                          {t("admin.suspend")}
+                        </button>
+                      )}
+                      {canManage && (
+                        <button
+                          disabled={busyId === r.id}
+                          onClick={() => patch(r.id, { role: r.role === "admin" ? "user" : "admin" })}
+                          className="text-xs border border-accent/50 text-accent rounded-full px-3 py-1 hover:bg-accent/10 transition-colors disabled:opacity-50"
+                        >
+                          {r.role === "admin" ? t("admin.removeAdmin") : t("admin.makeAdmin")}
+                        </button>
+                      )}
+                    </div>
                   )}
-
-                  {/* כפתור ניהול-מנהלים מוצג רק לבעלים */}
-                  {canManage && (
-                    <button
-                      onClick={() => toggleAdmin(r.id)}
-                      className="text-xs border border-accent/50 text-accent rounded-full px-3 py-1 hover:bg-accent/10 transition-colors"
-                    >
-                      {r.role === "admin" ? "הסרת הרשאת מנהל" : "הפיכה למנהל"}
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
+      {error && <p role="alert" className="text-xs text-danger px-4 py-3 border-t border-base-border">{t("common.error")}</p>}
       {!canManage && (
-        <p className="text-xs text-ink-muted px-4 py-3 border-t border-base-border">
-          רק הבעלים יכול למנות או להסיר מנהלים.
-        </p>
+        <p className="text-xs text-ink-muted px-4 py-3 border-t border-base-border">{t("admin.ownerOnly")}</p>
       )}
     </div>
   );
