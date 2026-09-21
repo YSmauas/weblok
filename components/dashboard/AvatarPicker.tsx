@@ -1,17 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 // כל אווטאר הוא רק צורת SVG פשוטה בגווני הפאלטה שלנו - נשמר ב-DB כמזהה
 // מחרוזת בלבד (למשל "leaf"), בלי שום קובץ תמונה ובלי צורך באחסון קבצים.
-const AVATARS = [
-  { id: "leaf", label: "עלה" },
-  { id: "puzzle", label: "פאזל" },
-  { id: "spark", label: "ניצוץ" },
-  { id: "wave", label: "גל" },
-  { id: "moon", label: "ירח" },
-  { id: "hex", label: "משושה" },
-] as const;
+const AVATARS = [{ id: "leaf" }, { id: "puzzle" }, { id: "spark" }, { id: "wave" }, { id: "moon" }, { id: "hex" }] as const;
 
 function AvatarGlyph({ id }: { id: string }) {
   const common = { stroke: "var(--accent)", strokeWidth: 1.6, fill: "none" } as const;
@@ -60,30 +55,45 @@ function AvatarGlyph({ id }: { id: string }) {
   }
 }
 
-export function AvatarPicker() {
-  const [selected, setSelected] = useState<string>("leaf");
+export function AvatarPicker({ userId, initial }: { userId: string; initial: string }) {
+  const { t } = useLocale();
+  const [selected, setSelected] = useState<string>(initial);
+  const [error, setError] = useState(false);
 
-  const save = (id: string) => {
-    // TODO: לשמור ב-DB כמחרוזת בעמודת avatar בטבלת profiles - אין כאן אחסון קבצים בכלל
+  const save = async (id: string) => {
+    const prev = selected;
     setSelected(id);
+    setError(false);
+    // נשמר כמחרוזת בעמודת avatar בטבלת profiles. RLS + הרשאת עמודה מבטיחים
+    // שמשתמש יכול לעדכן רק את השורה שלו, ורק name/avatar.
+    const { error } = await createClient().from("profiles").update({ avatar: id }).eq("id", userId);
+    if (error) {
+      setSelected(prev);
+      setError(true);
+    }
   };
 
   return (
-    <div className="flex flex-wrap gap-3">
-      {AVATARS.map((a) => (
-        <button
-          key={a.id}
-          onClick={() => save(a.id)}
-          title={a.label}
-          className={`w-12 h-12 rounded-full flex items-center justify-center border transition-colors ${
-            selected === a.id
-              ? "border-accent bg-accent/10"
-              : "border-base-border hover:border-accent/50"
-          }`}
-        >
-          <AvatarGlyph id={a.id} />
-        </button>
-      ))}
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {AVATARS.map((a) => (
+          <button
+            key={a.id}
+            onClick={() => save(a.id)}
+            title={t(`avatar.${a.id}`)}
+            aria-label={t(`avatar.${a.id}`)}
+            aria-pressed={selected === a.id}
+            className={`w-12 h-12 rounded-full flex items-center justify-center border transition-colors ${
+              selected === a.id
+                ? "border-accent bg-accent/10"
+                : "border-base-border hover:border-accent/50"
+            }`}
+          >
+            <AvatarGlyph id={a.id} />
+          </button>
+        ))}
+      </div>
+      {error && <p role="alert" className="text-xs text-danger mt-2">{t("common.error")}</p>}
     </div>
   );
 }

@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 const LINKS = [
-  { href: "/dashboard", label: "סקירה כללית" },
-  { href: "/dashboard/profile", label: "פרופיל ומפתחות API" },
-  { href: "/dashboard/saved", label: "עיצובים שמורים" },
-  { href: "/dashboard/projects", label: "פרויקטים קטנים" },
-  { href: "/dashboard/contact", label: "יצירת קשר" },
+  { href: "/dashboard", label: "dash.nav.overview" },
+  { href: "/dashboard/profile", label: "dash.l.profile.title" },
+  { href: "/dashboard/saved", label: "saved.title" },
+  { href: "/dashboard/projects", label: "projects.title" },
+  { href: "/dashboard/contact", label: "dcontact.title" },
 ];
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <nav className="space-y-1 md:sticky md:top-24 h-fit">
@@ -31,7 +33,7 @@ export function DashboardNav() {
                 : "text-ink-secondary hover:text-ink-primary hover:bg-base-panel2"
             }`}
           >
-            {link.label}
+            {t(link.label)}
           </Link>
         );
       })}
