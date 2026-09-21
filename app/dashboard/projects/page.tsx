@@ -1,44 +1,50 @@
 import { Card } from "@/components/ui/Card";
+import { T } from "@/components/ui/T";
+import { DeleteRow, NewProjectButton } from "@/components/dashboard/RowActions";
+import { getSession } from "@/lib/auth/session";
+import { createClient } from "@/lib/supabase/server";
 
-// TODO: יוחלף בשליפה אמיתית מה-DB לפי משתמש
-const MOCK_PROJECTS = [{ id: "1", name: "אתר תדמית קטן", blocksCount: 2 }];
+export default async function ProjectsPage() {
+  const session = await getSession();
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name, blocks")
+    .order("updated_at", { ascending: false });
+  const projects = data ?? [];
 
-export default function ProjectsPage() {
   return (
     <div>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">פרויקטים קטנים</h1>
-          <p className="text-ink-secondary mt-1">
-            אוסף בלוקים שמצטרפים לפרויקט אחד - ייצוא כקובץ או דחיפה ישירה לגיטהאב.
-          </p>
+          <h1 className="text-2xl font-bold"><T k="projects.title" /></h1>
+          <p className="text-ink-secondary mt-1"><T k="projects.subtitle" /></p>
         </div>
-        <button className="text-sm bg-accent text-base-bg font-semibold rounded-full px-5 py-2 hover:bg-accent-hover transition-colors">
-          פרויקט חדש
-        </button>
+        {session && <NewProjectButton userId={session.id} />}
       </div>
 
       <div className="mt-6 space-y-3">
-        {MOCK_PROJECTS.map((p) => (
+        {projects.length === 0 && (
+          <p className="text-sm text-ink-muted"><T k="projects.empty" /></p>
+        )}
+        {projects.map((p) => (
           <Card key={p.id}>
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="font-semibold">{p.name}</h3>
                 <p className="text-xs text-ink-muted mt-1">
-                  {p.blocksCount} בלוקים בפרויקט
+                  {Array.isArray(p.blocks) ? p.blocks.length : 0} <T k="projects.blocks" />
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button className="text-xs border border-base-border rounded-full px-4 py-1.5 hover:border-accent transition-colors">
-                  ייצוא ZIP
+              <div className="flex gap-2 items-center">
+                {/* ייצוא ZIP ודחיפה ל-GitHub טרם נבנו */}
+                <button disabled title="soon" className="text-xs border border-base-border rounded-full px-4 py-1.5 text-ink-muted cursor-not-allowed">
+                  <T k="projects.exportZip" />
                 </button>
-                <button
-                  disabled
-                  title="חבר קודם GitHub בעמוד הפרופיל"
-                  className="text-xs border border-base-border rounded-full px-4 py-1.5 text-ink-muted cursor-not-allowed"
-                >
-                  דחיפה ל-GitHub
+                <button disabled title="soon" className="text-xs border border-base-border rounded-full px-4 py-1.5 text-ink-muted cursor-not-allowed">
+                  <T k="projects.pushGithub" />
                 </button>
+                <DeleteRow table="projects" id={p.id} />
               </div>
             </div>
           </Card>
