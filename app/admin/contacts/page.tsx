@@ -1,32 +1,39 @@
 import { Card } from "@/components/ui/Card";
+import { T } from "@/components/ui/T";
+import { createClient } from "@/lib/supabase/server";
 
-// TODO: יוחלף בשליפה אמיתית מה-DB (מהטופס הציבורי ומהאזור האישי)
-const MOCK_CONTACTS: { id: string; from: string; subject: string; date: string }[] = [];
+export default async function AdminContactsPage() {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("contact_messages")
+    .select("id, name, email, subject, message, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  const contacts = data ?? [];
 
-export default function AdminContactsPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">פניות מערכת</h1>
-      <p className="text-ink-secondary mt-1">
-        פניות מהטופס הציבורי ומהאזור האישי, מרוכזות במקום אחד.
-      </p>
+      <h1 className="text-2xl font-bold"><T k="admin.contactsTitle" /></h1>
+      <p className="text-ink-secondary mt-1"><T k="admin.contactsSubtitle" /></p>
 
       <div className="mt-6 space-y-3">
-        {MOCK_CONTACTS.length === 0 && (
+        {contacts.length === 0 && (
           <Card>
-            <p className="text-sm text-ink-muted">אין פניות חדשות כרגע.</p>
+            <p className="text-sm text-ink-muted"><T k="admin.contactsEmpty" /></p>
           </Card>
         )}
-        {MOCK_CONTACTS.map((c) => (
+        {contacts.map((c) => (
           <Card key={c.id}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{c.subject}</p>
-                <p className="text-xs text-ink-muted mt-1" dir="ltr">
-                  {c.from}
-                </p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-medium">{c.subject || c.name}</p>
+                <p className="text-xs text-ink-muted mt-1" dir="ltr">{c.name} · {c.email}</p>
+                {/* React מבצע escape לטקסט - אין הזרקת HTML מתוכן שהמשתמש שלח */}
+                <p className="text-sm text-ink-secondary mt-3 whitespace-pre-wrap break-words">{c.message}</p>
               </div>
-              <span className="text-xs text-ink-muted">{c.date}</span>
+              <span className="text-xs text-ink-muted shrink-0">
+                {new Date(c.created_at).toLocaleDateString()}
+              </span>
             </div>
           </Card>
         ))}
