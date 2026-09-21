@@ -3,11 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { useSession } from "@/lib/auth/use-session";
+import { roleAtLeast } from "@/lib/auth/roles";
 import { IconChevronDown, IconClose } from "../ui/Icons";
-
-// TODO: יוחלף בבדיקת session/role אמיתית (ראו lib/auth/session.ts)
-const isLoggedIn = false;
-const isAdmin = false;
 
 const BLOCKS_SUBMENU = [{ slug: "chatbot-assistant", name: "העוזר החכם" }];
 
@@ -22,6 +20,8 @@ export function Sidebar({
 }) {
   const [blocksExpanded, setBlocksExpanded] = useState(false);
   const { t } = useLocale();
+  const { loggedIn: isLoggedIn, role } = useSession();
+  const isAdmin = roleAtLeast(role, "admin");
 
   return (
     <>
@@ -54,9 +54,17 @@ export function Sidebar({
           <Link href="/" onClick={onClose} className="sidebar-link">
             {t("sidebar.home")}
           </Link>
-          <Link href="/auth/login" onClick={onClose} className="sidebar-link">
-            {t("sidebar.login")}
-          </Link>
+          {isLoggedIn ? (
+            <form action="/auth/signout" method="post">
+              <button type="submit" className="sidebar-link w-full text-start">
+                {t("sidebar.logout")}
+              </button>
+            </form>
+          ) : (
+            <Link href="/auth/login" onClick={onClose} className="sidebar-link">
+              {t("sidebar.login")}
+            </Link>
+          )}
 
           <div>
             <button
