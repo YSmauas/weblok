@@ -3,6 +3,7 @@ import { Heebo } from "next/font/google";
 import "../styles/globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider>
           <LocaleProvider>{children}</LocaleProvider>
+          <AnalyticsTracker />
         </ThemeProvider>
       </body>
     </html>
