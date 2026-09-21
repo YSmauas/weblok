@@ -5,16 +5,15 @@ import { useLocale } from "@/lib/i18n/locale-provider";
 
 export function JourneyScroll() {
   const { t } = useLocale();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+
   const FEATURES = [
     { title: t("journey.f1.title"), text: t("journey.f1.text") },
     { title: t("journey.f2.title"), text: t("journey.f2.text") },
     { title: t("journey.f3.title"), text: t("journey.f3.text") },
     { title: t("journey.f4.title"), text: t("journey.f4.text") },
   ];
-
-export function JourneyScroll() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let ticking = false;
@@ -117,4 +116,4 @@ export function JourneyScroll() {
       </div>
     </section>
   );
-}
+                }
