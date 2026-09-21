@@ -1,32 +1,48 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { roleAtLeast, PROTECTED_PREFIXES, type Role } from "@/lib/auth/roles";
+import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * חשוב: זו ההגנה האמיתית, לא רק הסתרת קישורים ב-UI.
- * משתמש בלי הרשאה שינסה להגיע ישירות ל-/admin או ל-/dashboard דרך URL
- * ייחסם כאן, לפני שהדף עצמו נטען בכלל - כולל לפני שרינדור React מתחיל.
+ * זו ההגנה הראשונה, לא הצעד היחיד: משתמש בלי הרשאה שינסה להגיע ישירות ל-/admin
+ * או ל-/dashboard ייחסם כאן, לפני שהדף נטען. השכבה השנייה, הבלתי-תלויה, היא RLS
+ * ופונקציות ה-DB המאובטחות - כך שגם עקיפה של ה-middleware לא חושפת נתונים.
  *
- * TODO: להחליף את קריאת ה-role מ-cookie פשוט בבדיקת session אמיתית מול
- * Supabase (@supabase/ssr תומך ב-middleware בדיוק לצורך הזה, ר' session.ts).
- * ה-cookie הנוכחי הוא placeholder בלבד לצורך בניית מבנה האכיפה.
+ * ה-session מאומת מול Supabase (getUser), והתפקיד נקרא מטבלת profiles.
+ * אין יותר קריאת תפקיד מעוגייה שהלקוח יכול לזייף.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
   if (!match) return NextResponse.next();
 
-  const role = (request.cookies.get("weblok-role")?.value ?? "guest") as Role;
+  const { supabase, user, response } = await updateSession(request);
 
-  if (!roleAtLeast(role, match.required)) {
+  if (!user) {
     const url = request.nextUrl.clone();
-    url.pathname = role === "guest" ? "/auth/login" : "/";
+    url.pathname = "/auth/login";
+    url.search = "";
     url.searchParams.set("redirectedFrom", pathname);
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, status")
+    .eq("id", user.id)
+    .single();
+
+  const role = (profile?.role ?? "user") as Role;
+
+  if (profile?.status === "suspended" || !roleAtLeast(role, match.required)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  return response;
 }
 
 export const config = {

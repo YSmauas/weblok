@@ -36,18 +36,7 @@
 
 ---
 
-## שלב 5: מה לשנות בקוד אחרי החיבור
+## שלב 5: מצב הקוד
 
-זה החלק שאני (קלוד) אצטרך לעשות בפעם הבאה שנעבוד על זה, אבל כדי שתדע למה לצפות:
-
-| קובץ | מה יקרה |
-|---|---|
-| `lib/auth/session.ts` | ה-stub `return null` יוחלף במימוש האמיתי מול Supabase (כבר כתוב בהערה בקובץ עצמו - רק צריך "להפשיט" את ה-comment לקוד פעיל) |
-| `middleware.ts` | ה-cookie הזמני `weblok-role` יוחלף בבדיקת session אמיתית עם `@supabase/ssr` (יש דוגמה סטנדרטית בתיעוד של Supabase בשם `updateSession`) |
-| `components/layout/Sidebar.tsx` | הקבועים `isLoggedIn`/`isAdmin` יוחלפו בקריאה אמיתית ל-session |
-| `components/home/ContactSection.tsx` | אותו דבר + הטופס יתחבר ל-`insert` בטבלת `contact_messages` |
-| `app/dashboard/profile/page.tsx` + `ApiKeysManager.tsx` | כפתור השמירה יקרא ל-API route חדש (`/api/keys`) שמצפין את המפתח ושומר ב-`api_keys` |
-| `components/admin/UsersTable.tsx` | הכפתורים יקראו בפועל ל-`set_user_role`/`set_user_status` (הפונקציות כבר קיימות ב-DB, מוגנות RLS) |
-| `app/dashboard/saved`, `app/dashboard/projects` | יתחברו ל-`select`/`insert`/`delete` על `saved_designs`/`projects` |
-
-בכל השורות האלה יש כרגע הערת `// TODO` בקוד שמצביעה בדיוק על מה שצריך לקרות - כך שגם אם תעבוד על זה בעצמך בינתיים (או שנחזור לזה בעוד כמה שיחות), קל למצוא איפה.
+כל חיבורי ה-DB כבר בקוד (אין יותר TODO): session ו-middleware אמיתיים, ניהול משתמשים, פניות, מפתחות API מוצפנים, אווטאר, עיצובים ופרויקטים.
+מה שנשאר לעשות ידנית: להריץ את `supabase/schema.sql` ואחריו `supabase/migrations/0002_stage2_hardening.sql` (אם הפרויקט חדש), להגדיר `KEYS_ENCRYPTION_SECRET` (`openssl rand -base64 32`), להפעיל Manual Linking ב-Supabase Auth (לחיבור GitHub מהפרופיל), ולהפעיל Leaked Password Protection.

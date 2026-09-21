@@ -56,10 +56,12 @@ components/
   ui/                       רכיבים גנריים
 
 lib/
+  supabase/                   קליינטים: client (דפדפן), server, middleware
+  crypto.ts                   הצפנת מפתחות API (AES-256-GCM)
   blocks-registry/          ליבת מנוע הבלוקים - כל בלוק בתיקייה משלו
   auth/
     roles.ts                 מודל ההרשאות
-    session.ts                שכבת session (TODO: לחבר ל-Supabase Auth)
+    session.ts                getSession() - משתמש מאומת + תפקיד מטבלת profiles
   i18n/
     locale-provider.tsx       ניהול שפה, t(), ותמיכת RTL/LTR דינמית
     locales/{he,en,es}.json   מילוני מחרוזות
@@ -90,6 +92,9 @@ lib/
 - [x] מנוע רישום בלוקים + בלוק "העוזר החכם" לדוגמה
 - [x] אזור אישי (`/dashboard`) ופאנל ניהול (`/admin`) - UI מלא, ממתין לחיבור DB
 - [x] מודל הרשאות + middleware לאכיפה
+- [x] כל ה-TODO של חיבור ה-DB הוחלפו: דשבורד, ניהול משתמשים, פניות, מפתחות API, אווטאר, עיצובים ופרויקטים
+- [x] הקשחת DB: תיקון עקיפת הרשאות בפונקציות set_user_role/set_user_status, חסימת anon
+- [x] תרגום מלא (עברית/אנגלית/ספרדית) גם לדשבורד ולפאנל הניהול
 - [ ] קטלוג בלוקים (`/blocks`) ועמוד עורך לבלוק בודד
 - [ ] חיבור Supabase בפועל (Auth + DB + RLS policies)
 - [ ] קטלוג בלוקים נוספים
