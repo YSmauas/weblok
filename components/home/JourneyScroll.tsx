@@ -56,10 +56,13 @@ export function JourneyScroll() {
   return (
     <section
       ref={containerRef}
-      style={{ height: `${FEATURES.length * 90}vh` }}
+      style={{ height: `${FEATURES.length * 90}dvh` }}
       className="relative"
     >
-      <div className="sticky top-0 h-screen flex items-center justify-center px-6">
+      {/* h-screen (100vh) קופץ באנדרואיד/כרום כשסרגל הכתובת מתכווץ/מתרחב בזמן
+          גלילה - זה בדיוק מה שגרם לתחושה שהגלילה "נתקעת" באמצע הסקשן. dvh
+          (dynamic viewport height) עוקב אחרי הגובה האמיתי בזמן אמת. */}
+      <div className="sticky top-0 h-[100dvh] flex items-center justify-center px-6">
         <div className="max-w-4xl w-full grid md:grid-cols-[220px_1fr] gap-12 items-center">
           <div className="relative w-[220px] h-[220px] mx-auto">
             <svg viewBox="0 0 220 220" className="w-full h-full -rotate-90">
