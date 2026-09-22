@@ -1,11 +1,37 @@
+import { useId } from "react";
+
 export function IconPuzzle({ className }: { className?: string }) {
+  const uid = useId();
+  const sheenId = `puzzle-sheen-${uid}`;
+
+  // צורת "החלק האחרון בפאזל": מעלה - זכר בולט החוצה, ימין - נקבה שקועה
+  // פנימה, מטה ושמאל - צלעות חלקות. מראה זכוכית: מילוי שקוף בגוון הנוכחי
+  // (currentColor) + שכבת ברק (highlight) לבנה מלמעלה-שמאל, כדי שיתאים
+  // אוטומטית גם למצב כהה וגם למצב בהיר.
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
+    <svg viewBox="0 0 32 32" className={className} fill="none">
+      <defs>
+        <linearGradient id={sheenId} x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="0.55" stopColor="#fff" stopOpacity="0.08" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
       <path
-        d="M6 4h4c.3 2 2 2 2.4 0H16v4c2 .3 2 2 0 2.4V14h-3.6c-.4-2-2-2-2.4 0H6v-3.6c-2-.4-2-2 0-2.4V4Z"
+        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
+        fill="currentColor"
+        fillOpacity="0.16"
+      />
+      <path
+        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
+        fill={`url(#${sheenId})`}
+      />
+      <path
+        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="1.4"
         strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </svg>
   );
