@@ -26,6 +26,7 @@ html.light {
   --accent: #4f7a38;
   --accent-hover: #416630;
   --accent-soft: rgba(79, 122, 56, 0.1);
+  color-scheme: light;
 }
 
 @layer base {
