@@ -34,17 +34,22 @@ const config: Config = {
       },
       keyframes: {
         float: {
-          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
-          "50%": { transform: "translateY(-18px) rotate(4deg)" },
+          "0%, 100%": { transform: "translateY(0) translateX(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-26px) translateX(8px) rotate(5deg)" },
         },
         floatSlow: {
-          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
-          "50%": { transform: "translateY(14px) rotate(-3deg)" },
+          "0%, 100%": { transform: "translateY(0) translateX(0) rotate(0deg)" },
+          "50%": { transform: "translateY(20px) translateX(-10px) rotate(-4deg)" },
+        },
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
-        float: "float 9s ease-in-out infinite",
-        floatSlow: "floatSlow 13s ease-in-out infinite",
+        float: "float 10s ease-in-out infinite",
+        floatSlow: "floatSlow 15s ease-in-out infinite",
+        fadeInUp: "fadeInUp 0.4s ease-out",
       },
     },
   },
