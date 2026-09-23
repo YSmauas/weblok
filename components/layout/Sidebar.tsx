@@ -112,16 +112,16 @@ export function Sidebar({
             {t("sidebar.accessibility")}
           </button>
 
-          <div className="mt-4 pt-4 border-t border-base-border">
-            <Link
-              href="/dashboard"
-              onClick={onClose}
-              className="block px-3 py-2.5 rounded-lg font-bold text-ink-primary hover:bg-base-panel2 transition-colors"
-            >
-              {t("sidebar.personalArea")}
-            </Link>
+          {isLoggedIn && (
+            <div className="mt-4 pt-4 border-t border-base-border">
+              <Link
+                href="/dashboard"
+                onClick={onClose}
+                className="block px-3 py-2.5 rounded-lg font-bold text-ink-primary hover:bg-base-panel2 transition-colors"
+              >
+                {t("sidebar.personalArea")}
+              </Link>
 
-            {isLoggedIn && (
               <div className="ps-4 border-s border-base-border ms-4 mt-1 space-y-1">
                 <Link href="/dashboard/profile" onClick={onClose} className="submenu-link">
                   {t("sidebar.profile")}
@@ -133,14 +133,14 @@ export function Sidebar({
                   {t("sidebar.contact")}
                 </Link>
               </div>
-            )}
 
-            {isLoggedIn && isAdmin && (
-              <Link href="/admin" onClick={onClose} className="sidebar-link">
-                {t("sidebar.admin")}
-              </Link>
-            )}
-          </div>
+              {isAdmin && (
+                <Link href="/admin" onClick={onClose} className="sidebar-link mt-2">
+                  {t("sidebar.admin")}
+                </Link>
+              )}
+            </div>
+          )}
         </nav>
       </aside>
     </>
