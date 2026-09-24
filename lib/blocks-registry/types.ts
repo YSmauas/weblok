@@ -40,6 +40,13 @@ export interface BlockDefinition {
   defaultValues: () => BlockValues;
   /** מייצר את קוד ההטמעה הבטוח (ללא שדות serverOnly) */
   generate: (values: BlockValues, blockId?: string) => string;
+  /**
+   * מנגנון הייצוא החדש (עצמאי, בלי שרת) - ר' export-types.ts/export.ts.
+   * אופציונלי כרגע: רק בלוקים חדשים/מעודכנים מממשים אותו; `generate`
+   * הישן ממשיך לעבוד עד שכל בלוק יעבור. אל תמחקו את `generate` בלי לוודא
+   * ששום דבר לא תלוי בו יותר.
+   */
+  toOutput?: (values: BlockValues) => import("./export-types").BlockOutput;
   /** קומפוננטת React לתצוגה חיה בעורך */
   Preview: React.ComponentType<{ values: BlockValues }>;
 }
