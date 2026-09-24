@@ -30,7 +30,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [error, setError] = useState<string | null>(
     params.get("error") ? t("auth.errorGeneric") : null
   );
-  const [info, setInfo] = useState<string | null>(null);
+  // הגיע מניסיון התחברות עם אימייל שלא רשום - מסבירים למה הוא בדף ההרשמה
+  const [info, setInfo] = useState<string | null>(
+    mode === "signup" && params.get("notice") === "no-account" ? t("auth.noAccountFound") : null
+  );
 
   const isLogin = mode === "login";
   const callbackUrl = () =>
@@ -67,7 +70,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
           body: JSON.stringify({ email }),
         }).then((r) => r.json()).catch(() => null);
         if (check && check.registered === false) {
-          window.location.href = `/auth/signup?email=${encodeURIComponent(email)}`;
+          const qs = new URLSearchParams({ email, notice: "no-account", next });
+          window.location.href = `/auth/signup?${qs}`;
           return;
         }
         setError(t("auth.errorInvalid"));
@@ -87,7 +91,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
       options: { data: { name }, emailRedirectTo: callbackUrl() },
     });
     if (error) {
-      setError(t("auth.errorGeneric"));
+      const exists = error.code === "user_already_exists" || /already registered/i.test(error.message);
+      setError(t(exists ? "auth.errorExists" : "auth.errorGeneric"));
       setBusy(false);
       return;
     }
@@ -108,7 +113,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <p className="text-ink-secondary text-center mt-1 text-sm">
           {t(isLogin ? "auth.noAccount" : "auth.haveAccount")}{" "}
           <Link
-            href={isLogin ? "/auth/signup" : "/auth/login"}
+            href={`${isLogin ? "/auth/signup" : "/auth/login"}?next=${encodeURIComponent(next)}`}
             className="text-accent hover:underline"
           >
             {t(isLogin ? "auth.signup" : "auth.login")}

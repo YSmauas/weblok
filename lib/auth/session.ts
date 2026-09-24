@@ -17,7 +17,7 @@ export interface SessionUser {
  * מיועד ל-Server Components ול-Route Handlers.
  */
 export async function getSession(): Promise<SessionUser | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

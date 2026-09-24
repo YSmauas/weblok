@@ -5,7 +5,7 @@ import { DeleteRow } from "@/components/dashboard/RowActions";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SavedDesignsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("saved_designs")
     .select("id, block_slug, name, config, updated_at")

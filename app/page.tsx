@@ -7,7 +7,7 @@ import { blocksRegistry } from "@/lib/blocks-registry";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   // public_stats() היא פונקציה ציבורית שמחזירה רק מספרים מצטברים (בלי מידע
   // אישי) - זמינה גם למי שלא מחובר, לכן אפשר לקרוא לה ישירות מדף הבית.
   const { data } = await supabase.rpc("public_stats");

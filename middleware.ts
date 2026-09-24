@@ -14,44 +14,43 @@ import { updateSession } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
-  if (!match) return NextResponse.next();
-
+  // מרעננים את ה-session בכל בקשה (גם בדפים ציבוריים), אחרת טוקן שהתחדש
+  // ב-Server Component לא נשמר בעוגייה והמשתמש מתנתק אקראית.
   const { supabase, user, response } = await updateSession(request);
 
-  if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    url.search = "";
-    url.searchParams.set("redirectedFrom", pathname);
-    return NextResponse.redirect(url);
-  }
+  const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
+  if (!match) return response;
 
-  const { data: profile } = await supabase
+  // הפניה ששומרת את עוגיות ה-session שרועננו ב-updateSession - אחרת הטוקן
+  // החדש הולך לאיבוד וה-refresh token הישן נפסל.
+  const redirectTo = (target: string, from?: string) => {
+    const url = request.nextUrl.clone();
+    url.pathname = target;
+    url.search = "";
+    if (from) url.searchParams.set("redirectedFrom", from);
+    const res = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((c) => res.cookies.set(c));
+    return res;
+  };
+
+  if (!user) return redirectTo("/auth/login", pathname);
+
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role, status")
     .eq("id", user.id)
     .single();
 
-  const role = (profile?.role ?? "user") as Role;
+  // אם אי אפשר לקרוא את הפרופיל לא מניחים שהכל תקין - חוסמים (fail closed)
+  if (error || !profile) return redirectTo("/");
 
-  if (profile?.status === "suspended") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/suspended";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  if (profile.status === "suspended") return redirectTo("/auth/suspended");
 
-  if (!roleAtLeast(role, match.required)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  if (!roleAtLeast(profile.role as Role, match.required)) return redirectTo("/");
 
   return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons/|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
 };

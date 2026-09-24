@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { useSession } from "@/lib/auth/use-session";
@@ -23,6 +23,13 @@ export function Sidebar({
   const { loggedIn: isLoggedIn, role } = useSession();
   const isAdmin = roleAtLeast(role, "admin");
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <>
       <button
@@ -43,7 +50,7 @@ export function Sidebar({
           <span className="font-extrabold text-lg">{t("sidebar.title")}</span>
           <button
             onClick={onClose}
-            aria-label={t("header.menu")}
+            aria-label={t("common.close")}
             className="text-ink-muted hover:text-ink-primary transition-colors"
           >
             <IconClose className="w-5 h-5" />
