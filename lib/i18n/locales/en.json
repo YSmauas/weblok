@@ -24,8 +24,6 @@
   "about.creatorSubtitle": "Yeshiva student aspiring to be a Torah scholar, coding in my free time for fun...",
   "about.projectLink": "Project on GitHub",
   "about.followMe": "Follow me",
-  "about.privacyPlaceholder": "The full privacy policy will appear here.",
-  "about.accessibilityPlaceholder": "The full accessibility statement will appear here.",
   "footer.creditPrefix": "Built with love by",
   "footer.creditName": "Y.M. Mauas",
   "footer.creditTeam": "© team- cloud",
@@ -191,5 +189,11 @@
   "admin.contactsTitle": "System messages",
   "admin.contactsSubtitle": "Messages from the public form and the personal area, in one place.",
   "admin.contactsEmpty": "No new messages right now.",
-  "admin.views": "views"
+  "admin.views": "views",
+  "dash.greeting": "Hello, {name}",
+  "admin.reply": "Reply by email",
+  "keys.errorNotConfigured": "The server isn't set up to store keys yet (missing KEYS_ENCRYPTION_SECRET) - this is a config issue, not yours.",
+  "suspended.title": "Your account is suspended",
+  "suspended.body": "You don't currently have access to your personal area. If you think this is a mistake, contact the team via the contact form on the home page.",
+  "warned.banner": "You've received a warning from the team for violating the usage rules. Further violations may lead to account suspension."
 }

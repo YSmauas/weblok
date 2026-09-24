@@ -97,11 +97,11 @@ export function JourneyScroll() {
             </div>
           </div>
 
-          <div className="text-center md:text-right">
-            <h2 className="text-2xl md:text-[1.8rem] font-bold leading-snug transition-opacity duration-300">
+          <div key={activeIndex} className="text-center md:text-right animate-fadeInUp">
+            <h2 className="text-2xl md:text-[1.8rem] font-bold leading-snug">
               {FEATURES[activeIndex].title}
             </h2>
-            <p className="mt-3 text-ink-secondary leading-relaxed max-w-md mx-auto md:mx-0 transition-opacity duration-300">
+            <p className="mt-3 text-ink-secondary leading-relaxed max-w-md mx-auto md:mx-0">
               {FEATURES[activeIndex].text}
             </p>
             <div className="mt-6 flex gap-2 justify-center md:justify-start">

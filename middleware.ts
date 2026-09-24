@@ -35,7 +35,14 @@ export async function middleware(request: NextRequest) {
 
   const role = (profile?.role ?? "user") as Role;
 
-  if (profile?.status === "suspended" || !roleAtLeast(role, match.required)) {
+  if (profile?.status === "suspended") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/suspended";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (!roleAtLeast(role, match.required)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";

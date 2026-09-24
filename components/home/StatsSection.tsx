@@ -2,13 +2,21 @@
 
 import { useLocale } from "@/lib/i18n/locale-provider";
 
-export function StatsSection() {
+export function StatsSection({
+  registeredUsers,
+  loginsThisMonth,
+  blocksInLibrary,
+}: {
+  registeredUsers: number | null;
+  loginsThisMonth: number | null;
+  blocksInLibrary: number;
+}) {
   const { t } = useLocale();
 
   const STATS = [
-    { label: t("stats.registeredUsers"), value: "—" },
-    { label: t("stats.loginsThisMonth"), value: "—" },
-    { label: t("stats.blocksInLibrary"), value: "1" },
+    { label: t("stats.registeredUsers"), value: registeredUsers ?? "—" },
+    { label: t("stats.loginsThisMonth"), value: loginsThisMonth ?? "—" },
+    { label: t("stats.blocksInLibrary"), value: blocksInLibrary },
   ];
 
   return (

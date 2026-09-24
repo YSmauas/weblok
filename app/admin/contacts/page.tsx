@@ -30,6 +30,12 @@ export default async function AdminContactsPage() {
                 <p className="text-xs text-ink-muted mt-1" dir="ltr">{c.name} · {c.email}</p>
                 {/* React מבצע escape לטקסט - אין הזרקת HTML מתוכן שהמשתמש שלח */}
                 <p className="text-sm text-ink-secondary mt-3 whitespace-pre-wrap break-words">{c.message}</p>
+                <a
+                  href={`mailto:${c.email}?subject=${encodeURIComponent("Re: " + (c.subject || "הפנייה שלך ל-WEblok"))}`}
+                  className="inline-block mt-3 text-xs text-accent hover:underline"
+                >
+                  <T k="admin.reply" />
+                </a>
               </div>
               <span className="text-xs text-ink-muted shrink-0">
                 {new Date(c.created_at).toLocaleDateString()}

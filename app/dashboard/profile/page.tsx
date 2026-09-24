@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
 import { ApiKeysManager } from "@/components/dashboard/ApiKeysManager";
-import { AvatarPicker } from "@/components/dashboard/AvatarPicker";
 import { ProfileNameForm } from "@/components/dashboard/ProfileNameForm";
 import { GithubConnect } from "@/components/dashboard/GithubConnect";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +14,7 @@ export default async function ProfilePage() {
   if (!user) redirect("/auth/login?redirectedFrom=/dashboard/profile");
 
   const [{ data: profile }, { data: keys }] = await Promise.all([
-    supabase.from("profiles").select("name, avatar").eq("id", user.id).single(),
+    supabase.from("profiles").select("name").eq("id", user.id).single(),
     // רק שמות הספקים - הערכים המוצפנים לא נשלפים לצד הלקוח בכלל.
     supabase.from("api_keys").select("provider").eq("user_id", user.id),
   ]);
@@ -28,10 +27,6 @@ export default async function ProfilePage() {
         <h1 className="text-2xl font-bold"><T k="profile.title" /></h1>
         <p className="text-ink-secondary mt-1"><T k="profile.subtitle" /></p>
       </div>
-
-      <Card title={<T k="profile.avatarTitle" />} description={<T k="profile.avatarDesc" />}>
-        <AvatarPicker userId={user.id} initial={profile?.avatar ?? "leaf"} />
-      </Card>
 
       <Card title={<T k="profile.detailsTitle" />}>
         <ProfileNameForm userId={user.id} name={profile?.name ?? ""} email={user.email ?? ""} />

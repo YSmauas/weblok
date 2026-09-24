@@ -98,8 +98,6 @@
   "auth.errorGeneric": "משהו השתבש, נסו שוב.",
   "auth.errorInvalid": "אימייל או סיסמה שגויים.",
   "auth.checkEmail": "שלחנו קישור אימות לאימייל שלכם. לחצו עליו כדי להשלים את ההרשמה.",
-  "about.accessibilityPlaceholder": "הצהרת הנגישות המלאה תופיע כאן.",
-  "about.privacyPlaceholder": "מדיניות הפרטיות המלאה תופיע כאן.",
   "common.save": "שמירה",
   "common.saved": "נשמר ✓",
   "common.delete": "מחיקה",
@@ -191,5 +189,11 @@
   "admin.contactsTitle": "פניות מערכת",
   "admin.contactsSubtitle": "פניות מהטופס הציבורי ומהאזור האישי, מרוכזות במקום אחד.",
   "admin.contactsEmpty": "אין פניות חדשות כרגע.",
-  "admin.views": "צפיות"
+  "admin.views": "צפיות",
+  "dash.greeting": "שלום, {name}",
+  "admin.reply": "תגובה במייל",
+  "keys.errorNotConfigured": "השרת עדיין לא מוגדר לשמור מפתחות (חסר KEYS_ENCRYPTION_SECRET) - זו בעיית הגדרה, לא שלך.",
+  "suspended.title": "החשבון שלך מושעה",
+  "suspended.body": "אין לך כרגע גישה לאזור האישי. אם אתה חושב שזו טעות, אפשר ליצור קשר עם הצוות דרך טופס הפנייה בדף הבית.",
+  "warned.banner": "קיבלת התראה מהצוות בעקבות הפרה של כללי השימוש. הפרות נוספות עלולות להוביל להשעיית החשבון."
 }

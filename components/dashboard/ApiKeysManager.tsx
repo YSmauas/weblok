@@ -14,6 +14,7 @@ interface KeyState {
   configured: boolean; // קיים מפתח שמור בשרת (הערך עצמו אף פעם לא חוזר ללקוח)
   saved: boolean;
   error: boolean;
+  errorCode: string | null;
 }
 
 const PROVIDERS = [{ provider: "gemini", label: "Google Gemini" }];
@@ -29,6 +30,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
       configured: configuredProviders.includes(p.provider),
       saved: false,
       error: false,
+      errorCode: null as string | null,
     }))
   );
 
@@ -37,7 +39,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
 
   async function save(k: KeyState) {
     const value = k.value.trim();
-    if (value.length < 8) return update(k.provider, { error: true, saved: false });
+    if (value.length < 8) return update(k.provider, { error: true, saved: false, errorCode: null });
 
     if (k.storage === "browser") {
       // נשמר רק בדפדפן הזה ולא נשלח לשרת. שימו לב: localStorage אינו מוצפן.
@@ -55,8 +57,12 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider: k.provider, value }),
     }).catch(() => null);
-    if (res?.ok) update(k.provider, { saved: true, error: false, configured: true, value: "" });
-    else update(k.provider, { error: true, saved: false });
+    if (res?.ok) {
+      update(k.provider, { saved: true, error: false, errorCode: null, configured: true, value: "" });
+      return;
+    }
+    const body = await res?.json().catch(() => null);
+    update(k.provider, { error: true, saved: false, errorCode: body?.error ?? null });
   }
 
   async function remove(k: KeyState) {
@@ -126,7 +132,11 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
             </div>
           </div>
 
-          {k.error && <p role="alert" className="text-xs text-danger mt-2">{t("common.error")}</p>}
+          {k.error && (
+            <p role="alert" className="text-xs text-danger mt-2">
+              {k.errorCode === "server_not_configured" ? t("keys.errorNotConfigured") : t("common.error")}
+            </p>
+          )}
           <p className="text-[11px] text-ink-muted mt-2">
             {k.storage === "server"
               ? k.configured

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
+import { getSession } from "@/lib/auth/session";
+import { Greeting } from "@/components/dashboard/Greeting";
 
 const QUICK_LINKS = [
   { href: "/dashboard/profile", k: "dash.l.profile" },
@@ -9,10 +11,15 @@ const QUICK_LINKS = [
   { href: "/dashboard/contact", k: "dash.l.contact" },
 ];
 
-export default function DashboardOverviewPage() {
+export default async function DashboardOverviewPage() {
+  const session = await getSession();
+  const name = session?.name?.split("@")[0] || "";
+
   return (
     <div>
-      <h1 className="text-2xl font-bold"><T k="dash.title" /></h1>
+      <h1 className="text-2xl font-bold">
+        {name ? <Greeting name={name} /> : <T k="dash.title" />}
+      </h1>
       <p className="text-ink-secondary mt-1"><T k="dash.welcome" /></p>
 
       <div className="mt-8 grid sm:grid-cols-2 gap-4">

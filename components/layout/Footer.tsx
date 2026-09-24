@@ -17,8 +17,8 @@ export function Footer({
 
   return (
     <footer className="border-t border-base-border">
-      <div className="max-w-6xl mx-auto px-6 py-8 text-sm text-ink-muted flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
+      <div className="max-w-6xl mx-auto px-6 py-8 text-sm text-ink-muted flex flex-col sm:flex-row items-center sm:justify-between gap-4 text-center sm:text-start">
+        <div className="flex items-center gap-3 flex-wrap justify-center">
           <span>
             {t("footer.creditPrefix")} {t("footer.creditName")}{" "}
             <span dir="ltr">

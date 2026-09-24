@@ -36,7 +36,7 @@ export default async function SavedDesignsPage() {
                 </p>
               </div>
               <div className="flex gap-3 shrink-0">
-                <Link href={`/blocks/${encodeURIComponent(item.block_slug)}`} className="text-xs text-accent hover:underline">
+                <Link href={`/blocks/${encodeURIComponent(item.block_slug)}?design=${item.id}`} className="text-xs text-accent hover:underline">
                   <T k="common.edit" />
                 </Link>
                 <DeleteRow table="saved_designs" id={item.id} />

@@ -7,7 +7,7 @@ const esc = (v: string) => v.replace(/"/g, "&quot;");
  * מייצר את קוד ההטמעה שהלקוח יקבל.
  * חשוב: שדות עם serverOnly (כמו systemPrompt) לעולם לא נכנסים לכאן -
  * הם נשמרים ב-DB ומקושרים דרך blockId. ה-API Route בצד השרת הוא זה
- * שמצרף אותם לבקשה ל-Gemini/Groq בזמן ריצה, יחד עם מפתח ה-API של המשתמש.
+ * שמצרף אותם לבקשה ל-Gemini בזמן ריצה, יחד עם מפתח ה-API של המשתמש.
  */
 export function generate(values: BlockValues, blockId = "{{BLOCK_ID}}") {
   const clientSafeFields = fields.filter((f) => !f.serverOnly);

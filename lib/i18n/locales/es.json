@@ -24,8 +24,6 @@
   "about.creatorSubtitle": "Estudiante de yeshivá que aspira a ser erudito de Torá, programo en mi tiempo libre por diversión...",
   "about.projectLink": "Proyecto en GitHub",
   "about.followMe": "Sígueme",
-  "about.privacyPlaceholder": "Aquí aparecerá la política de privacidad completa del sitio.",
-  "about.accessibilityPlaceholder": "Aquí aparecerá la declaración de accesibilidad completa del sitio.",
   "footer.creditPrefix": "Sitio hecho con amor por",
   "footer.creditName": "Y.M. Mauas",
   "footer.creditTeam": "© equipo- cloud",
@@ -191,5 +189,11 @@
   "admin.contactsTitle": "Mensajes del sistema",
   "admin.contactsSubtitle": "Mensajes del formulario público y del área personal, en un solo lugar.",
   "admin.contactsEmpty": "No hay mensajes nuevos por ahora.",
-  "admin.views": "vistas"
+  "admin.views": "vistas",
+  "dash.greeting": "Hola, {name}",
+  "admin.reply": "Responder por correo",
+  "keys.errorNotConfigured": "El servidor aún no está configurado para guardar claves (falta KEYS_ENCRYPTION_SECRET) - es un problema de configuración, no tuyo.",
+  "suspended.title": "Tu cuenta está suspendida",
+  "suspended.body": "Actualmente no tienes acceso a tu área personal. Si crees que es un error, contacta al equipo mediante el formulario de la página principal.",
+  "warned.banner": "Has recibido una advertencia del equipo por infringir las reglas de uso. Nuevas infracciones pueden llevar a la suspensión de la cuenta."
 }

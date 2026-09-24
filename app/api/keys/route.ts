@@ -33,10 +33,19 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
 
+  let encrypted: string;
+  try {
+    encrypted = encryptSecret(value);
+  } catch {
+    // KEYS_ENCRYPTION_SECRET לא מוגדר/לא תקין בסביבת השרת - זה קונפיג
+    // חסר, לא תקלה זמנית. הודעה ברורה כדי שלא יראה כמו "נסה שוב".
+    return NextResponse.json({ error: "server_not_configured" }, { status: 500 });
+  }
+
   const { error } = await supabase.from("api_keys").upsert({
     user_id: user.id,
     provider,
-    encrypted_value: encryptSecret(value),
+    encrypted_value: encrypted,
     updated_at: new Date().toISOString(),
   });
   if (error) return NextResponse.json({ error: "failed" }, { status: 500 });

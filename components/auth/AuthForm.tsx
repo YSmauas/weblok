@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Card } from "@/components/ui/Card";
 import { IconGithub, IconGoogle } from "@/components/ui/Icons";
@@ -20,12 +20,11 @@ const oauthClass =
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { t } = useLocale();
-  const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("redirectedFrom") ?? params.get("next"));
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(params.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -61,12 +60,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
+        // בלי חשבון בכלל? מפנים להרשמה במקום להציג "סיסמה שגויה" מבלבל.
+        const check = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }).then((r) => r.json()).catch(() => null);
+        if (check && check.registered === false) {
+          window.location.href = `/auth/signup?email=${encodeURIComponent(email)}`;
+          return;
+        }
         setError(t("auth.errorInvalid"));
         setBusy(false);
         return;
       }
-      router.replace(next);
-      router.refresh();
+      // ניווט מלא (לא router.replace) - כדי שהעוגיות של ה-session יגיעו
+      // בוודאות ל-middleware בבקשה הבאה. זה מה שגרם לתחושה ש"ההתחברות
+      // הצליחה אבל שום דבר לא קורה".
+      window.location.href = next;
       return;
     }
 
@@ -81,8 +92,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       return;
     }
     if (data.session) {
-      router.replace(next);
-      router.refresh();
+      window.location.href = next;
       return;
     }
     setInfo(t("auth.checkEmail"));

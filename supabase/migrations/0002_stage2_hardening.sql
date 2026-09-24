@@ -1,0 +1,11 @@
+-- הורץ כבר על פרויקט ה-Supabase (stage2_hardening_avatar_admin_list). נשמר כאן לתיעוד ולשחזור.
+-- 1) עמודת avatar + הרשאת עדכון עמודות name/avatar בלבד
+-- 2) set_user_role / set_user_status: בדיקות NULL-safe (is distinct from). בגרסה הקודמת
+--    current_role() החזיר NULL עבור anon, והתנאי `<>`/`not in` לא זרק שגיאה -> היה אפשר לעקוף.
+--    בנוסף: לא ניתן לשנות owner; רק owner משנה admin.
+-- 3) admin_list_users(): רשימת משתמשים כולל אימייל וכניסה אחרונה, ל-admin/owner בלבד
+-- 4) revoke EXECUTE מ-anon על פונקציות ניהול; מ-everyone על פונקציות טריגר
+-- 5) contact_messages: אי אפשר לזייף user_id, והגבלות אורך
+-- (הקוד המלא: ראו היסטוריית המיגרציות ב-Supabase - list_migrations)
+-- stage3_analytics_rate_limit (הורץ): טבלאות rate_limits ו-analytics_events, הפונקציות check_rate_limit
+-- (service_role בלבד) ו-admin_analytics (admin/owner). מלא בהיסטוריית המיגרציות ב-Supabase.
