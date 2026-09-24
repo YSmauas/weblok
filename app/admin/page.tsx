@@ -8,8 +8,10 @@ interface Analytics {
   top_blocks: { slug: string; views: number }[];
 }
 
-const mmss = (sec: number) =>
-  `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
+const mmss = (sec: number) => {
+  const total = Math.round(sec);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+};
 
 export default async function AdminOverviewPage() {
   const supabase = await createClient();

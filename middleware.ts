@@ -14,10 +14,12 @@ import { updateSession } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
-  if (!match) return NextResponse.next();
-
+  // מרעננים את ה-session בכל בקשה (גם בדפים ציבוריים), אחרת טוקן שהתחדש
+  // ב-Server Component לא נשמר בעוגייה והמשתמש מתנתק אקראית.
   const { supabase, user, response } = await updateSession(request);
+
+  const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
+  if (!match) return response;
 
   if (!user) {
     const url = request.nextUrl.clone();
@@ -53,5 +55,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons/|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
 };
