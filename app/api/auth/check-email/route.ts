@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const email = String(body?.email ?? "").trim();
   if (!EMAIL.test(email)) return NextResponse.json({ error: "invalid" }, { status: 400 });
 
-  const { data, error } = await createClient().rpc("email_registered", { p_email: email });
+  const { data, error } = await (await createClient()).rpc("email_registered", { p_email: email });
   if (error) return NextResponse.json({ error: "failed" }, { status: 500 });
   return NextResponse.json({ registered: data === true });
 }

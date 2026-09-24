@@ -11,7 +11,7 @@ const isProvider = (v: unknown): v is Provider =>
   typeof v === "string" && (PROVIDERS as readonly string[]).includes(v);
 
 async function requireUser() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

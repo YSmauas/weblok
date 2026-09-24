@@ -12,7 +12,8 @@ const ROLES = ["user", "admin"]; // owner לא ניתן להענקה דרך ה-A
  * הבדיקה כאן היא שכבה ראשונה; שכבת האמת היא הפונקציות ב-DB (set_user_status /
  * set_user_role) שבודקות את ההרשאה בעצמן ולא סומכות על השרת שקורא להן.
  */
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getSession();
   if (!session || session.status === "suspended" || !roleAtLeast(session.role, "admin")) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -20,7 +21,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!UUID.test(params.id)) return NextResponse.json({ error: "invalid" }, { status: 400 });
 
   const body = await request.json().catch(() => null);
-  const supabase = createClient();
+  const supabase = await createClient();
 
   if (typeof body?.status === "string") {
     if (!STATUSES.includes(body.status)) {

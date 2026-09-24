@@ -5,8 +5,8 @@ import { cookies } from "next/headers";
  * קליינט Supabase לצד שרת (Server Components, Route Handlers, Server Actions).
  * פועל בשם המשתמש המחובר (לפי עוגיות ה-session), כך ש-RLS נאכף כרגיל.
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

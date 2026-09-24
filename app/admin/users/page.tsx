@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminUsersPage() {
   const session = await getSession();
-  const supabase = createClient();
+  const supabase = await createClient();
   // הפונקציה בודקת ב-DB שהקורא הוא admin/owner - גם אם ה-middleware היה מדולג.
   const { data } = await supabase.rpc("admin_list_users");
 

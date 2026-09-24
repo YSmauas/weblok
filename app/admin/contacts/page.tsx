@@ -3,7 +3,7 @@ import { T } from "@/components/ui/T";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminContactsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("contact_messages")
     .select("id, name, email, subject, message, status, created_at")
