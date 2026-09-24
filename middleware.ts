@@ -21,35 +21,32 @@ export async function middleware(request: NextRequest) {
   const match = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p.prefix));
   if (!match) return response;
 
-  if (!user) {
+  // הפניה ששומרת את עוגיות ה-session שרועננו ב-updateSession - אחרת הטוקן
+  // החדש הולך לאיבוד וה-refresh token הישן נפסל.
+  const redirectTo = (target: string, from?: string) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = target;
     url.search = "";
-    url.searchParams.set("redirectedFrom", pathname);
-    return NextResponse.redirect(url);
-  }
+    if (from) url.searchParams.set("redirectedFrom", from);
+    const res = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((c) => res.cookies.set(c));
+    return res;
+  };
 
-  const { data: profile } = await supabase
+  if (!user) return redirectTo("/auth/login", pathname);
+
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role, status")
     .eq("id", user.id)
     .single();
 
-  const role = (profile?.role ?? "user") as Role;
+  // אם אי אפשר לקרוא את הפרופיל לא מניחים שהכל תקין - חוסמים (fail closed)
+  if (error || !profile) return redirectTo("/");
 
-  if (profile?.status === "suspended") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/suspended";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  if (profile.status === "suspended") return redirectTo("/auth/suspended");
 
-  if (!roleAtLeast(role, match.required)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  if (!roleAtLeast(profile.role as Role, match.required)) return redirectTo("/");
 
   return response;
 }

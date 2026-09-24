@@ -25,11 +25,12 @@ const nextConfig = {
             // כדי שקוד שמשתמש הדביק בעורך לא יוכל "לזלוג" בקשות לשרתים זרים.
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              // ב-next dev ה-webpack משתמש ב-eval ל-source maps; ב-production לא
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
               "frame-ancestors 'none'",
             ].join("; "),
           },

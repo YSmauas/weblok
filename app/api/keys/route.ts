@@ -10,11 +10,16 @@ type Provider = (typeof PROVIDERS)[number];
 const isProvider = (v: unknown): v is Provider =>
   typeof v === "string" && (PROVIDERS as readonly string[]).includes(v);
 
+/** המשתמש המחובר, או null אם אין משתמש או שהחשבון מושעה. */
 async function requireUser() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return { supabase, user: null };
+
+  const { data: profile } = await supabase.from("profiles").select("status").eq("id", user.id).single();
+  if (!profile || profile.status === "suspended") return { supabase, user: null };
   return { supabase, user };
 }
 

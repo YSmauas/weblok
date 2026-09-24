@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** פנייה מהטופס הציבורי או מהאזור האישי. ה-user_id נקבע בשרת לפי ה-session, לא מהלקוח. */
+/**
+ * פנייה מהטופס הציבורי או מהאזור האישי. ה-user_id נקבע בשרת לפי ה-session, לא מהלקוח.
+ * הכתיבה לטבלה נעשית רק מכאן (service key): ההרשאה לכתוב ישירות נסגרה ב-migration 0003,
+ * כדי שאי אפשר יהיה לעקוף את הגבלת הקצב והוולידציה.
+ */
 export async function POST(request: Request) {
   // מקסימום 5 פניות ל-10 דקות לכל גולש - מונע הצפת הטבלה בספאם.
   if (!(await rateLimit(`contact:${clientKey(request)}`, 5, 600))) {
@@ -31,7 +36,14 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("status").eq("id", user.id).single();
+    if (profile?.status === "suspended") {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+  }
+
+  const { error } = await createAdminClient()
     .from("contact_messages")
     .insert({ user_id: user?.id ?? null, name, email, subject, message });
   if (error) return NextResponse.json({ error: "failed" }, { status: 500 });
