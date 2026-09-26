@@ -50,7 +50,8 @@ export function AboutModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button aria-label="close" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-lg glass rounded-card shadow-2xl">
+      {/* תוקן הקונטרסט במצב בהיר על ידי הוספת bg-base-panel ושמירה על תכונות ה-glass */}
+      <div className="relative w-full max-w-lg bg-base-panel glass rounded-card shadow-2xl border border-base-border">
         <div className="flex items-center justify-between px-5 pt-5">
           <div className="flex gap-1 bg-base-bg/50 rounded-full p-1 border border-base-border">
             {TABS.map((tItem) => (
