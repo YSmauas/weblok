@@ -2,6 +2,7 @@
 
 import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
 import { callGemini, GeminiError } from "./gemini";
+import { decryptFromBrowser, encryptForBrowser } from "./key-vault";
 import { buildImprovePrompt, buildRedesignPrompt, cleanImproved, parseRedesignChanges } from "./prompts";
 
 /**
@@ -12,19 +13,51 @@ import { buildImprovePrompt, buildRedesignPrompt, cleanImproved, parseRedesignCh
  */
 
 export type AiProvider = "gemini";
-const storageKey = (p: AiProvider) => `weblok-apikey-${p}`;
+/** שם ישן - בגרסה קודמת המפתח נשמר כאן כטקסט גלוי; מועבר אוטומטית לכספת */
+const legacyKey = (p: AiProvider) => `weblok-apikey-${p}`;
+const vaultKey = (p: AiProvider) => `weblok-apikey-${p}.enc`;
 
-export function readBrowserKey(provider: AiProvider = "gemini"): string | null {
+function storage(): Storage | null {
   try {
-    return localStorage.getItem(storageKey(provider));
+    return window.localStorage;
   } catch {
     return null;
   }
 }
 
-export function writeBrowserKey(value: string, provider: AiProvider = "gemini"): boolean {
+/** האם שמור מפתח בדפדפן (בלי לפענח אותו) - לתצוגה בלבד */
+export function hasBrowserKey(provider: AiProvider = "gemini"): boolean {
+  const ls = storage();
+  return !!ls && !!(ls.getItem(vaultKey(provider)) || ls.getItem(legacyKey(provider)));
+}
+
+/** מפענח את המפתח השמור בדפדפן (ומעביר מפתח ישן בטקסט גלוי לכספת המוצפנת). */
+export async function readBrowserKey(provider: AiProvider = "gemini"): Promise<string | null> {
+  const ls = storage();
+  if (!ls) return null;
+  const legacy = ls.getItem(legacyKey(provider));
+  if (legacy) {
+    ls.removeItem(legacyKey(provider));
+    await writeBrowserKey(legacy, provider);
+    return legacy;
+  }
+  const payload = ls.getItem(vaultKey(provider));
+  if (!payload) return null;
   try {
-    localStorage.setItem(storageKey(provider), value.trim());
+    return await decryptFromBrowser(payload);
+  } catch {
+    // מפתח ההצפנה נמחק (ניקוי נתוני אתר) - הצופן כבר לא שמיש
+    ls.removeItem(vaultKey(provider));
+    return null;
+  }
+}
+
+/** שומר את המפתח מוצפן. false אם הדפדפן לא מאפשר (גלישה פרטית, חסימת אחסון). */
+export async function writeBrowserKey(value: string, provider: AiProvider = "gemini"): Promise<boolean> {
+  const ls = storage();
+  if (!ls) return false;
+  try {
+    ls.setItem(vaultKey(provider), await encryptForBrowser(value.trim()));
     return true;
   } catch {
     return false;
@@ -32,11 +65,9 @@ export function writeBrowserKey(value: string, provider: AiProvider = "gemini"):
 }
 
 export function removeBrowserKey(provider: AiProvider = "gemini") {
-  try {
-    localStorage.removeItem(storageKey(provider));
-  } catch {
-    /* אין גישה ל-localStorage - אין מה למחוק */
-  }
+  const ls = storage();
+  ls?.removeItem(vaultKey(provider));
+  ls?.removeItem(legacyKey(provider));
 }
 
 /** קוד שגיאה אחיד לתצוגה (מפתח i18n: ai.err.<code>) */
@@ -80,7 +111,7 @@ async function postJson(url: string, body: unknown) {
 }
 
 export async function improveText(text: string, label: string): Promise<AiResult<string>> {
-  const browserKey = readBrowserKey();
+  const browserKey = await readBrowserKey();
   if (browserKey) {
     try {
       const improved = cleanImproved(await callGemini({ apiKey: browserKey, prompt: buildImprovePrompt(text, label) }));
@@ -100,7 +131,7 @@ export async function redesignBlock(
   values: BlockValues,
   description: string
 ): Promise<AiResult<Record<string, string>>> {
-  const browserKey = readBrowserKey();
+  const browserKey = await readBrowserKey();
   if (browserKey) {
     try {
       const raw = await callGemini({

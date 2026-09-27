@@ -15,17 +15,24 @@ export function ApiKeyInput({ value, onChange }: { value: string; onChange: (v: 
   const [fromBrowser, setFromBrowser] = useState(false);
 
   useEffect(() => {
-    const stored = readBrowserKey();
-    if (stored && !value) {
+    let alive = true;
+    readBrowserKey().then((stored) => {
+      if (!alive || !stored) return;
       onChange(stored);
       setFromBrowser(true);
-    }
+    });
+    return () => {
+      alive = false;
+    };
     // רק בטעינה הראשונה
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // נשמר (מוצפן) רק כשהמשתמש מסמן, ורק אחרי שהפסיק להקליד
   useEffect(() => {
-    if (remember && value.trim().length >= 8) writeBrowserKey(value);
+    if (!remember || value.trim().length < 8) return;
+    const timer = setTimeout(() => writeBrowserKey(value), 600);
+    return () => clearTimeout(timer);
   }, [remember, value]);
 
   return (

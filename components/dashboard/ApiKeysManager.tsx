@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconKey } from "../ui/Icons";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { readBrowserKey, removeBrowserKey, writeBrowserKey, type AiProvider } from "@/lib/ai/client";
+import { hasBrowserKey, removeBrowserKey, writeBrowserKey, type AiProvider } from "@/lib/ai/client";
 
 type StorageMode = "server" | "browser";
 
@@ -43,7 +43,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
   useEffect(() => {
     setKeys((prev) =>
       prev.map((k) => {
-        const inBrowser = !!readBrowserKey(k.provider as AiProvider);
+        const inBrowser = hasBrowserKey(k.provider as AiProvider);
         return inBrowser ? { ...k, inBrowser, storage: k.configured ? k.storage : "browser" } : k;
       })
     );
@@ -54,8 +54,8 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
     if (value.length < 8) return update(k.provider, { error: true, saved: false, errorCode: null });
 
     if (k.storage === "browser") {
-      // נשמר רק בדפדפן הזה ולא נשלח לשרת. שימו לב: localStorage אינו מוצפן.
-      if (writeBrowserKey(value, k.provider as AiProvider)) {
+      // נשמר רק בדפדפן הזה ולא נשלח לשרת - מוצפן עם מפתח שאי אפשר לייצא (lib/ai/key-vault.ts).
+      if (await writeBrowserKey(value, k.provider as AiProvider)) {
         update(k.provider, { saved: true, error: false, value: "", inBrowser: true });
       } else {
         update(k.provider, { error: true, saved: false });
