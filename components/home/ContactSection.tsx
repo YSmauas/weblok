@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { useSession } from "@/lib/auth/use-session";
 import { ContactForm } from "@/components/contact/ContactForm";
+import { Reveal } from "@/components/ui/Reveal";
 
 export function ContactSection() {
   const { t } = useLocale();
@@ -11,7 +12,7 @@ export function ContactSection() {
 
   if (loggedIn) {
     return (
-      <section className="max-w-xl mx-auto px-6 py-20 text-center">
+      <Reveal className="max-w-xl mx-auto px-6 py-20 text-center">
         <h2 className="text-2xl font-bold">{t("contact.loggedInTitle")}</h2>
         <p className="mt-3 text-ink-secondary">{t("contact.loggedInText")}</p>
         <Link
@@ -20,17 +21,19 @@ export function ContactSection() {
         >
           {t("contact.loggedInCta")}
         </Link>
-      </section>
+      </Reveal>
     );
   }
 
   return (
     <section className="max-w-xl mx-auto px-6 py-20">
-      <h2 className="text-2xl font-bold text-center">{t("contact.title")}</h2>
-      <p className="mt-3 text-ink-secondary text-center">{t("contact.subtitle")}</p>
-      <div className="mt-8">
+      <Reveal>
+        <h2 className="text-2xl font-bold text-center">{t("contact.title")}</h2>
+        <p className="mt-3 text-ink-secondary text-center">{t("contact.subtitle")}</p>
+      </Reveal>
+      <Reveal delay={120} className="mt-8">
         <ContactForm panel showSubject={false} />
-      </div>
+      </Reveal>
     </section>
   );
 }

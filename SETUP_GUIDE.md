@@ -51,3 +51,7 @@
 - `projects.github_branch`.
 
 אופציונלי: `NEXT_PUBLIC_SITE_URL` (ר' `.env.example`) - לתגיות מטא ולקרדיט בקוד המיוצא.
+
+## שלב 7: ספירת כניסות ואנליטיקה (migration 0005)
+
+להריץ ב-SQL Editor את `supabase/migrations/0005_login_stats_analytics.sql`. הוא מוסיף ספירת כניסות (טריגר על `auth.sessions`, עם השלמת היסטוריה מיומן האימות אם קיים), את `public_stats_totals()` לדף הבית, ואת `admin_analytics_v2()` לפאנל הניהול. עד ההרצה - המספרים החדשים מוצגים כ"—".

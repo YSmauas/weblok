@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { Reveal } from "@/components/ui/Reveal";
 
 export function JourneyScroll() {
   const { t } = useLocale();
@@ -58,13 +59,13 @@ export function JourneyScroll() {
     {/* במובייל: כרטיסים רגילים. גלילה "דביקה" של 4 מסכים שלמים מתישה באצבע */}
     <section className="md:hidden px-4 py-14 space-y-4">
       {FEATURES.map((f, i) => (
-        <div key={f.title} className="rounded-card border border-base-border bg-base-panel/60 p-5">
+        <Reveal key={f.title} delay={i * 60} className="rounded-card border border-base-border bg-base-panel/60 p-5">
           <span className="w-7 h-7 rounded-full bg-accent text-base-bg text-sm font-bold inline-flex items-center justify-center">
             {i + 1}
           </span>
           <h2 className="text-lg font-bold mt-3">{f.title}</h2>
           <p className="mt-1.5 text-sm text-ink-secondary leading-relaxed">{f.text}</p>
-        </div>
+        </Reveal>
       ))}
     </section>
     <section

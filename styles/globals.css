@@ -117,6 +117,43 @@ html.light {
 }
 
 @layer utilities {
+  /* חשיפה בגלילה (components/ui/Reveal.tsx) */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-in {
+    opacity: 1;
+    transform: none;
+  }
+  /* כניסה מדורגת של אלמנטים בטעינה (animate-rise + [animation-delay:...]) */
+  .animate-rise {
+    animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  /* ברק שעובר על טקסט מודגש */
+  .text-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 6s linear infinite;
+  }
+  @keyframes shimmer {
+    to {
+      background-position: -200% center;
+    }
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
   }
@@ -134,6 +171,10 @@ html.light {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
   *,
   *::before,
   *::after {
