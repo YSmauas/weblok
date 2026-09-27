@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { BlockDefinition, BlockValues, FieldDef } from "@/lib/blocks-registry/types";
+import { getBlockDefinition } from "@/lib/blocks-registry";
+import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
 import { exportBlock, type ExportFormat } from "@/lib/blocks-registry/export";
 import { downloadAsZip } from "@/lib/download-zip";
 import { createClient } from "@/lib/supabase/client";
@@ -15,21 +16,25 @@ const FORMATS: { id: ExportFormat; label: string }[] = [
 ];
 
 export function BlockEditorClient({
-  block,
+  slug,
   userId,
   initialValues,
   initialName,
   savedId,
 }: {
-  block: BlockDefinition;
+  slug: string;
   userId: string | null;
   initialValues?: BlockValues;
   initialName?: string;
   savedId?: string;
 }) {
   const router = useRouter();
-  const [values, setValues] = useState<BlockValues>(initialValues ?? block.defaultValues());
-  const [name, setName] = useState(initialName ?? block.meta.name);
+  // הרישום (blocks-registry) הוא לוגיקה טהורה בצד לקוח - אין שום סיבה
+  // (וגם אי אפשר, כי block.Preview/generate/toOutput הן פונקציות) להעביר
+  // את האובייקט הזה משרת ללקוח. הקומפוננטה טוענת אותו בעצמה לפי ה-slug.
+  const block = getBlockDefinition(slug);
+  const [values, setValues] = useState<BlockValues>(initialValues ?? block?.defaultValues() ?? {});
+  const [name, setName] = useState(initialName ?? block?.meta.name ?? "");
   const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
   const [format, setFormat] = useState<ExportFormat>("html");
   const [aiField, setAiField] = useState<string | null>(null);
@@ -45,7 +50,7 @@ export function BlockEditorClient({
   const set = (id: string, v: string) => setValues((prev) => ({ ...prev, [id]: v }));
 
   const output = useMemo(
-    () => (block.toOutput ? block.toOutput(values) : null),
+    () => (block?.toOutput ? block.toOutput(values) : null),
     [block, values]
   );
   const exported = useMemo(
@@ -53,174 +58,97 @@ export function BlockEditorClient({
     [output, format]
   );
 
+  if (!block) {
+    return <p className="text-sm text-danger">הבלוק &quot;{slug}&quot; לא נמצא ברישום.</p>;
+  }
+
   async function improveWithAi(field: FieldDef) {
-    try {
-      setAiField(field.id);
-      const res = await fetch("/api/ai/improve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: values[field.id] ?? "", label: field.label }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data?.error === "no_key") {
-          router.push("/dashboard/profile");
-          return;
-        }
-        throw new Error(data?.error || "AI improvement failed");
-      }
-
-      const data = await res.json();
-      if (data?.text) {
-        set(field.id, data.text);
-      } else {
-        throw new Error("No text returned from AI");
-      }
-    } catch (error) {
-      console.error("AI improve error:", error);
-      // Silent fail - user sees no change if AI fails
-    } finally {
-      setAiField(null);
+    setAiField(field.id);
+    const res = await fetch("/api/ai/improve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: values[field.id] ?? "", label: field.label }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null);
+    setAiField(null);
+    if (res?.ok && data?.text) {
+      set(field.id, data.text);
+    } else if (data?.error === "no_key") {
+      router.push("/dashboard/profile");
     }
   }
 
   async function applyAiRedesign() {
     if (!aiDescription.trim()) return;
-    try {
-      setAiRedesignBusy(true);
-      setAiRedesignError(null);
-
-      const res = await fetch("/api/ai/redesign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blockSlug: block.meta.slug, description: aiDescription, values }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data?.error === "no_key") {
-          router.push("/dashboard/profile");
-          return;
-        }
-        throw new Error(data?.error || "AI redesign failed");
-      }
-
-      const data = await res.json();
-      if (data?.changes && typeof data.changes === "object") {
-        setValues((prev) => ({ ...prev, ...data.changes }));
-        setUsedAi(true);
-        setAiDescription("");
-        setAiRedesignOpen(false);
-      } else {
-        throw new Error("No changes returned from AI");
-      }
-    } catch (error) {
-      console.error("AI redesign error:", error);
-      setAiRedesignError(
-        error instanceof Error ? error.message : "לא הצלחתי להחיל את הבקשה. נסו לנסח אחרת."
-      );
-    } finally {
-      setAiRedesignBusy(false);
+    setAiRedesignBusy(true);
+    setAiRedesignError(null);
+    const res = await fetch("/api/ai/redesign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blockSlug: slug, description: aiDescription, values }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null);
+    setAiRedesignBusy(false);
+    if (res?.ok && data?.changes) {
+      setValues((prev) => ({ ...prev, ...data.changes }));
+      setUsedAi(true);
+      setAiDescription("");
+      setAiRedesignOpen(false);
+      return;
     }
+    if (data?.error === "no_key") {
+      router.push("/dashboard/profile");
+      return;
+    }
+    setAiRedesignError("לא הצלחתי להחיל את הבקשה. נסו לנסח אחרת.");
   }
 
   async function saveDesign() {
     if (!userId) {
-      router.push(`/auth/login?redirectedFrom=/blocks/${block.meta.slug}`);
+      router.push(`/auth/login?redirectedFrom=/blocks/${slug}`);
       return;
     }
-
-    // Validate name
-    const trimmedName = (name ?? "").trim();
-    if (!trimmedName || trimmedName.length > 80) {
-      setSaveState("error");
-      setSaveErrorMsg("שם העיצוב חייב להיות בין 1 ל-80 תווים");
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setSaveState("idle");
-      const supabase = createClient();
-
-      const payload = {
-        name: trimmedName,
-        config: values,
-        ai_edited: usedAi,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = savedId
-        ? await supabase
-            .from("saved_designs")
-            .update(payload)
-            .eq("id", savedId)
-        : await supabase
-            .from("saved_designs")
-            .insert({
-              user_id: userId,
-              block_slug: block.meta.slug,
-              ...payload,
-            });
-
-      if (error) {
-        throw error;
-      }
-
-      setSaveState("saved");
-      setSaveErrorMsg(null);
-      router.refresh();
-
-      // Reset "saved" state after 2 seconds
-      setTimeout(() => setSaveState("idle"), 2000);
-    } catch (error) {
-      console.error("Save error:", error);
-      setSaveState("error");
-      setSaveErrorMsg(
-        error instanceof Error
-          ? error.message
-          : "משהו השתבש בשמירה. אנא נסו שוב."
-      );
-    } finally {
-      setSaving(false);
-    }
+    setSaving(true);
+    setSaveState("idle");
+    const supabase = createClient();
+    const { error } = savedId
+      ? await supabase
+          .from("saved_designs")
+          .update({ name, config: values, ai_edited: usedAi, updated_at: new Date().toISOString() })
+          .eq("id", savedId)
+      : await supabase
+          .from("saved_designs")
+          .insert({ user_id: userId, block_slug: slug, name, config: values, ai_edited: usedAi });
+    setSaving(false);
+    setSaveState(error ? "error" : "saved");
+    setSaveErrorMsg(error ? error.message : null);
+    if (!error) router.refresh();
   }
 
   function download() {
     if (!exported) return;
-    try {
-      if (Object.keys(exported.files).length > 1) {
-        downloadAsZip(exported.files, `${block.meta.slug}.zip`);
-        return;
-      }
-      const [fileName, content] = Object.entries(exported.files)[0];
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download error:", error);
-      alert("לא הצלחנו להוריד את הקובץ. אנא נסו שוב.");
+    if (Object.keys(exported.files).length > 1) {
+      downloadAsZip(exported.files, `${slug}.zip`);
+      return;
     }
+    const [fileName, content] = Object.entries(exported.files)[0] as [string, string];
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   const copyCode = () => {
     if (!exported) return;
-    try {
-      const text = Object.entries(exported.files)
-        .map(([n, c]) => (Object.keys(exported.files).length > 1 ? `// ${n}\n${c}` : c))
-        .join("\n\n");
-      navigator.clipboard.writeText(text);
-    } catch (error) {
-      console.error("Copy error:", error);
-      alert("לא הצלחנו להעתיק את הקוד. אנא נסו שוב.");
-    }
+    const text = Object.entries(exported.files)
+      .map(([n, c]) => (Object.keys(exported.files).length > 1 ? `// ${n}\n${c}` : c))
+      .join("\n\n");
+    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -286,8 +214,8 @@ export function BlockEditorClient({
             <div className="flex gap-2">
               <input
                 value={aiDescription}
-                onChange={(e) => setAiDescription(e.target.value.slice(0, 500))}
-                onKeyDown={(e) => e.key === "Enter" && !aiRedesignBusy && applyAiRedesign()}
+                onChange={(e) => setAiDescription(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyAiRedesign()}
                 placeholder="לדוגמה: עיצוב זכוכית כהה עם מגע כחול..."
                 maxLength={500}
                 className="flex-1 bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
@@ -363,7 +291,7 @@ export function BlockEditorClient({
           <label className="text-xs text-ink-muted mb-1 block">שם העיצוב</label>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value.slice(0, 80))}
+            onChange={(e) => setName(e.target.value)}
             maxLength={80}
             className="w-full bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
           />
