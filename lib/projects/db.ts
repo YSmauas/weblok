@@ -2,38 +2,18 @@
 
 import { createClient } from "@/lib/supabase/client";
 import type { LoadedFile } from "./files";
+import type { ProjectBlockRef } from "./types";
+
+export { parseBlockRefs, type ProjectBlockRef, type ProjectFileMeta } from "./types";
 
 /**
  * פעולות ה-DB של פרויקטים מהדפדפן. כולן עוברות RLS (משתמש רואה/כותב רק את
  * שלו), והמכסה נאכפת בטריגר ב-DB - כאן רק מתרגמים שגיאות להודעה ברורה.
  */
 
-/** בלוק ששויך לפרויקט (נשמר ב-projects.blocks כ-jsonb) */
-export interface ProjectBlockRef {
-  key: string;
-  slug: string;
-  name: string;
-  designId?: string;
-}
-
-export interface ProjectFileMeta {
-  id: string;
-  path: string;
-  size: number;
-  updated_at: string;
-}
-
 export type SaveError = "quota_exceeded" | "failed";
 
 const BATCH_BYTES = 900 * 1024;
-
-export function parseBlockRefs(raw: unknown): ProjectBlockRef[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter(
-    (b): b is ProjectBlockRef =>
-      !!b && typeof b === "object" && typeof b.key === "string" && typeof b.slug === "string" && typeof b.name === "string"
-  );
-}
 
 export async function updateProject(
   id: string,

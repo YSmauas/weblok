@@ -121,8 +121,13 @@ export function ProjectFiles({
     const all = await fetchAllFiles(projectId);
     setBusy(false);
     if (!all) return setMessage({ kind: "error", text: t("common.error") });
-    const safeName = projectName.replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "") || "project";
-    await downloadAsZip(Object.fromEntries(all.map((f) => [f.path, f.content])), `${safeName}.zip`);
+    const folder = projectName.replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "") || "project";
+    const ascii = folder.replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+    await downloadAsZip(
+      Object.fromEntries(all.map((f) => [f.path, f.content])),
+      `${ascii || `weblok-project-${projectId.slice(0, 8)}`}.zip`,
+      folder
+    );
   }
 
   async function push() {
@@ -275,7 +280,13 @@ export function ProjectFiles({
             <button onClick={commitPending} disabled={busy || pending.files.length === 0} className="btn-primary btn-sm">
               {busy ? t("projects.working") : t("projects.saveFiles")}
             </button>
-            <button onClick={() => setPending(null)} className="btn-outline btn-sm">
+            <button
+              onClick={() => {
+                setPending(null);
+                setMessage(null);
+              }}
+              className="btn-outline btn-sm"
+            >
               {t("inject.cancel")}
             </button>
           </div>

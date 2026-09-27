@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectWorkspace } from "@/components/projects/ProjectWorkspace";
-import { parseBlockRefs } from "@/lib/projects/db";
+import { parseBlockRefs } from "@/lib/projects/types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
