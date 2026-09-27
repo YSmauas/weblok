@@ -59,3 +59,32 @@ export async function decryptFromBrowser(payload: string): Promise<string> {
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes.subarray(0, 12) }, await getWrapKey(), bytes.subarray(12));
   return new TextDecoder().decode(plain);
 }
+
+/** סוד כללי (למשל טוקן GitHub) שנשמר מוצפן ב-localStorage - רק כשהמשתמש ביקש. */
+const secretKey = (name: string) => `weblok-secret-${name}.enc`;
+
+export async function saveSecret(name: string, value: string): Promise<boolean> {
+  try {
+    localStorage.setItem(secretKey(name), await encryptForBrowser(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadSecret(name: string): Promise<string | null> {
+  try {
+    const payload = localStorage.getItem(secretKey(name));
+    return payload ? await decryptFromBrowser(payload) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function removeSecret(name: string) {
+  try {
+    localStorage.removeItem(secretKey(name));
+  } catch {
+    /* אין גישה לאחסון */
+  }
+}

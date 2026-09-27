@@ -23,7 +23,7 @@ const nextConfig = {
             // TODO: להוסיף nonce דינמי לפני production ולהחליף 'unsafe-inline'.
             // connect-src מוגדר מפורש: הדומיין העצמי, Supabase, ושני שירותים שהדפדפן
             // פונה אליהם ישירות בכלי ההזרקה - Gemini (עם המפתח של המשתמש, שלא עובר
-            // דרכנו) ו-GitHub API (ייבוא/דחיפה של פרויקטים). כל השאר נחסם, כדי שקוד
+            // דרכנו) ו-GitHub API (ייבוא/דחיפה של פרויקטים; codeload - הורדת ריפו כ-ZIP). כל השאר נחסם, כדי שקוד
             // שמשתמש הדביק/העלה לתצוגה מקדימה לא יוכל "לזלוג" בקשות לשרתים זרים.
             value: [
               "default-src 'self'",
@@ -32,7 +32,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.github.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.github.com https://codeload.github.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

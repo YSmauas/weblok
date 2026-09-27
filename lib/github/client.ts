@@ -34,7 +34,7 @@ export function parseRepo(input: string): RepoRef | null {
 
 export const isValidBranch = (b: string) => /^[A-Za-z0-9._/-]{1,200}$/.test(b) && !b.includes("..");
 
-async function gh<T>(path: string, token: string | undefined, init?: RequestInit): Promise<T> {
+export async function gh<T>(path: string, token: string | undefined, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API}${path}`, {
@@ -59,8 +59,8 @@ async function gh<T>(path: string, token: string | undefined, init?: RequestInit
   throw new GithubError("failed");
 }
 
-const branchPath = (b: string) => b.split("/").map(encodeURIComponent).join("/");
-const repoPath = ({ owner, repo }: RepoRef) => `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+export const branchPath = (b: string) => b.split("/").map(encodeURIComponent).join("/");
+export const repoPath = ({ owner, repo }: RepoRef) => `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
 
 export async function defaultBranch(ref: RepoRef, token?: string): Promise<string> {
   const data = await gh<{ default_branch: string }>(repoPath(ref), token);

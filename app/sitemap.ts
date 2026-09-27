@@ -16,5 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     { url: url("/tools"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: url("/tools/inject"), lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: url("/tools/github"), lastModified: now, changeFrequency: "monthly", priority: 0.7 },
   ];
 }

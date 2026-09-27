@@ -5,11 +5,14 @@ import { T } from "@/components/ui/T";
 
 export const metadata: Metadata = {
   title: "כלים מתקדמים",
-  description: "כלים מתקדמים של WEblok: הזרקת בלוקים לפרויקט קיים עם AI, ישירות בדפדפן.",
+  description: "כלים מתקדמים של WEblok: הזרקת בלוקים לפרויקט קיים עם AI וניהול מאגר GitHub - ישירות בדפדפן.",
   alternates: { canonical: "/tools" },
 };
 
-const TOOLS = [{ href: "/tools/inject", icon: "💉", k: "inject" }];
+const TOOLS = [
+  { href: "/tools/inject", icon: "💉", k: "inject" },
+  { href: "/tools/github", icon: "🐙", k: "gh" },
+];
 
 export default function ToolsPage() {
   return (

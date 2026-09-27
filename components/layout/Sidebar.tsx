@@ -10,7 +10,10 @@ import { blocksRegistry } from "@/lib/blocks-registry";
 import { IconChevronDown, IconClose } from "../ui/Icons";
 
 /** כלים מתקדמים - כל כלי חדש נרשם כאן ומופיע אוטומטית בתפריט */
-const TOOLS = [{ href: "/tools/inject", label: "sidebar.toolInject", icon: "💉" }];
+const TOOLS = [
+  { href: "/tools/inject", label: "sidebar.toolInject", icon: "💉" },
+  { href: "/tools/github", label: "sidebar.toolGithub", icon: "🐙" },
+];
 
 /** פריט תפריט שנפתח לתת-רשימה (בלוקים / כלים מתקדמים) */
 function Expandable({
