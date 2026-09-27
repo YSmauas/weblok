@@ -4,7 +4,7 @@ import {
   fields as chatbotFields,
   defaultValues as chatbotDefaults,
 } from "./chatbot-assistant/config.schema";
-import { generate as chatbotGenerate } from "./chatbot-assistant/generator";
+import { generate as chatbotGenerate, toOutput as chatbotToOutput } from "./chatbot-assistant/generator";
 import { Preview as ChatbotPreview } from "./chatbot-assistant/preview";
 import { meta as contactMeta } from "./contact-form/meta";
 import {
@@ -27,6 +27,7 @@ export const blockDefinitions: BlockDefinition[] = [
     fields: chatbotFields,
     defaultValues: chatbotDefaults,
     generate: chatbotGenerate,
+    toOutput: chatbotToOutput,
     Preview: ChatbotPreview,
   },
   {

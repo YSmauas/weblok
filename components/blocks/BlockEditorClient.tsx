@@ -48,7 +48,9 @@ export function BlockEditorClient({
   const [name, setName] = useState(initialName ?? block?.meta.name ?? "");
   const [designId, setDesignId] = useState<string | null>(savedId ?? null);
   const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("mock");
+  // ברירת מחדל: הקוד האמיתי רץ בתצוגה (מדויק יותר מההדמיה)
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(block?.toOutput ? "live" : "mock");
+  const [showCode, setShowCode] = useState(false);
   const [format, setFormat] = useState<ExportFormat>("html");
   const [aiField, setAiField] = useState<string | null>(null);
   const [aiFieldError, setAiFieldError] = useState<AiErrorCode | null>(null);
@@ -71,7 +73,14 @@ export function BlockEditorClient({
 
   const output = useMemo(() => (block?.toOutput ? block.toOutput(values) : null), [block, values]);
   const exported = useMemo(() => (output ? exportBlock(output, format) : null), [output, format]);
-  const liveHtml = useMemo(() => (output ? toUnifiedHtml(output) : ""), [output]);
+  // בתצוגה בלבד (לא בקוד המיוצא): ווידג'טים צפים נפתחים מיד, כדי לראות את התוכן ולא רק בועה
+  const liveHtml = useMemo(
+    () =>
+      output
+        ? `${toUnifiedHtml(output)}\n<script>setTimeout(function(){document.querySelectorAll("[data-wb-toggle],[data-wb-chat-toggle]").forEach(function(b){b.click()})},60)</script>`
+        : "",
+    [output]
+  );
 
   if (!block) {
     return <p className="text-sm text-danger">{t("editor.notFound").replace("{slug}", slug)}</p>;
@@ -177,9 +186,10 @@ export function BlockEditorClient({
     }`;
 
   return (
-    <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
-      {/* סדר במובייל: תצוגה → הגדרות → קוד. בדסקטופ: הגדרות בעמודה צדדית דביקה */}
-      <div className="space-y-4 min-w-0 lg:col-start-2 lg:row-start-1">
+    // מובייל: תצוגה מעל ההגדרות. מטאבלט ומעלה: זה לצד זה, והתצוגה "דביקה" -
+    // נשארת מול העיניים בזמן שגוללים בהגדרות.
+    <div className="grid md:grid-cols-[minmax(280px,380px)_minmax(0,1fr)] gap-6 items-start">
+      <div className="space-y-3 min-w-0 md:col-start-2 md:row-start-1 md:sticky md:top-20">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
             {(["mobile", "desktop"] as const).map((w) => (
@@ -190,7 +200,7 @@ export function BlockEditorClient({
           </div>
           {output && (
             <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
-              {(["mock", "live"] as const).map((m) => (
+              {(["live", "mock"] as const).map((m) => (
                 <button key={m} role="tab" aria-selected={previewMode === m} onClick={() => setPreviewMode(m)} className={tabClass(previewMode === m)}>
                   {t(m === "mock" ? "editor.previewMock" : "editor.previewLive")}
                 </button>
@@ -201,7 +211,10 @@ export function BlockEditorClient({
 
         <BrowserFrame url="your-site.com">
           <div className="flex justify-center bg-base-bg">
-            <div className="h-[380px] sm:h-[460px] transition-all max-w-full" style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}>
+            <div
+              className="h-[380px] md:h-[min(520px,calc(100vh-19rem))] md:min-h-[360px] transition-all max-w-full"
+              style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}
+            >
               {previewMode === "live" && output ? (
                 <HtmlPreview html={liveHtml} title={t("editor.previewLive")} wrapFragment className="h-full" />
               ) : (
@@ -210,30 +223,29 @@ export function BlockEditorClient({
             </div>
           </div>
         </BrowserFrame>
-        {previewMode === "live" && <p className="text-[11px] text-ink-muted">{t("editor.previewLiveNote")}</p>}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button onClick={saveDesign} disabled={saving} className="btn-primary">
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={saveDesign} disabled={saving} className="btn-primary btn-sm">
             {saving ? t("blocks.saving") : saveState === "saved" ? t("common.saved") : t("editor.saveDesign")}
           </button>
-          <button onClick={() => setAiRedesignOpen((v) => !v)} aria-expanded={aiRedesignOpen} className="btn-soft">
+          <button onClick={() => setAiRedesignOpen((v) => !v)} aria-expanded={aiRedesignOpen} className="btn-soft btn-sm">
             🎨 {t("editor.aiEdit")}
           </button>
           {output && (
-            <button onClick={injectIntoProject} className="btn-outline">
+            <button onClick={injectIntoProject} className="btn-outline btn-sm">
               💉 {t("editor.injectToProject")}
             </button>
           )}
-          <button onClick={resetDefaults} className="text-xs text-ink-muted hover:text-ink-primary">
+          <button onClick={resetDefaults} className="text-xs text-ink-muted hover:text-ink-primary px-2">
             {t("blocks.reset")}
           </button>
-          {!isLoggedIn && <p className="text-xs text-ink-muted w-full">{t("editor.loginToSave")}</p>}
-          {saveState === "error" && (
-            <p role="alert" className="text-xs text-danger w-full">
-              {t("blocks.saveFailed")}
-            </p>
-          )}
         </div>
+        {!isLoggedIn && <p className="text-xs text-ink-muted">{t("editor.loginToSave")}</p>}
+        {saveState === "error" && (
+          <p role="alert" className="text-xs text-danger">
+            {t("blocks.saveFailed")}
+          </p>
+        )}
 
         {aiRedesignOpen && (
           <div className="rounded-card border border-accent/40 bg-accent-soft p-4 space-y-3 animate-fadeInUp">
@@ -271,10 +283,58 @@ export function BlockEditorClient({
           </div>
         )}
 
+        {/* ייצוא: שורה קומפקטית; הקוד עצמו מקופל עד שמבקשים לראות אותו */}
+        {exported ? (
+          <div className="rounded-card border border-base-border bg-base-panel/60 p-3 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit" role="tablist">
+                {FORMATS.map((f) => (
+                  <button key={f.id} role="tab" aria-selected={format === f.id} onClick={() => setFormat(f.id)} className={tabClass(format === f.id)}>
+                    {t(f.label)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={download} className="btn-primary btn-sm">
+                  ⬇ {t(Object.keys(exported.files).length > 1 ? "editor.downloadZip" : "editor.downloadFile")}
+                </button>
+                <button onClick={copyCode} className="btn-outline btn-sm">
+                  {t(copied ? "common.copied" : "editor.copyCode")}
+                </button>
+                <button onClick={() => setShowCode((v) => !v)} aria-expanded={showCode} className="btn-outline btn-sm">
+                  {t(showCode ? "editor.hideCode" : "editor.showCode")}
+                </button>
+              </div>
+            </div>
+            {Object.keys(exported.files).length > 1 && (
+              <p className="text-[11px] text-ink-muted" dir="ltr">
+                {Object.keys(exported.files).join(" · ")}
+              </p>
+            )}
+            {exported.files["api/chat.js"] && <p className="text-[11px] text-ink-muted">{t("editor.serverFileNote")}</p>}
+            {showCode && (
+              <div className="code-panel max-h-72 space-y-4 animate-fadeInUp">
+                {Object.entries(exported.files).map(([fileName, content]) => (
+                  <div key={fileName}>
+                    <p className="text-[11px] text-ink-muted mb-1" dir="ltr">
+                      {fileName}
+                    </p>
+                    <pre className="whitespace-pre-wrap break-all" dir="ltr">
+                      {content}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] text-ink-muted">{t("blocks.codeHint")}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-ink-muted">{t("editor.noExport")}</p>
+        )}
       </div>
 
-      {/* פאנל הגדרות */}
-      <div className="space-y-4 lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24">
+      {/* הגדרות */}
+      <div className="space-y-4 min-w-0 md:col-start-1 md:row-start-1">
         <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
           <label htmlFor="design-name" className="label">
             {t("blocks.designName")}
@@ -288,7 +348,7 @@ export function BlockEditorClient({
           />
         </div>
 
-        <div className="rounded-card border border-base-border bg-base-panel/80 p-4 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto">
+        <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
           {aiFieldError && (
             <div className="mb-3">
               <AiErrorMessage code={aiFieldError} />
@@ -302,47 +362,6 @@ export function BlockEditorClient({
             aiBusyField={aiField}
           />
         </div>
-      </div>
-
-      {/* ייצוא */}
-      <div className="space-y-4 min-w-0 lg:col-start-2 lg:row-start-2">
-        {exported ? (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit" role="tablist">
-                {FORMATS.map((f) => (
-                  <button key={f.id} role="tab" aria-selected={format === f.id} onClick={() => setFormat(f.id)} className={tabClass(format === f.id)}>
-                    {t(f.label)}
-                  </button>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={download} className="btn-outline btn-sm">
-                  {t(Object.keys(exported.files).length > 1 ? "editor.downloadZip" : "editor.downloadFile")}
-                </button>
-                <button onClick={copyCode} className="btn-outline btn-sm">
-                  {t(copied ? "common.copied" : "editor.copyCode")}
-                </button>
-              </div>
-            </div>
-
-            <div className="code-panel max-h-[480px] space-y-4">
-              {Object.entries(exported.files).map(([fileName, content]) => (
-                <div key={fileName}>
-                  <p className="text-[11px] text-ink-muted mb-1" dir="ltr">
-                    {fileName}
-                  </p>
-                  <pre className="whitespace-pre-wrap break-all" dir="ltr">
-                    {content}
-                  </pre>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-ink-muted">{t("blocks.codeHint")}</p>
-          </>
-        ) : (
-          <p className="text-sm text-ink-muted">{t("editor.noExport")}</p>
-        )}
       </div>
     </div>
   );

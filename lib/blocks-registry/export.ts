@@ -104,14 +104,16 @@ export interface ExportResult {
 }
 
 export function exportBlock(out: BlockOutput, format: ExportFormat): ExportResult {
-  if (format === "html") return { kind: "single", files: { "index.html": toUnifiedHtml(out) } };
-  if (format === "html-css-js") {
+  let files: Record<string, string>;
+  if (format === "html") files = { "index.html": toUnifiedHtml(out) };
+  else if (format === "html-css-js") {
     const f = toSplitFiles(out);
-    const files: Record<string, string> = { "index.html": f.html, "style.css": f.css };
+    files = { "index.html": f.html, "style.css": f.css };
     if (f.js) files["script.js"] = f.js;
-    return { kind: "multi", files };
-  }
-  return { kind: "single", files: { [`${out.componentName}.jsx`]: toJsx(out) } };
+  } else files = { [`${out.componentName}.jsx`]: toJsx(out) };
+
+  if (out.extraFiles) files = { ...files, ...out.extraFiles };
+  return { kind: Object.keys(files).length > 1 ? "multi" : "single", files };
 }
 
 function indent(s: string, spaces: number) {

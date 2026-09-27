@@ -2,12 +2,67 @@ import type { FieldDef, BlockValues } from "../types";
 
 export const fields: FieldDef[] = [
   {
+    id: "botMode",
+    label: "מנוע התשובות",
+    type: "select",
+    icon: "fa-gears",
+    default: "faq",
+    group: "מנוע",
+    options: [
+      { value: "faq", label: "שאלות ותשובות מוכנות (בלי שרת, בלי מפתח)" },
+      { value: "endpoint", label: "AI אמיתי דרך פונקציית שרת שלכם" },
+    ],
+    hint: "\"שאלות ותשובות\" עובד מיד, בלי שום שרת: הבוט מזהה מילות מפתח ומחזיר תשובה מוכנה. \"AI אמיתי\" שולח את השיחה לכתובת שלכם - בהורדה מצורף קובץ api/chat.js מוכן להעלאה ל-Vercel, שמחזיק את מפתח ה-API בצד שרת.",
+  },
+  {
+    id: "faqItems",
+    label: "שאלות ותשובות",
+    type: "textarea",
+    icon: "fa-list",
+    default:
+      "שעות פעילות, מתי פתוח = אנחנו זמינים בימים א'-ה' בין 9:00 ל-18:00.\nמחיר, עלות, כמה עולה = המחירים משתנים לפי השירות - השאירו פרטים ונחזור אליכם עם הצעה.\nכתובת, איפה, מיקום = אנחנו עובדים אונליין בכל הארץ.\nטלפון, וואטסאפ, יצירת קשר = אפשר להשאיר הודעה כאן או לפנות בטופס יצירת הקשר באתר.",
+    group: "מנוע",
+    dependsOn: { field: "botMode", equals: ["faq"] },
+    hint: "שורה לכל נושא: מילות מפתח מופרדות בפסיק, אחריהן \"=\" והתשובה. הבוט בוחר את התשובה שהכי הרבה ממילות המפתח שלה מופיעות בשאלה.",
+  },
+  {
+    id: "fallbackMsg",
+    label: "תשובה כשאין התאמה",
+    type: "text",
+    icon: "fa-circle-question",
+    default: "לא בטוח שהבנתי 🙂 נסו לנסח אחרת, או השאירו פרטים בטופס יצירת הקשר ונחזור אליכם.",
+    group: "מנוע",
+    aiAssist: true,
+  },
+  {
+    id: "endpointUrl",
+    label: "כתובת פונקציית השרת",
+    type: "text",
+    icon: "fa-link",
+    default: "/api/chat",
+    group: "מנוע",
+    dependsOn: { field: "botMode", equals: ["endpoint"] },
+    hint: "הכתובת שאליה הבוט שולח את השיחה (POST עם {message, history}, מחזירה {reply}). אם העליתם את api/chat.js שבהורדה לאותו אתר ב-Vercel - השאירו /api/chat.",
+  },
+  {
+    id: "systemPrompt",
+    label: "הוראות מערכת (Prompt)",
+    type: "textarea",
+    icon: "fa-robot",
+    default: "אתה נציג שירות לקוחות אדיב. ענה בקצרה ובעברית תקנית.",
+    group: "מנוע",
+    dependsOn: { field: "botMode", equals: ["endpoint"] },
+    // נכנס רק לקובץ השרת (api/chat.js) - לעולם לא לקוד שבעמוד
+    serverOnly: true,
+  },
+  {
     id: "titleText",
     label: "כותרת המערכת",
     type: "text",
     icon: "fa-heading",
     default: "העוזר החכם",
     group: "תוכן",
+    aiAssist: true,
   },
   {
     id: "welcomeMsg",
@@ -16,6 +71,16 @@ export const fields: FieldDef[] = [
     icon: "fa-comment-medical",
     default: "שלום! איך אפשר לעזור היום?",
     group: "תוכן",
+    aiAssist: true,
+  },
+  {
+    id: "quickReplies",
+    label: "תשובות מהירות (כפתורים)",
+    type: "text",
+    icon: "fa-bolt",
+    default: "שעות פעילות, מחירים, יצירת קשר",
+    group: "תוכן",
+    hint: "כפתורי הצעה שמופיעים מתחת להודעת הפתיחה, מופרדים בפסיק. השאירו ריק כדי להסתיר.",
   },
   {
     id: "placeholder",
@@ -26,14 +91,17 @@ export const fields: FieldDef[] = [
     group: "תוכן",
   },
   {
-    id: "systemPrompt",
-    label: "הוראות מערכת (Prompt)",
-    type: "textarea",
-    icon: "fa-robot",
-    default: "אתה נציג שירות לקוחות אדיב. ענה בקצרה ובעברית תקנית.",
-    group: "תוכן",
-    // הפרומפט נשמר בצד שרת ומקושר ל-blockId. הוא לעולם לא מוטמע בקוד הלקוח.
-    serverOnly: true,
+    id: "voiceInput",
+    label: "הקלטה קולית",
+    type: "select",
+    icon: "fa-microphone",
+    default: "yes",
+    group: "תצוגה",
+    aiDesignEditable: true,
+    options: [
+      { value: "yes", label: "כפתור מיקרופון (בדפדפנים שתומכים)" },
+      { value: "no", label: "בלי" },
+    ],
   },
   {
     id: "displayMode",
@@ -42,9 +110,10 @@ export const fields: FieldDef[] = [
     icon: "fa-desktop",
     default: "widget",
     group: "תצוגה",
+    aiDesignEditable: true,
     options: [
       { value: "widget", label: "ווידג'ט צף (בועה באתר)" },
-      { value: "fullscreen", label: "מסך מלא (אפליקציה)" },
+      { value: "fullscreen", label: "חלון צ'אט מוטמע בעמוד" },
     ],
   },
   {
@@ -54,9 +123,24 @@ export const fields: FieldDef[] = [
     icon: "fa-location-dot",
     default: "right",
     group: "תצוגה",
+    aiDesignEditable: true,
+    dependsOn: { field: "displayMode", equals: ["widget"] },
     options: [
       { value: "right", label: "ימין למטה" },
       { value: "left", label: "שמאל למטה" },
+    ],
+  },
+  {
+    id: "themeMode",
+    label: "ערכת צבעים",
+    type: "select",
+    icon: "fa-circle-half-stroke",
+    default: "dark",
+    group: "עיצוב",
+    aiDesignEditable: true,
+    options: [
+      { value: "dark", label: "כהה" },
+      { value: "light", label: "בהיר" },
     ],
   },
   {
@@ -66,6 +150,7 @@ export const fields: FieldDef[] = [
     icon: "fa-palette",
     default: "#e8a33d",
     group: "עיצוב",
+    aiDesignEditable: true,
   },
   {
     id: "fontSelect",
@@ -74,9 +159,11 @@ export const fields: FieldDef[] = [
     icon: "fa-font",
     default: "Heebo",
     group: "עיצוב",
+    aiDesignEditable: true,
     options: [
       { value: "Heebo", label: "Heebo" },
       { value: "Assistant", label: "Assistant" },
+      { value: "Rubik", label: "Rubik" },
       { value: "Varela Round", label: "Varela Round" },
     ],
   },

@@ -474,5 +474,8 @@
   "admin.topPagesDesc": "Por vistas en los últimos 30 días",
   "admin.visitors": "visitantes",
   "admin.avgPage": "Tiempo medio en la página (m:s)",
-  "admin.migrationNeeded": "Algunos datos (inicios de sesión, gráfico diario, páginas populares) aparecerán tras ejecutar supabase/migrations/0005_login_stats_analytics.sql en Supabase."
+  "admin.migrationNeeded": "Algunos datos (inicios de sesión, gráfico diario, páginas populares) aparecerán tras ejecutar supabase/migrations/0005_login_stats_analytics.sql en Supabase.",
+  "editor.showCode": "Mostrar código",
+  "editor.hideCode": "Ocultar código",
+  "editor.serverFileNote": "En modo IA también se incluye api/chat.js: una función de servidor que guarda la clave API y las instrucciones. Añádela a tu proyecto en Vercel y configura GEMINI_API_KEY."
 }

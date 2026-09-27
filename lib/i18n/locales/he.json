@@ -474,5 +474,8 @@
   "admin.topPagesDesc": "לפי צפיות ב-30 הימים האחרונים",
   "admin.visitors": "גולשים",
   "admin.avgPage": "זמן ממוצע בדף (דק׳:שנ׳)",
-  "admin.migrationNeeded": "חלק מהנתונים (כניסות, גרף יומי, דפים פופולריים) יופיעו אחרי הרצת supabase/migrations/0005_login_stats_analytics.sql ב-Supabase."
+  "admin.migrationNeeded": "חלק מהנתונים (כניסות, גרף יומי, דפים פופולריים) יופיעו אחרי הרצת supabase/migrations/0005_login_stats_analytics.sql ב-Supabase.",
+  "editor.showCode": "הצגת הקוד",
+  "editor.hideCode": "הסתרת הקוד",
+  "editor.serverFileNote": "במצב AI מצורף גם api/chat.js - פונקציית שרת שמחזיקה את מפתח ה-API ואת ההוראות. העלו אותה לפרויקט ב-Vercel והגדירו GEMINI_API_KEY."
 }

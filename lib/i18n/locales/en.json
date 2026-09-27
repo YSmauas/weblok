@@ -474,5 +474,8 @@
   "admin.topPagesDesc": "By views in the last 30 days",
   "admin.visitors": "visitors",
   "admin.avgPage": "Average time on page (m:s)",
-  "admin.migrationNeeded": "Some data (logins, daily chart, popular pages) will appear after running supabase/migrations/0005_login_stats_analytics.sql in Supabase."
+  "admin.migrationNeeded": "Some data (logins, daily chart, popular pages) will appear after running supabase/migrations/0005_login_stats_analytics.sql in Supabase.",
+  "editor.showCode": "Show code",
+  "editor.hideCode": "Hide code",
+  "editor.serverFileNote": "In AI mode, api/chat.js is included too - a server function that holds the API key and instructions. Add it to your Vercel project and set GEMINI_API_KEY."
 }
