@@ -22,6 +22,12 @@ export interface FieldDef {
   group?: string;
   /** שדה רגיש שלא אמור להיחשף בקוד הלקוח - מטופל ע"י ה-backend בלבד */
   serverOnly?: boolean;
+  /** מציג כפתור "שפר עם AI" לצד השדה (טקסט/טקסטארה בלבד) */
+  aiAssist?: boolean;
+  /** מוצג רק כששדה אחר שווה לאחד מהערכים האלה - מסתיר הגדרות לא רלוונטיות */
+  dependsOn?: { field: string; equals: string[] };
+  /** מותר לעריכה חופשית ע"י "עריכה עם AI" (רק select/color - לעולם לא טקסט חופשי) */
+  aiDesignEditable?: boolean;
 }
 
 export type BlockValues = Record<string, string>;

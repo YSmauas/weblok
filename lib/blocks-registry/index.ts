@@ -6,6 +6,13 @@ import {
 } from "./chatbot-assistant/config.schema";
 import { generate as chatbotGenerate } from "./chatbot-assistant/generator";
 import { Preview as ChatbotPreview } from "./chatbot-assistant/preview";
+import { meta as contactMeta } from "./contact-form/meta";
+import {
+  fields as contactFields,
+  defaultValues as contactDefaults,
+} from "./contact-form/config.schema";
+import { generate as contactGenerate, toOutput as contactToOutput } from "./contact-form/generator";
+import { Preview as ContactPreview } from "./contact-form/preview";
 
 /**
  * כל בלוק חדש נרשם כאן. כדי להוסיף בלוק:
@@ -21,6 +28,14 @@ export const blockDefinitions: BlockDefinition[] = [
     defaultValues: chatbotDefaults,
     generate: chatbotGenerate,
     Preview: ChatbotPreview,
+  },
+  {
+    meta: contactMeta,
+    fields: contactFields,
+    defaultValues: contactDefaults,
+    generate: contactGenerate,
+    toOutput: contactToOutput,
+    Preview: ContactPreview,
   },
 ];
 
