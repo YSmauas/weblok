@@ -18,13 +18,11 @@ export function Footer({
   return (
     <footer className="border-t border-base-border">
       <div className="max-w-6xl mx-auto px-6 py-8 text-sm text-ink-muted flex flex-col sm:flex-row items-center sm:justify-between gap-4 text-center sm:text-start">
-        
-        <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            <span>{t("footer.creditPrefix")}</span>
-            <span dir="ltr">© {t("footer.creditName")}</span>
-            <span className="flex items-center gap-1">
-              <span>{t("footer.creditTeam").replace("cloud", "")}</span>
+        <div className="flex items-center gap-3 flex-wrap justify-center">
+          <span>
+            {t("footer.creditPrefix")} {t("footer.creditName")}{" "}
+            <span dir="ltr">
+              {t("footer.creditTeam").replace("cloud", "")}
               <a
                 href={CLOUD_LINK}
                 target="_blank"
@@ -34,31 +32,29 @@ export function Footer({
                 cloud
               </a>
             </span>
-          </div>
+          </span>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <a
-              href={GITHUB_PROFILE}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="GitHub"
-              className="hover:text-ink-primary transition-colors"
-            >
-              <IconGithub className="w-5 h-5" />
-            </a>
-            <a
-              href={TOPMENTORS_PROFILE}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Top Mentors"
-              className="hover:opacity-80 transition-opacity flex items-center justify-center"
-            >
-              <Image src="/icons/topmentors.png" alt="Top Mentors" width={20} height={20} className="rounded-full" />
-            </a>
-          </div>
+          <a
+            href={GITHUB_PROFILE}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            className="hover:text-ink-primary transition-colors"
+          >
+            <IconGithub className="w-5 h-5" />
+          </a>
+          <a
+            href={TOPMENTORS_PROFILE}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Top Mentors"
+            className="hover:opacity-80 transition-opacity"
+          >
+            <Image src="/icons/topmentors.png" alt="Top Mentors" width={20} height={20} className="rounded-full" />
+          </a>
         </div>
 
-        <div className="flex gap-5 shrink-0">
+        <div className="flex gap-5">
           <button onClick={() => onOpenAbout("privacy")} className="hover:text-ink-secondary transition-colors">
             {t("footer.privacy")}
           </button>
