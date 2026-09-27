@@ -12,7 +12,7 @@ export const runtime = "nodejs";
  * המשמעות והאורך - לא יצירה חופשית.
  */
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

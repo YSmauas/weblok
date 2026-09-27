@@ -1,5 +1,7 @@
 import type { BlockOutput, ExportFormat } from "./export-types";
 
+export type { ExportFormat };
+
 /** עוטף CSS ב-<style> וה-JS (אם יש) ב-<script>, לפורמט "html" המאוחד. */
 export function toUnifiedHtml(out: BlockOutput): string {
   const script = out.js ? `\n  <script>\n${indent(out.js, 4)}\n  </script>` : "";
@@ -47,13 +49,18 @@ ${indent(jsxHtml, 8)}
 }
 
 /** נקודת הכניסה היחידה שה-UI קורא לה - "תן לי את הבלוק בפורמט X". */
-export function exportBlock(out: BlockOutput, format: ExportFormat) {
-  if (format === "html") return { kind: "single" as const, files: { "index.html": toUnifiedHtml(out) } };
+export interface ExportResult {
+  kind: "single" | "multi";
+  files: Record<string, string>;
+}
+
+export function exportBlock(out: BlockOutput, format: ExportFormat): ExportResult {
+  if (format === "html") return { kind: "single", files: { "index.html": toUnifiedHtml(out) } };
   if (format === "html-css-js") {
     const f = toSplitFiles(out);
-    return { kind: "multi" as const, files: { "index.html": f.html, "style.css": f.css, "script.js": f.js } };
+    return { kind: "multi", files: { "index.html": f.html, "style.css": f.css, "script.js": f.js } };
   }
-  return { kind: "single" as const, files: { [`${out.componentName}.jsx`]: toJsx(out) } };
+  return { kind: "single", files: { [`${out.componentName}.jsx`]: toJsx(out) } };
 }
 
 function indent(s: string, spaces: number) {

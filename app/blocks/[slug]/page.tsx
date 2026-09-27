@@ -11,9 +11,12 @@ export default async function BlockEditorPage({
   searchParams: { design?: string };
 }) {
   const block = getBlockDefinition(params.slug);
-  if (!block) notFound();
+  if (!block) {
+    notFound();
+    return null;
+  }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
