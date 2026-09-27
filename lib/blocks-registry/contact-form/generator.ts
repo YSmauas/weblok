@@ -3,15 +3,8 @@ import type { BlockOutput } from "../export-types";
 import { getTheme } from "./themes";
 import { toUnifiedHtml } from "../export";
 
-const esc = (v: string) => (v ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-const escAttr = (v: string) => (v ?? "").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-/** Validate and sanitize hex color */
-const validateHexColor = (v: string): string => {
-  const hex = String(v ?? "").trim();
-  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  return "#38bdf8"; // fallback
-};
+const esc = (v: string) => (v ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const escAttr = (v: string) => (v ?? "").replace(/"/g, "&quot;");
 
 /** אייקוני SVG מוטמעים - בלי תלות ב-Font Awesome או כל CDN חיצוני. */
 const SVG = {
@@ -34,11 +27,9 @@ const SVG = {
  * בלוקים על אותו עמוד לא יתנגשו ב-id-ים.
  */
 export function toOutput(values: BlockValues): BlockOutput {
-  const accentColor = validateHexColor(values.accentColor);
-  const theme = getTheme(values.themeSelect, accentColor);
+  const theme = getTheme(values.themeSelect, values.accentColor || "#38bdf8");
   const isWidget = values.displayMode === "widget";
   const sidePos = values.widgetPosition === "left" ? "left: 16px;" : "right: 16px;";
-  const fontFamily = String(values.fontSelect ?? "Heebo").replace(/'/g, "\\'");
 
   const layoutCss = isWidget
     ? `
@@ -57,13 +48,13 @@ export function toOutput(values: BlockValues): BlockOutput {
   .wb-contact { width: 100%; max-width: 550px; margin: 0 auto; }`;
 
   const css = `
-  .wb-contact, .wb-toggle { font-family: '${fontFamily}', sans-serif; box-sizing: border-box; }
+  .wb-contact, .wb-toggle { font-family: '${values.fontSelect}', sans-serif; box-sizing: border-box; }
   .wb-contact *, .wb-toggle * { box-sizing: border-box; }
   .wb-contact {
     --wb-bg: ${theme.dark.panel}; --wb-border: ${theme.dark.border}; --wb-text: ${theme.dark.text};
-    --wb-input: ${theme.dark.inputBg}; --wb-accent: ${accentColor};
+    --wb-input: ${theme.dark.inputBg}; --wb-accent: ${escAttr(values.accentColor)};
     background: var(--wb-bg); border: 1px solid var(--wb-border); color: var(--wb-text);
-    ${theme.dark.panelCss} overflow: hidden; border-radius: 12px;
+    ${theme.dark.panelCss} overflow: hidden;
   }
   .wb-contact[data-wb-mode="light"] {
     --wb-bg: ${theme.light.panel}; --wb-border: ${theme.light.border}; --wb-text: ${theme.light.text};
@@ -76,7 +67,7 @@ export function toOutput(values: BlockValues): BlockOutput {
   .wb-header h2 svg { color: var(--wb-accent); flex-shrink: 0; }
   .wb-header p { font-size: .88rem; opacity: .85; line-height: 1.4; margin: 0; }
   .wb-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .wb-icon-btn { background: transparent; border: none; color: var(--wb-text); font-size: 1rem; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: .2s; }
+  .wb-icon-btn { background: transparent; border: none; color: var(--wb-text); font-size: 1rem; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
   .wb-icon-btn:hover { background: rgba(128,128,128,.2); color: var(--wb-accent); }
   .wb-form { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
   .wb-group { display: flex; flex-direction: column; gap: 5px; }
@@ -85,8 +76,7 @@ export function toOutput(values: BlockValues): BlockOutput {
   .wb-field { width: 100%; padding: 11px 13px; background: var(--wb-input); border: 1px solid var(--wb-border); border-radius: 10px; color: var(--wb-text); font-size: .95rem; font-family: inherit; outline: none; transition: .2s; }
   .wb-field:focus { border-color: var(--wb-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wb-accent) 20%, transparent); }
   textarea.wb-field { resize: vertical; min-height: 84px; }
-  .wb-submit { width: 100%; padding: 13px; background: var(--wb-accent); color: #fff; border: none; border-radius: 10px; font-size: .98rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: .2s; }
-  .wb-submit:hover:not(:disabled) { opacity: 0.9; }
+  .wb-submit { width: 100%; padding: 13px; background: var(--wb-accent); color: #fff; border: none; border-radius: 10px; font-size: .98rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
   .wb-submit:disabled { opacity: .6; cursor: not-allowed; }
   .wb-status { padding: 10px; border-radius: 10px; font-size: .88rem; text-align: center; display: none; font-weight: 600; }
   .wb-status.wb-ok { background: rgba(16,185,129,.15); border: 1px solid #10b981; color: #10b981; display: block; }
@@ -102,7 +92,7 @@ export function toOutput(values: BlockValues): BlockOutput {
 
   const sectionTitleHtml =
     !isWidget && values.sectionTitle?.trim()
-      ? `<h2 style="text-align:center;font-size:clamp(1.3rem,5vw,1.8rem);font-weight:800;margin:0 0 20px;font-family:'${fontFamily}',sans-serif;">${esc(values.sectionTitle)}</h2>`
+      ? `<h2 style="text-align:center;font-size:clamp(1.3rem,5vw,1.8rem);font-weight:800;margin:0 0 20px;font-family:'${values.fontSelect}',sans-serif;">${esc(values.sectionTitle)}</h2>`
       : "";
 
   const html = `${sectionTitleHtml}
@@ -121,33 +111,32 @@ ${widgetToggleHtml}
   <form class="wb-form" data-wb-form>
     <div class="wb-group">
       <label>${SVG.user} שם מלא *</label>
-      <input class="wb-field" type="text" name="name" required aria-required="true">
+      <input class="wb-field" type="text" name="name" required>
     </div>
     <div class="wb-group">
       <label>${SVG.envelope} כתובת מייל *</label>
-      <input class="wb-field" type="email" name="email" required aria-required="true">
+      <input class="wb-field" type="email" name="email" required>
     </div>
     ${values.showPhone !== "hidden" ? `<div class="wb-group">
       <label>${SVG.phone} טלפון ${values.showPhone === "required" ? "*" : ""}</label>
-      <input class="wb-field" type="tel" name="phone" ${values.showPhone === "required" ? "required aria-required=\"true\"" : ""}>
+      <input class="wb-field" type="tel" name="phone" ${values.showPhone === "required" ? "required" : ""}>
     </div>` : ""}
     ${values.showSubject !== "hidden" ? `<div class="wb-group">
       <label>${SVG.bookmark} נושא ${values.showSubject === "required" ? "*" : ""}</label>
-      <input class="wb-field" type="text" name="subject" ${values.showSubject === "required" ? "required aria-required=\"true\"" : ""}>
+      <input class="wb-field" type="text" name="subject" ${values.showSubject === "required" ? "required" : ""}>
     </div>` : ""}
     <div class="wb-group">
       <label>${SVG.message} הודעה *</label>
-      <textarea class="wb-field" name="message" required aria-required="true"></textarea>
+      <textarea class="wb-field" name="message" required></textarea>
     </div>
     <button type="submit" class="wb-submit" data-wb-submit>
       <span data-wb-btn-text>${esc(values.btnText)}</span> ${SVG.arrow}
     </button>
-    <div class="wb-status" data-wb-status role="alert" aria-live="polite"></div>
+    <div class="wb-status" data-wb-status></div>
   </form>
 </div>`;
 
   const js = `(function () {
-  "use strict";
   document.querySelectorAll('.wb-contact').forEach(function (root) {
     if (root.dataset.wbInit) return;
     root.dataset.wbInit = "1";
@@ -203,15 +192,14 @@ ${widgetToggleHtml}
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
       })`
       }
-        .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res; })
+        .then(function (res) { if (!res.ok) throw new Error(); return res; })
         .then(function () {
           status.textContent = ${JSON.stringify(values.successMsg)};
           status.className = 'wb-status wb-ok';
           form.reset();
         })
-        .catch(function (err) {
-          console.error('Form submission error:', err);
-          status.textContent = 'אירעה שגיאה בשליחה. אנא בדקו את כתובת הייעוד והנסו שוב.';
+        .catch(function () {
+          status.textContent = 'אירעה שגיאה בשליחה. נסו שוב.';
           status.className = 'wb-status wb-err';
         })
         .finally(function () {
