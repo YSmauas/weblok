@@ -21,8 +21,10 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             // TODO: להוסיף nonce דינמי לפני production ולהחליף 'unsafe-inline'.
-            // connect-src מוגדר מפורש ל-Supabase בלבד + הדומיין העצמי,
-            // כדי שקוד שמשתמש הדביק בעורך לא יוכל "לזלוג" בקשות לשרתים זרים.
+            // connect-src מוגדר מפורש: הדומיין העצמי, Supabase, ושני שירותים שהדפדפן
+            // פונה אליהם ישירות בכלי ההזרקה - Gemini (עם המפתח של המשתמש, שלא עובר
+            // דרכנו) ו-GitHub API (ייבוא/דחיפה של פרויקטים). כל השאר נחסם, כדי שקוד
+            // שמשתמש הדביק/העלה לתצוגה מקדימה לא יוכל "לזלוג" בקשות לשרתים זרים.
             value: [
               "default-src 'self'",
               // ב-next dev ה-webpack משתמש ב-eval ל-source maps; ב-production לא
@@ -30,7 +32,10 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.github.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
               "frame-ancestors 'none'",
             ].join("; "),
           },

@@ -12,6 +12,7 @@ export function DeleteRow({ table, id }: { table: "saved_designs" | "projects"; 
   const [busy, setBusy] = useState(false);
 
   async function del() {
+    if (!window.confirm(t(table === "projects" ? "projects.deleteConfirm" : "saved.deleteConfirm"))) return;
     setBusy(true);
     const { error } = await createClient().from(table).delete().eq("id", id);
     setBusy(false);
@@ -32,11 +33,14 @@ export function NewProjectButton({ userId }: { userId: string }) {
 
   async function create() {
     setBusy(true);
-    const { error } = await createClient()
+    const { data, error } = await createClient()
       .from("projects")
-      .insert({ user_id: userId, name: t("projects.defaultName") });
+      .insert({ user_id: userId, name: t("projects.defaultName") })
+      .select("id")
+      .single();
     setBusy(false);
-    if (!error) router.refresh();
+    // פרויקט חדש נפתח מיד - שם מוסיפים בלוקים וקבצים
+    if (!error && data) router.push(`/dashboard/projects/${data.id}`);
   }
 
   return (

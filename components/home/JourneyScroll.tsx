@@ -97,7 +97,7 @@ export function JourneyScroll() {
             </div>
           </div>
 
-          <div key={activeIndex} className="text-center md:text-right animate-fadeInUp">
+          <div key={activeIndex} className="text-center md:text-start animate-fadeInUp">
             <h2 className="text-2xl md:text-[1.8rem] font-bold leading-snug">
               {FEATURES[activeIndex].title}
             </h2>

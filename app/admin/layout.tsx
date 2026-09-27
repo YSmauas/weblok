@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { AdminNav } from "@/components/admin/AdminNav";
+
+export const metadata: Metadata = {
+  title: "ניהול",
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({
   children,

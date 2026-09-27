@@ -1,19 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getBlockDefinition } from "@/lib/blocks-registry";
 import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
-import { exportBlock, type ExportFormat } from "@/lib/blocks-registry/export";
+import { exportBlock, toUnifiedHtml, type ExportFormat } from "@/lib/blocks-registry/export";
 import { downloadAsZip } from "@/lib/download-zip";
+import { copyText, downloadText } from "@/lib/download";
+import { improveText, redesignBlock, type AiErrorCode } from "@/lib/ai/client";
+import { REDESIGN_MAX_LENGTH } from "@/lib/ai/prompts";
+import { saveEditorDraft } from "@/lib/inject/options";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { DynamicForm } from "@/components/editor/DynamicForm";
+import { BrowserFrame } from "@/components/ui/BrowserFrame";
+import { HtmlPreview } from "@/components/ui/HtmlPreview";
 
 const FORMATS: { id: ExportFormat; label: string }[] = [
-  { id: "html", label: "HTML מאוחד" },
-  { id: "html-css-js", label: "HTML + CSS + JS" },
-  { id: "jsx", label: "JSX" },
+  { id: "html", label: "editor.format.html" },
+  { id: "html-css-js", label: "editor.format.split" },
+  { id: "jsx", label: "editor.format.jsx" },
 ];
+
+type PreviewMode = "mock" | "live";
 
 export function BlockEditorClient({
   slug,
@@ -29,284 +39,322 @@ export function BlockEditorClient({
   savedId?: string;
 }) {
   const router = useRouter();
+  const { t } = useLocale();
   // הרישום (blocks-registry) הוא לוגיקה טהורה בצד לקוח - אין שום סיבה
   // (וגם אי אפשר, כי block.Preview/generate/toOutput הן פונקציות) להעביר
   // את האובייקט הזה משרת ללקוח. הקומפוננטה טוענת אותו בעצמה לפי ה-slug.
   const block = getBlockDefinition(slug);
   const [values, setValues] = useState<BlockValues>(initialValues ?? block?.defaultValues() ?? {});
   const [name, setName] = useState(initialName ?? block?.meta.name ?? "");
+  const [designId, setDesignId] = useState<string | null>(savedId ?? null);
   const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("mock");
   const [format, setFormat] = useState<ExportFormat>("html");
   const [aiField, setAiField] = useState<string | null>(null);
+  const [aiFieldError, setAiFieldError] = useState<AiErrorCode | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
-  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [usedAi, setUsedAi] = useState(false);
   const [aiRedesignOpen, setAiRedesignOpen] = useState(false);
   const [aiDescription, setAiDescription] = useState("");
   const [aiRedesignBusy, setAiRedesignBusy] = useState(false);
-  const [aiRedesignError, setAiRedesignError] = useState<string | null>(null);
+  const [aiRedesignError, setAiRedesignError] = useState<AiErrorCode | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const set = (id: string, v: string) => setValues((prev) => ({ ...prev, [id]: v }));
+  const isLoggedIn = !!userId;
+  const loginHref = `/auth/login?redirectedFrom=${encodeURIComponent(`/blocks/${slug}`)}`;
 
-  const output = useMemo(
-    () => (block?.toOutput ? block.toOutput(values) : null),
-    [block, values]
-  );
-  const exported = useMemo(
-    () => (output ? exportBlock(output, format) : null),
-    [output, format]
-  );
+  const set = (id: string, v: string) => {
+    setValues((prev) => ({ ...prev, [id]: v }));
+    setSaveState("idle");
+  };
+
+  const output = useMemo(() => (block?.toOutput ? block.toOutput(values) : null), [block, values]);
+  const exported = useMemo(() => (output ? exportBlock(output, format) : null), [output, format]);
+  const liveHtml = useMemo(() => (output ? toUnifiedHtml(output) : ""), [output]);
 
   if (!block) {
-    return <p className="text-sm text-danger">הבלוק &quot;{slug}&quot; לא נמצא ברישום.</p>;
+    return <p className="text-sm text-danger">{t("editor.notFound").replace("{slug}", slug)}</p>;
   }
 
   async function improveWithAi(field: FieldDef) {
     setAiField(field.id);
-    const res = await fetch("/api/ai/improve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: values[field.id] ?? "", label: field.label }),
-    }).catch(() => null);
-    const data = await res?.json().catch(() => null);
+    setAiFieldError(null);
+    const res = await improveText(values[field.id] ?? "", field.label);
     setAiField(null);
-    if (res?.ok && data?.text) {
-      set(field.id, data.text);
-    } else if (data?.error === "no_key") {
-      router.push("/dashboard/profile");
+    if (res.ok) {
+      set(field.id, res.data);
+      setUsedAi(true);
+    } else {
+      setAiFieldError(res.error);
     }
   }
 
   async function applyAiRedesign() {
-    if (!aiDescription.trim()) return;
+    if (!block || !aiDescription.trim() || aiRedesignBusy) return;
     setAiRedesignBusy(true);
     setAiRedesignError(null);
-    const res = await fetch("/api/ai/redesign", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ blockSlug: slug, description: aiDescription, values }),
-    }).catch(() => null);
-    const data = await res?.json().catch(() => null);
+    const res = await redesignBlock(slug, block.fields, values, aiDescription.trim());
     setAiRedesignBusy(false);
-    if (res?.ok && data?.changes) {
-      setValues((prev) => ({ ...prev, ...data.changes }));
+    if (res.ok) {
+      setValues((prev) => ({ ...prev, ...res.data }));
       setUsedAi(true);
+      setSaveState("idle");
       setAiDescription("");
       setAiRedesignOpen(false);
       return;
     }
-    if (data?.error === "no_key") {
-      router.push("/dashboard/profile");
-      return;
-    }
-    setAiRedesignError("לא הצלחתי להחיל את הבקשה. נסו לנסח אחרת.");
+    setAiRedesignError(res.error);
   }
 
   async function saveDesign() {
     if (!userId) {
-      router.push(`/auth/login?redirectedFrom=/blocks/${slug}`);
+      router.push(loginHref);
       return;
     }
     setSaving(true);
     setSaveState("idle");
     const supabase = createClient();
-    const { error } = savedId
-      ? await supabase
-          .from("saved_designs")
-          .update({ name, config: values, ai_edited: usedAi, updated_at: new Date().toISOString() })
-          .eq("id", savedId)
+    const row = {
+      name: name.trim() || block!.meta.name,
+      config: values,
+      ai_edited: usedAi,
+      updated_at: new Date().toISOString(),
+    };
+    // אחרי שמירה ראשונה ממשיכים לעדכן את אותה שורה - לא יוצרים עותק חדש בכל לחיצה
+    const { data, error } = designId
+      ? await supabase.from("saved_designs").update(row).eq("id", designId).select("id").single()
       : await supabase
           .from("saved_designs")
-          .insert({ user_id: userId, block_slug: slug, name, config: values, ai_edited: usedAi });
+          .insert({ ...row, user_id: userId, block_slug: slug })
+          .select("id")
+          .single();
     setSaving(false);
-    setSaveState(error ? "error" : "saved");
-    setSaveErrorMsg(error ? error.message : null);
-    if (!error) router.refresh();
+    if (error || !data) {
+      setSaveState("error");
+      return;
+    }
+    setSaveState("saved");
+    if (!designId) {
+      setDesignId(data.id);
+      router.replace(`/blocks/${slug}?design=${data.id}`, { scroll: false });
+    }
+  }
+
+  function resetDefaults() {
+    if (!block || !window.confirm(t("editor.resetConfirm"))) return;
+    setValues(block.defaultValues());
+    setSaveState("idle");
   }
 
   function download() {
     if (!exported) return;
-    if (Object.keys(exported.files).length > 1) {
+    const entries = Object.entries(exported.files);
+    if (entries.length > 1) {
       downloadAsZip(exported.files, `${slug}.zip`);
       return;
     }
-    const [fileName, content] = Object.entries(exported.files)[0] as [string, string];
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const [fileName, content] = entries[0];
+    downloadText(fileName, content);
   }
 
-  const copyCode = () => {
+  async function copyCode() {
     if (!exported) return;
-    const text = Object.entries(exported.files)
-      .map(([n, c]) => (Object.keys(exported.files).length > 1 ? `// ${n}\n${c}` : c))
-      .join("\n\n");
-    navigator.clipboard.writeText(text);
-  };
+    const entries = Object.entries(exported.files);
+    const text = entries.map(([n, c]) => (entries.length > 1 ? `// ${n}\n${c}` : c)).join("\n\n");
+    setCopied(await copyText(text));
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  function injectIntoProject() {
+    saveEditorDraft({ slug, name: name.trim() || block!.meta.name, values });
+    router.push("/tools/inject");
+  }
+
+  const tabClass = (active: boolean) =>
+    `text-xs px-3 py-1.5 rounded-full transition-colors ${
+      active ? "bg-accent text-base-bg font-semibold" : "text-ink-secondary hover:text-ink-primary"
+    }`;
 
   return (
-    <div className="grid lg:grid-cols-[380px_1fr] gap-6">
+    <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
       {/* פאנל תצוגה + ייצוא - קודם במובייל, כדי לראות תוצאה מיד */}
-      <div className="space-y-4 order-1 lg:order-2">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border">
+      <div className="space-y-4 order-1 lg:order-2 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
             {(["mobile", "desktop"] as const).map((w) => (
-              <button
-                key={w}
-                onClick={() => setPreviewWidth(w)}
-                className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
-                  previewWidth === w
-                    ? "bg-accent text-base-bg font-semibold"
-                    : "text-ink-secondary hover:text-ink-primary"
-                }`}
-              >
-                {w === "mobile" ? "📱 מובייל" : "🖥️ דסקטופ"}
+              <button key={w} role="tab" aria-selected={previewWidth === w} onClick={() => setPreviewWidth(w)} className={tabClass(previewWidth === w)}>
+                {t(w === "mobile" ? "editor.mobile" : "editor.desktop")}
               </button>
             ))}
           </div>
+          {output && (
+            <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
+              {(["mock", "live"] as const).map((m) => (
+                <button key={m} role="tab" aria-selected={previewMode === m} onClick={() => setPreviewMode(m)} className={tabClass(previewMode === m)}>
+                  {t(m === "mock" ? "editor.previewMock" : "editor.previewLive")}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="rounded-card border border-base-border bg-base-bg overflow-hidden flex justify-center">
-          <div
-            className="h-[420px] transition-all"
-            style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}
-          >
-            <block.Preview values={values} />
+        <BrowserFrame url="your-site.com">
+          <div className="flex justify-center bg-base-bg">
+            <div className="h-[460px] transition-all max-w-full" style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}>
+              {previewMode === "live" && output ? (
+                <HtmlPreview html={liveHtml} title={t("editor.previewLive")} wrapFragment className="h-full" />
+              ) : (
+                <block.Preview values={values} />
+              )}
+            </div>
           </div>
-        </div>
+        </BrowserFrame>
+        {previewMode === "live" && <p className="text-[11px] text-ink-muted">{t("editor.previewLiveNote")}</p>}
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={saveDesign}
-            disabled={saving}
-            className="bg-accent text-base-bg font-semibold rounded-full px-5 py-2 text-sm hover:bg-accent-hover transition-colors disabled:opacity-60"
-          >
-            {saving ? "שומר..." : saveState === "saved" ? "נשמר ✓" : "שמירת עיצוב"}
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={saveDesign} disabled={saving} className="btn-primary">
+            {saving ? t("blocks.saving") : saveState === "saved" ? t("common.saved") : t("editor.saveDesign")}
           </button>
-          <button
-            onClick={() => setAiRedesignOpen((v) => !v)}
-            className="border border-accent/50 text-accent rounded-full px-5 py-2 text-sm hover:bg-accent/10 transition-colors"
-          >
-            🎨 עריכה עם AI
+          <button onClick={() => setAiRedesignOpen((v) => !v)} aria-expanded={aiRedesignOpen} className="btn-soft">
+            🎨 {t("editor.aiEdit")}
           </button>
-          {!userId && <p className="text-xs text-ink-muted self-center">יש להתחבר כדי לשמור</p>}
+          {output && (
+            <button onClick={injectIntoProject} className="btn-outline">
+              💉 {t("editor.injectToProject")}
+            </button>
+          )}
+          <button onClick={resetDefaults} className="text-xs text-ink-muted hover:text-ink-primary">
+            {t("blocks.reset")}
+          </button>
+          {!isLoggedIn && <p className="text-xs text-ink-muted w-full">{t("editor.loginToSave")}</p>}
           {saveState === "error" && (
-            <p role="alert" className="text-xs text-danger self-center">
-              {saveErrorMsg || "משהו השתבש, נסו שוב."}
+            <p role="alert" className="text-xs text-danger w-full">
+              {t("blocks.saveFailed")}
             </p>
           )}
         </div>
 
         {aiRedesignOpen && (
-          <div className="rounded-card border border-accent/40 bg-accent-soft p-3 space-y-2">
-            <p className="text-xs text-ink-secondary">
-              תארו איך תרצו שהבלוק ייראה, או איך להתאים אותו לאתר שלכם - למשל
-              &quot;תעשה את זה יותר מינימליסטי בגוונים כהים&quot; או &quot;אין לי מקום ל-footer, שים את זה כווידג&apos;ט&quot;.
-              ה-AI יכול לשנות רק עיצוב וכמה הגדרות תצוגה, לא תוכן.
-            </p>
-            <div className="flex gap-2">
-              <input
-                value={aiDescription}
-                onChange={(e) => setAiDescription(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && applyAiRedesign()}
-                placeholder="לדוגמה: עיצוב זכוכית כהה עם מגע כחול..."
-                maxLength={500}
-                className="flex-1 bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
-              />
-              <button
-                onClick={applyAiRedesign}
-                disabled={aiRedesignBusy || !aiDescription.trim()}
-                className="bg-accent text-base-bg font-semibold rounded-lg px-4 py-2 text-sm disabled:opacity-60 shrink-0"
-              >
-                {aiRedesignBusy ? "..." : "בצע"}
-              </button>
-            </div>
-            {aiRedesignError && (
-              <p role="alert" className="text-xs text-danger">{aiRedesignError}</p>
+          <div className="rounded-card border border-accent/40 bg-accent-soft p-4 space-y-3 animate-fadeInUp">
+            {isLoggedIn ? (
+              <>
+                <p className="text-xs text-ink-secondary leading-relaxed">{t("editor.aiEditHint")}</p>
+                <div className="flex gap-2">
+                  <input
+                    value={aiDescription}
+                    onChange={(e) => setAiDescription(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && applyAiRedesign()}
+                    placeholder={t("editor.aiEditPlaceholder")}
+                    maxLength={REDESIGN_MAX_LENGTH}
+                    aria-label={t("editor.aiEdit")}
+                    className="field flex-1"
+                  />
+                  <button
+                    onClick={applyAiRedesign}
+                    disabled={aiRedesignBusy || !aiDescription.trim()}
+                    className="btn-primary rounded-lg shrink-0"
+                  >
+                    {aiRedesignBusy ? "..." : t("editor.aiApply")}
+                  </button>
+                </div>
+                {aiRedesignError && <AiErrorMessage code={aiRedesignError} />}
+              </>
+            ) : (
+              <p className="text-sm text-ink-secondary">
+                {t("editor.aiLoginRequired")}{" "}
+                <Link href={loginHref} className="text-accent font-semibold hover:underline">
+                  {t("sidebar.login")}
+                </Link>
+              </p>
             )}
           </div>
         )}
 
         {exported ? (
           <>
-            <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit">
-              {FORMATS.map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => setFormat(f.id)}
-                  className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
-                    format === f.id
-                      ? "bg-accent text-base-bg font-semibold"
-                      : "text-ink-secondary hover:text-ink-primary"
-                  }`}
-                >
-                  {f.label}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit" role="tablist">
+                {FORMATS.map((f) => (
+                  <button key={f.id} role="tab" aria-selected={format === f.id} onClick={() => setFormat(f.id)} className={tabClass(format === f.id)}>
+                    {t(f.label)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={download} className="btn-outline btn-sm">
+                  {t(Object.keys(exported.files).length > 1 ? "editor.downloadZip" : "editor.downloadFile")}
                 </button>
-              ))}
+                <button onClick={copyCode} className="btn-outline btn-sm">
+                  {t(copied ? "common.copied" : "editor.copyCode")}
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={download}
-                className="border border-base-border rounded-full px-5 py-2 text-sm hover:border-accent transition-colors"
-              >
-                {Object.keys(exported.files).length > 1 ? "הורדת ZIP" : "הורדת קובץ"}
-              </button>
-              <button
-                onClick={copyCode}
-                className="border border-base-border rounded-full px-5 py-2 text-sm hover:border-accent transition-colors"
-              >
-                העתקת קוד
-              </button>
-            </div>
-
-            <div className="rounded-card border border-base-border bg-[#0d1117] p-4 overflow-x-auto space-y-4">
+            <div className="code-panel max-h-[480px] space-y-4">
               {Object.entries(exported.files).map(([fileName, content]) => (
                 <div key={fileName}>
-                  <p className="text-[11px] text-ink-muted mb-1" dir="ltr">{fileName}</p>
-                  <pre className="text-xs text-[#a5d6ff] font-mono whitespace-pre-wrap break-all" dir="ltr">
+                  <p className="text-[11px] text-ink-muted mb-1" dir="ltr">
+                    {fileName}
+                  </p>
+                  <pre className="whitespace-pre-wrap break-all" dir="ltr">
                     {content}
                   </pre>
                 </div>
               ))}
             </div>
+            <p className="text-xs text-ink-muted">{t("blocks.codeHint")}</p>
           </>
         ) : (
-          <p className="text-sm text-ink-muted">
-            הבלוק הזה עדיין לא תומך בייצוא העצמאי החדש.
-          </p>
+          <p className="text-sm text-ink-muted">{t("editor.noExport")}</p>
         )}
       </div>
 
       {/* פאנל הגדרות */}
-      <div className="space-y-4 order-2 lg:order-1">
+      <div className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-24">
         <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
-          <label className="text-xs text-ink-muted mb-1 block">שם העיצוב</label>
+          <label htmlFor="design-name" className="label">
+            {t("blocks.designName")}
+          </label>
           <input
+            id="design-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={80}
-            className="w-full bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
+            className="field"
           />
         </div>
 
-        <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
+        <div className="rounded-card border border-base-border bg-base-panel/80 p-4 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto">
+          {aiFieldError && (
+            <div className="mb-3">
+              <AiErrorMessage code={aiFieldError} />
+            </div>
+          )}
           <DynamicForm
             fields={block.fields}
             values={values}
             onChange={set}
-            onAiImprove={improveWithAi}
+            onAiImprove={isLoggedIn ? improveWithAi : undefined}
             aiBusyField={aiField}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+/** הודעת שגיאת AI - עם קישור לפרופיל כשהבעיה היא מפתח חסר/שגוי. */
+function AiErrorMessage({ code }: { code: AiErrorCode }) {
+  const { t } = useLocale();
+  return (
+    <p role="alert" className="text-xs text-danger">
+      {t(`ai.err.${code}`)}{" "}
+      {(code === "no_key" || code === "invalid_key") && (
+        <Link href="/dashboard/profile" className="underline font-semibold">
+          {t("ai.goToProfile")}
+        </Link>
+      )}
+    </p>
   );
 }

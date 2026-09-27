@@ -1,4 +1,4 @@
-/** בונה ZIP מתוך פלט exportBlock ומוריד אותו - הכל בזיכרון הדפדפן, בלי שרת. */
+/** בונה ZIP מתוך מפת קבצים (נתיב → תוכן) ומוריד אותו - הכל בזיכרון הדפדפן, בלי שרת. */
 export async function downloadAsZip(files: Record<string, string>, zipName: string) {
   const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
@@ -12,6 +12,6 @@ export async function downloadAsZip(files: Record<string, string>, zipName: stri
   link.download = zipName;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

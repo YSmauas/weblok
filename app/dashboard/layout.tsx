@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { T } from "@/components/ui/T";
 import { getSession } from "@/lib/auth/session";
+
+/** אזור אישי - לא לאינדוקס */
+export const metadata: Metadata = {
+  title: "אזור אישי",
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardLayout({
   children,

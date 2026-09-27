@@ -1,5 +1,12 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * צבע ממשתנה CSS שתומך גם במודיפייר שקיפות (bg-accent/15, border-accent/40...).
+ * בלי <alpha-value> טיילווינד פשוט לא מייצר את המחלקות האלה - וכך היה עד עכשיו
+ * בכל האתר (מצבי hover/active שקטים, מסגרות שלא הופיעו).
+ */
+const cssVar = (name: string) => `color-mix(in srgb, var(--${name}) calc(<alpha-value> * 100%), transparent)`;
+
 const config: Config = {
   darkMode: "class",
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
@@ -7,19 +14,19 @@ const config: Config = {
     extend: {
       colors: {
         base: {
-          bg: "var(--bg)",
-          panel: "var(--panel)",
-          panel2: "var(--panel-2)",
-          border: "var(--border)",
+          bg: cssVar("bg"),
+          panel: cssVar("panel"),
+          panel2: cssVar("panel-2"),
+          border: cssVar("border"),
         },
         ink: {
-          primary: "var(--ink-primary)",
-          secondary: "var(--ink-secondary)",
-          muted: "var(--ink-muted)",
+          primary: cssVar("ink-primary"),
+          secondary: cssVar("ink-secondary"),
+          muted: cssVar("ink-muted"),
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          hover: "var(--accent-hover)",
+          DEFAULT: cssVar("accent"),
+          hover: cssVar("accent-hover"),
           soft: "var(--accent-soft)",
         },
         success: "#7fae6f",

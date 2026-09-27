@@ -42,6 +42,26 @@ html.light {
   body {
     @apply bg-base-bg text-ink-primary;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* זוהר עדין בראש העמוד - נותן עומק בלי להתחרות בתוכן */
+    background-image: radial-gradient(1200px 500px at 50% -200px, var(--accent-soft), transparent 70%);
+    background-repeat: no-repeat;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+    border: 2px solid var(--bg);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   ::selection {
@@ -62,6 +82,37 @@ html.light {
 
   .submenu-link {
     @apply block px-3 py-2 rounded-lg text-ink-secondary hover:text-ink-primary hover:bg-base-panel2 transition-colors text-sm;
+  }
+
+  /* כפתורים ושדות אחידים - במקום לחזור על אותה שרשרת מחלקות בכל קומפוננטה */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-medium
+      transition-colors disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-base-bg font-semibold hover:bg-accent-hover;
+  }
+  .btn-outline {
+    @apply btn border border-base-border text-ink-primary hover:border-accent;
+  }
+  .btn-soft {
+    @apply btn border border-accent/50 text-accent hover:bg-accent/10;
+  }
+  .btn-sm {
+    @apply px-4 py-1.5 text-xs;
+  }
+  .field {
+    @apply w-full bg-base-bg border border-base-border rounded-lg px-3 py-2 text-sm outline-none
+      focus:border-accent transition-colors placeholder:text-ink-muted;
+  }
+  .label {
+    @apply block text-xs font-semibold text-ink-muted mb-1.5;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-base-border bg-base-panel2 px-2.5 py-0.5 text-[11px] text-ink-secondary;
+  }
+  .code-panel {
+    @apply rounded-card border border-base-border bg-[#0d1117] p-4 overflow-auto text-xs text-[#a5d6ff] font-mono;
   }
 }
 
