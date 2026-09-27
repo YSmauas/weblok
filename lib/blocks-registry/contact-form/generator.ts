@@ -2,9 +2,46 @@ import type { BlockValues } from "../types";
 import type { BlockOutput } from "../export-types";
 import { getTheme } from "./themes";
 import { toUnifiedHtml } from "../export";
+import { fields } from "./config.schema";
 
-const esc = (v: string) => (v ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const escAttr = (v: string) => (v ?? "").replace(/"/g, "&quot;");
+const esc = (v: string) =>
+  (v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/** מחרוזת JS שבטוחה גם בתוך <script> (בלי "</script>" שיסגור את התגית) */
+const jsStr = (v: string) => JSON.stringify(v ?? "").replace(/</g, "\\u003c").replace(/\u2028|\u2029/g, "");
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+/** ערך select חייב להיות אחת האפשרויות שהוגדרו בסכמה - אחרת ברירת המחדל. */
+function pick(values: BlockValues, id: string): string {
+  const field = fields.find((f) => f.id === id);
+  const v = values[id];
+  if (field?.options?.some((o) => o.value === v)) return v;
+  return field?.default ?? "";
+}
+
+/**
+ * מנקה את כל הערכים לפני שהם נכנסים ל-CSS/HTML/JS. הערכים מגיעים מהעורך, מעיצוב
+ * שמור או מה-AI - אף אחד מהם לא אמור להיות מסוגל "לשבור" את הקוד המיוצא.
+ */
+function sanitize(values: BlockValues): BlockValues {
+  const webhook = (values.webhookUrl ?? "").trim();
+  return {
+    ...values,
+    submitMethod: pick(values, "submitMethod"),
+    displayMode: pick(values, "displayMode"),
+    widgetPosition: pick(values, "widgetPosition"),
+    themeSelect: pick(values, "themeSelect"),
+    defaultThemeMode: pick(values, "defaultThemeMode"),
+    allowThemeToggle: pick(values, "allowThemeToggle"),
+    showPhone: pick(values, "showPhone"),
+    showSubject: pick(values, "showSubject"),
+    fontSelect: pick(values, "fontSelect"),
+    accentColor: HEX.test(values.accentColor ?? "") ? values.accentColor : "#38bdf8",
+    formspreeId: (values.formspreeId ?? "").trim().replace(/^.*\/f\//, "").replace(/[^A-Za-z0-9]/g, ""),
+    webhookUrl: /^https:\/\/[^\s"'<>]+$/i.test(webhook) ? webhook : "",
+    mailtoAddress: (values.mailtoAddress ?? "").trim().replace(/[^A-Za-z0-9._%+@-]/g, ""),
+  };
+}
 
 /** אייקוני SVG מוטמעים - בלי תלות ב-Font Awesome או כל CDN חיצוני. */
 const SVG = {
@@ -26,7 +63,8 @@ const SVG = {
  * `.wb-contact` ומטופלים ב-IIFE אחד שסורק querySelectorAll, כדי שכמה
  * בלוקים על אותו עמוד לא יתנגשו ב-id-ים.
  */
-export function toOutput(values: BlockValues): BlockOutput {
+export function toOutput(rawValues: BlockValues): BlockOutput {
+  const values = sanitize(rawValues);
   const theme = getTheme(values.themeSelect, values.accentColor || "#38bdf8");
   const isWidget = values.displayMode === "widget";
   const sidePos = values.widgetPosition === "left" ? "left: 16px;" : "right: 16px;";
@@ -47,12 +85,13 @@ export function toOutput(values: BlockValues): BlockOutput {
     : `
   .wb-contact { width: 100%; max-width: 550px; margin: 0 auto; }`;
 
-  const css = `
+  const fontParam = encodeURIComponent(values.fontSelect).replace(/%20/g, "+");
+  const css = `@import url('https://fonts.googleapis.com/css2?family=${fontParam}:wght@400;600;700;800&display=swap');
   .wb-contact, .wb-toggle { font-family: '${values.fontSelect}', sans-serif; box-sizing: border-box; }
   .wb-contact *, .wb-toggle * { box-sizing: border-box; }
   .wb-contact {
     --wb-bg: ${theme.dark.panel}; --wb-border: ${theme.dark.border}; --wb-text: ${theme.dark.text};
-    --wb-input: ${theme.dark.inputBg}; --wb-accent: ${escAttr(values.accentColor)};
+    --wb-input: ${theme.dark.inputBg}; --wb-accent: ${values.accentColor};
     background: var(--wb-bg); border: 1px solid var(--wb-border); color: var(--wb-text);
     ${theme.dark.panelCss} overflow: hidden;
   }
@@ -97,7 +136,7 @@ export function toOutput(values: BlockValues): BlockOutput {
 
   const html = `${sectionTitleHtml}
 ${widgetToggleHtml}
-<div class="wb-contact${isWidget ? "" : " wb-open"}" data-wb-mode="${values.defaultThemeMode}" ${isWidget ? "" : 'data-wb-static="1"'}>
+<div class="wb-contact${isWidget ? "" : " wb-open"}" dir="rtl" data-wb-mode="${values.defaultThemeMode}" ${isWidget ? "" : 'data-wb-static="1"'}>
   <div class="wb-header">
     <div>
       <h2>${SVG.paperPlane} ${esc(values.formTitle)}</h2>
@@ -111,28 +150,28 @@ ${widgetToggleHtml}
   <form class="wb-form" data-wb-form>
     <div class="wb-group">
       <label>${SVG.user} שם מלא *</label>
-      <input class="wb-field" type="text" name="name" required>
+      <input class="wb-field" type="text" name="name" autocomplete="name" aria-label="שם מלא" required>
     </div>
     <div class="wb-group">
       <label>${SVG.envelope} כתובת מייל *</label>
-      <input class="wb-field" type="email" name="email" required>
+      <input class="wb-field" type="email" name="email" autocomplete="email" aria-label="כתובת מייל" required>
     </div>
     ${values.showPhone !== "hidden" ? `<div class="wb-group">
       <label>${SVG.phone} טלפון ${values.showPhone === "required" ? "*" : ""}</label>
-      <input class="wb-field" type="tel" name="phone" ${values.showPhone === "required" ? "required" : ""}>
+      <input class="wb-field" type="tel" name="phone" autocomplete="tel" aria-label="טלפון" ${values.showPhone === "required" ? "required" : ""}>
     </div>` : ""}
     ${values.showSubject !== "hidden" ? `<div class="wb-group">
       <label>${SVG.bookmark} נושא ${values.showSubject === "required" ? "*" : ""}</label>
-      <input class="wb-field" type="text" name="subject" ${values.showSubject === "required" ? "required" : ""}>
+      <input class="wb-field" type="text" name="subject" aria-label="נושא" ${values.showSubject === "required" ? "required" : ""}>
     </div>` : ""}
     <div class="wb-group">
       <label>${SVG.message} הודעה *</label>
-      <textarea class="wb-field" name="message" required></textarea>
+      <textarea class="wb-field" name="message" aria-label="הודעה" required></textarea>
     </div>
     <button type="submit" class="wb-submit" data-wb-submit>
       <span data-wb-btn-text>${esc(values.btnText)}</span> ${SVG.arrow}
     </button>
-    <div class="wb-status" data-wb-status></div>
+    <div class="wb-status" data-wb-status role="status" aria-live="polite"></div>
   </form>
 </div>`;
 
@@ -154,7 +193,7 @@ ${widgetToggleHtml}
       themeToggle.addEventListener('click', function () {
         var light = root.getAttribute('data-wb-mode') === 'light';
         root.setAttribute('data-wb-mode', light ? 'dark' : 'light');
-        themeToggle.innerHTML = light ? ${JSON.stringify(SVG.moon)} : ${JSON.stringify(SVG.sun)};
+        themeToggle.innerHTML = light ? ${jsStr(SVG.moon)} : ${jsStr(SVG.sun)};
       });
     }
 
@@ -170,10 +209,10 @@ ${widgetToggleHtml}
 
       ${
         values.submitMethod === "mailto"
-          ? `var subject = encodeURIComponent(data.subject || ${JSON.stringify(values.formTitle || "פנייה חדשה")});
+          ? `var subject = encodeURIComponent(data.subject || ${jsStr(values.formTitle || "פנייה חדשה")});
       var body = encodeURIComponent('שם: ' + data.name + '\\nמייל: ' + data.email + (data.phone ? '\\nטלפון: ' + data.phone : '') + '\\n\\n' + data.message);
-      window.location.href = ${JSON.stringify("mailto:" + (values.mailtoAddress || ""))} + '?subject=' + subject + '&body=' + body;
-      status.textContent = ${JSON.stringify(values.successMsg || "נפתח יישום המייל שלך.")};
+      window.location.href = ${jsStr("mailto:" + values.mailtoAddress)} + '?subject=' + subject + '&body=' + body;
+      status.textContent = ${jsStr(values.successMsg || "נפתח יישום המייל שלך.")};
       status.className = 'wb-status wb-ok';
       form.reset();
       return;`
@@ -184,17 +223,17 @@ ${widgetToggleHtml}
 
       ${
         values.submitMethod === "formspree"
-          ? `fetch(${JSON.stringify("https://formspree.io/f/" + (values.formspreeId || ""))}, {
+          ? `fetch(${jsStr("https://formspree.io/f/" + values.formspreeId)}, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(data)
       })`
-          : `fetch(${JSON.stringify(values.webhookUrl || "")}, {
+          : `fetch(${jsStr(values.webhookUrl)}, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
       })`
       }
         .then(function (res) { if (!res.ok) throw new Error(); return res; })
         .then(function () {
-          status.textContent = ${JSON.stringify(values.successMsg)};
+          status.textContent = ${jsStr(values.successMsg || "הודעתך נשלחה בהצלחה!")};
           status.className = 'wb-status wb-ok';
           form.reset();
         })

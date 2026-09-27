@@ -139,6 +139,7 @@ create table if not exists public.saved_designs (
   block_slug text not null,
   name text not null default 'ללא שם',
   config jsonb not null default '{}'::jsonb,
+  ai_edited boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -158,6 +159,7 @@ create table if not exists public.projects (
   name text not null default 'פרויקט חדש',
   blocks jsonb not null default '[]'::jsonb,
   github_repo text,
+  github_branch text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -211,6 +213,10 @@ create policy "api_keys: owner full access"
   on public.api_keys for all
   using (auth.uid() = user_id and public.is_active())
   with check (auth.uid() = user_id and public.is_active());
+
+-- ---------- project_files: קבצי הפרויקטים הקטנים (מכסה 5MB למשתמש) ----------
+-- ההגדרה המלאה (טבלה, RLS, טריגר מכסה) ב-supabase/migrations/0004_projects_files.sql -
+-- להריץ אותו מיד אחרי הקובץ הזה.
 
 -- ============================================================
 -- שלב חובה אחרי ההרצה: להפוך את עצמך ל-owner (פעם אחת, ידנית)

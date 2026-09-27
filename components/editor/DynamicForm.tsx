@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FieldDef, BlockValues } from "@/lib/blocks-registry/types";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 function isVisible(field: FieldDef, values: BlockValues) {
   if (!field.dependsOn) return true;
@@ -21,6 +22,7 @@ function groupFields(fields: FieldDef[], values: BlockValues) {
 
 /** אייקון "i" קטן שבלחיצה פותח בועת הסבר - במקום טקסט קבוע שתמיד תופס מקום. */
 function HintButton({ hint }: { hint: string }) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-block">
@@ -29,14 +31,15 @@ function HintButton({ hint }: { hint: string }) {
         onClick={() => setOpen((v) => !v)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         className="w-4 h-4 rounded-full border border-ink-muted text-ink-muted text-[10px] flex items-center justify-center hover:border-accent hover:text-accent transition-colors shrink-0"
-        aria-label="הסבר"
+        aria-label={t("editor.hint")}
+        aria-expanded={open}
       >
         i
       </button>
       {open && (
         <span
           role="tooltip"
-          className="absolute z-20 top-6 right-0 w-64 max-w-[70vw] bg-base-panel2 border border-base-border rounded-lg p-3 text-[11px] leading-relaxed text-ink-secondary shadow-lg"
+          className="absolute z-20 top-6 start-0 w-64 max-w-[70vw] bg-base-panel2 border border-base-border rounded-lg p-3 text-[11px] leading-relaxed text-ink-secondary shadow-lg"
         >
           {hint}
         </span>
@@ -60,6 +63,7 @@ export function DynamicForm({
   /** מזהה השדה שכרגע נשלח לשיפור (מציג "משפר..." ומנטרל את הכפתור) */
   aiBusyField?: string | null;
 }) {
+  const { t } = useLocale();
   return (
     <div className="space-y-5">
       {groupFields(fields, values).map(([group, groupFields]) => (
@@ -81,9 +85,9 @@ export function DynamicForm({
                     {field.serverOnly && (
                       <span
                         className="text-[10px] text-accent border border-accent/40 rounded-full px-2 py-0.5"
-                        title="שדה זה נשמר בצד שרת בלבד ולא נכנס לקוד ההטמעה"
+                        title={t("editor.serverOnlyTitle")}
                       >
-                        בצד שרת
+                        {t("editor.serverOnly")}
                       </span>
                     )}
                   </label>
@@ -91,10 +95,10 @@ export function DynamicForm({
                     <button
                       type="button"
                       onClick={() => onAiImprove(field)}
-                      disabled={aiBusyField === field.id}
+                      disabled={!!aiBusyField}
                       className="text-[11px] text-accent hover:underline disabled:opacity-50 shrink-0"
                     >
-                      {aiBusyField === field.id ? "משפר..." : "✨ שפר עם AI"}
+                      {aiBusyField === field.id ? t("editor.improving") : `✨ ${t("editor.improve")}`}
                     </button>
                   )}
                 </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSession } from "@/lib/auth/use-session";
 import { useTheme } from "@/lib/theme-provider";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { IconPuzzle, IconInfo, IconSun, IconMoon, IconMenu } from "../ui/Icons";
@@ -15,14 +17,42 @@ export function Header({
 }) {
   const { theme, toggle } = useTheme();
   const { t } = useLocale();
+  const pathname = usePathname() ?? "";
+  const { loggedIn } = useSession();
+
+  const NAV = [
+    { href: "/blocks", label: t("sidebar.blocks") },
+    { href: "/tools/inject", label: t("sidebar.toolInject") },
+    loggedIn
+      ? { href: "/dashboard", label: t("sidebar.personalArea") }
+      : { href: "/auth/login", label: t("header.login") },
+  ];
 
   return (
     <header className="sticky top-0 z-40 glass">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 group" aria-label="WEblok">
           <IconPuzzle className="w-6 h-6 text-accent group-hover:rotate-12 transition-transform" />
           <span className="text-lg font-extrabold tracking-tight">WEblok</span>
         </Link>
+
+        <nav className="hidden md:flex items-center gap-1 text-sm" aria-label={t("header.menu")}>
+          {NAV.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`px-3 py-1.5 rounded-full transition-colors ${
+                  active ? "bg-accent/15 text-accent font-semibold" : "text-ink-secondary hover:text-ink-primary hover:bg-base-panel2"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         <div className="flex items-center gap-1">
           <button

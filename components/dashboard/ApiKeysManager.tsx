@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconKey } from "../ui/Icons";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { hasBrowserKey, removeBrowserKey, writeBrowserKey, type AiProvider } from "@/lib/ai/client";
 
 type StorageMode = "server" | "browser";
 
@@ -12,13 +13,13 @@ interface KeyState {
   value: string;
   storage: StorageMode;
   configured: boolean; // קיים מפתח שמור בשרת (הערך עצמו אף פעם לא חוזר ללקוח)
+  inBrowser: boolean; // קיים מפתח ששמור בדפדפן הזה בלבד
   saved: boolean;
   error: boolean;
   errorCode: string | null;
 }
 
-const PROVIDERS = [{ provider: "gemini", label: "Google Gemini" }];
-const LS_KEY = (p: string) => `weblok-apikey-${p}`;
+const PROVIDERS: { provider: AiProvider; label: string }[] = [{ provider: "gemini", label: "Google Gemini" }];
 
 export function ApiKeysManager({ configuredProviders }: { configuredProviders: string[] }) {
   const { t } = useLocale();
@@ -28,6 +29,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
       value: "",
       storage: "server",
       configured: configuredProviders.includes(p.provider),
+      inBrowser: false,
       saved: false,
       error: false,
       errorCode: null as string | null,
@@ -37,16 +39,25 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
   const update = (provider: string, patch: Partial<KeyState>) =>
     setKeys((prev) => prev.map((k) => (k.provider === provider ? { ...k, ...patch } : k)));
 
+  // localStorage זמין רק בדפדפן - בודקים אחרי הטעינה אם כבר שמור מפתח מקומי
+  useEffect(() => {
+    setKeys((prev) =>
+      prev.map((k) => {
+        const inBrowser = hasBrowserKey(k.provider as AiProvider);
+        return inBrowser ? { ...k, inBrowser, storage: k.configured ? k.storage : "browser" } : k;
+      })
+    );
+  }, []);
+
   async function save(k: KeyState) {
     const value = k.value.trim();
     if (value.length < 8) return update(k.provider, { error: true, saved: false, errorCode: null });
 
     if (k.storage === "browser") {
-      // נשמר רק בדפדפן הזה ולא נשלח לשרת. שימו לב: localStorage אינו מוצפן.
-      try {
-        localStorage.setItem(LS_KEY(k.provider), value);
-        update(k.provider, { saved: true, error: false, value: "" });
-      } catch {
+      // נשמר רק בדפדפן הזה ולא נשלח לשרת - מוצפן עם מפתח שאי אפשר לייצא (lib/ai/key-vault.ts).
+      if (await writeBrowserKey(value, k.provider as AiProvider)) {
+        update(k.provider, { saved: true, error: false, value: "", inBrowser: true });
+      } else {
         update(k.provider, { error: true, saved: false });
       }
       return;
@@ -66,6 +77,11 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
   }
 
   async function remove(k: KeyState) {
+    if (k.storage === "browser") {
+      removeBrowserKey(k.provider as AiProvider);
+      update(k.provider, { inBrowser: false, saved: false, error: false });
+      return;
+    }
     const res = await fetch(`/api/keys?provider=${encodeURIComponent(k.provider)}`, {
       method: "DELETE",
     }).catch(() => null);
@@ -87,7 +103,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
             autoComplete="off"
             value={k.value}
             onChange={(e) => update(k.provider, { value: e.target.value, saved: false, error: false })}
-            placeholder={k.configured && k.storage === "server" ? "••••••••" : t("keys.placeholder")}
+            placeholder={(k.storage === "server" ? k.configured : k.inBrowser) ? "••••••••" : t("keys.placeholder")}
             dir="ltr"
             className="w-full bg-base-panel border border-base-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent transition-colors font-mono"
           />
@@ -115,7 +131,7 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
             </div>
 
             <div className="flex gap-2">
-              {k.configured && k.storage === "server" && (
+              {(k.storage === "server" ? k.configured : k.inBrowser) && (
                 <button
                   onClick={() => remove(k)}
                   className="text-xs border border-base-border text-danger rounded-full px-4 py-1.5 hover:border-danger transition-colors"
@@ -142,7 +158,9 @@ export function ApiKeysManager({ configuredProviders }: { configuredProviders: s
               ? k.configured
                 ? t("keys.configured")
                 : t("keys.hintServer")
-              : t("keys.hintBrowser")}
+              : k.inBrowser
+                ? t("keys.browserConfigured")
+                : t("keys.hintBrowser")}
           </p>
         </div>
       ))}

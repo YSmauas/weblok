@@ -40,3 +40,18 @@
 
 כל חיבורי ה-DB כבר בקוד (אין יותר TODO): session ו-middleware אמיתיים, ניהול משתמשים, פניות, מפתחות API מוצפנים, אווטאר, עיצובים ופרויקטים.
 מה שנשאר לעשות ידנית: להריץ את `supabase/schema.sql` ואחריו `supabase/migrations/0002_stage2_hardening.sql` (אם הפרויקט חדש), להגדיר `KEYS_ENCRYPTION_SECRET` (`openssl rand -base64 32`), להפעיל Manual Linking ב-Supabase Auth (לחיבור GitHub מהפרופיל), ולהפעיל Leaked Password Protection.
+
+---
+
+## שלב 6: פרויקטים קטנים והזרקה (migration 0004)
+
+להריץ ב-SQL Editor את `supabase/migrations/0004_projects_files.sql`. הוא מוסיף:
+- `saved_designs.ai_edited` (העורך כבר כותב אליה - בלעדיה שמירת עיצוב נכשלת),
+- טבלת `project_files` עם RLS וטריגר שאוכף מכסה של 5MB לכל משתמש,
+- `projects.github_branch`.
+
+אופציונלי: `NEXT_PUBLIC_SITE_URL` (ר' `.env.example`) - לתגיות מטא ולקרדיט בקוד המיוצא.
+
+## שלב 7: ספירת כניסות ואנליטיקה (migration 0005)
+
+להריץ ב-SQL Editor את `supabase/migrations/0005_login_stats_analytics.sql`. הוא מוסיף ספירת כניסות (טריגר על `auth.sessions`, עם השלמת היסטוריה מיומן האימות אם קיים), את `public_stats_totals()` לדף הבית, ואת `admin_analytics_v2()` לפאנל הניהול. עד ההרצה - המספרים החדשים מוצגים כ"—".

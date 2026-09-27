@@ -15,4 +15,9 @@ export interface BlockOutput {
   js?: string;
   /** שם קצר לשימוש בקובץ/ה-component (למשל "ContactBlock") */
   componentName: string;
+  /**
+   * קבצים נלווים שלא נכנסים לעמוד עצמו - למשל פונקציית שרת (proxy) שמחזיקה
+   * מפתח API. מתווספים לכל פורמט ייצוא (ואז ההורדה היא ZIP).
+   */
+  extraFiles?: Record<string, string>;
 }

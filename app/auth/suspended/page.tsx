@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { T } from "@/components/ui/T";
+
+export const metadata: Metadata = {
+  title: "החשבון מושעה",
+  robots: { index: false, follow: false },
+};
 
 export default function SuspendedPage() {
   return (

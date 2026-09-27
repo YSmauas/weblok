@@ -1,8 +1,12 @@
-/** בונה ZIP מתוך פלט exportBlock ומוריד אותו - הכל בזיכרון הדפדפן, בלי שרת. */
-export async function downloadAsZip(files: Record<string, string>, zipName: string) {
+/**
+ * בונה ZIP מתוך מפת קבצים (נתיב → תוכן) ומוריד אותו - הכל בזיכרון הדפדפן, בלי שרת.
+ * `folderName` - שם התיקייה בתוך ה-ZIP (יכול להיות בעברית). שם הקובץ עצמו
+ * נשאר ASCII: Chrome מחליף שמות הורדה לא-ASCII ב-"download" בחלק מהמערכות.
+ */
+export async function downloadAsZip(files: Record<string, string>, zipName: string, folderName?: string) {
   const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
-  const folder = zip.folder(zipName.replace(/\.zip$/, "")) ?? zip;
+  const folder = zip.folder(folderName ?? zipName.replace(/\.zip$/, "")) ?? zip;
   Object.entries(files).forEach(([name, content]) => folder.file(name, content));
 
   const blob = await zip.generateAsync({ type: "blob" });
@@ -12,6 +16,6 @@ export async function downloadAsZip(files: Record<string, string>, zipName: stri
   link.download = zipName;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
