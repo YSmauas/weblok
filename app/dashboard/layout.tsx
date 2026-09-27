@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 
   return (
     <SiteChrome>
-      <div className="max-w-5xl mx-auto px-6 py-10 grid md:grid-cols-[210px_1fr] gap-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 grid md:grid-cols-[210px_1fr] gap-6 md:gap-10">
         <DashboardNav />
         <div className="min-w-0">
           {session?.status === "warned" && (

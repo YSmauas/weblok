@@ -54,10 +54,23 @@ export function JourneyScroll() {
   const dashoffset = circumference * (1 - progress);
 
   return (
+    <>
+    {/* במובייל: כרטיסים רגילים. גלילה "דביקה" של 4 מסכים שלמים מתישה באצבע */}
+    <section className="md:hidden px-4 py-14 space-y-4">
+      {FEATURES.map((f, i) => (
+        <div key={f.title} className="rounded-card border border-base-border bg-base-panel/60 p-5">
+          <span className="w-7 h-7 rounded-full bg-accent text-base-bg text-sm font-bold inline-flex items-center justify-center">
+            {i + 1}
+          </span>
+          <h2 className="text-lg font-bold mt-3">{f.title}</h2>
+          <p className="mt-1.5 text-sm text-ink-secondary leading-relaxed">{f.text}</p>
+        </div>
+      ))}
+    </section>
     <section
       ref={containerRef}
       style={{ height: `${FEATURES.length * 90}dvh` }}
-      className="relative"
+      className="relative hidden md:block"
     >
       {/* h-screen (100vh) קופץ באנדרואיד/כרום כשסרגל הכתובת מתכווץ/מתרחב בזמן
           גלילה - זה בדיוק מה שגרם לתחושה שהגלילה "נתקעת" באמצע הסקשן. dvh
@@ -118,5 +131,6 @@ export function JourneyScroll() {
         </div>
       </div>
     </section>
+    </>
   );
                 }

@@ -21,11 +21,11 @@ export function StatsSection({
 
   return (
     <section className="border-y border-base-border bg-base-panel/40">
-      <div className="max-w-4xl mx-auto px-6 py-16 grid grid-cols-3 gap-6 text-center">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-3 gap-3 sm:gap-6 text-center">
         {STATS.map((s) => (
           <div key={s.label}>
-            <p className="text-3xl md:text-4xl font-extrabold text-accent">{s.value}</p>
-            <p className="mt-2 text-sm text-ink-secondary">{s.label}</p>
+            <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-accent">{s.value}</p>
+            <p className="mt-2 text-xs sm:text-sm text-ink-secondary">{s.label}</p>
           </div>
         ))}
       </div>

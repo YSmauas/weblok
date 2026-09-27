@@ -49,7 +49,7 @@ export function Sidebar({
 }) {
   const { t } = useLocale();
   const pathname = usePathname() ?? "";
-  const { loggedIn: isLoggedIn, role } = useSession();
+  const { loggedIn: isLoggedIn, role, loading } = useSession();
   const isAdmin = roleAtLeast(role, "admin");
 
   // וילון סגור לא אמור להיות נגיש במקלדת/קורא מסך. React 18 לא מכיר את
@@ -102,7 +102,7 @@ export function Sidebar({
           <Link href="/" onClick={onClose} className={`sidebar-link ${active("/")}`}>
             {t("sidebar.home")}
           </Link>
-          {isLoggedIn ? (
+          {loading ? null : isLoggedIn ? (
             <form action="/auth/signout" method="post">
               <button type="submit" className="sidebar-link w-full text-start">
                 {t("sidebar.logout")}
@@ -114,7 +114,7 @@ export function Sidebar({
             </Link>
           )}
 
-          <Expandable label={t("sidebar.blocks")} defaultOpen={pathname.startsWith("/blocks")}>
+          <Expandable label={t("sidebar.blocks")} defaultOpen>
             {blocksRegistry.map((b) => (
               <Link key={b.slug} href={`/blocks/${b.slug}`} onClick={onClose} className={`submenu-link ${active(`/blocks/${b.slug}`)}`}>
                 <span aria-hidden className="me-2">{b.icon}</span>

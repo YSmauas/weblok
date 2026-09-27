@@ -178,8 +178,8 @@ export function BlockEditorClient({
 
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
-      {/* פאנל תצוגה + ייצוא - קודם במובייל, כדי לראות תוצאה מיד */}
-      <div className="space-y-4 order-1 lg:order-2 min-w-0">
+      {/* סדר במובייל: תצוגה → הגדרות → קוד. בדסקטופ: הגדרות בעמודה צדדית דביקה */}
+      <div className="space-y-4 min-w-0 lg:col-start-2 lg:row-start-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
             {(["mobile", "desktop"] as const).map((w) => (
@@ -201,7 +201,7 @@ export function BlockEditorClient({
 
         <BrowserFrame url="your-site.com">
           <div className="flex justify-center bg-base-bg">
-            <div className="h-[460px] transition-all max-w-full" style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}>
+            <div className="h-[380px] sm:h-[460px] transition-all max-w-full" style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}>
               {previewMode === "live" && output ? (
                 <HtmlPreview html={liveHtml} title={t("editor.previewLive")} wrapFragment className="h-full" />
               ) : (
@@ -271,6 +271,41 @@ export function BlockEditorClient({
           </div>
         )}
 
+      </div>
+
+      {/* פאנל הגדרות */}
+      <div className="space-y-4 lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24">
+        <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
+          <label htmlFor="design-name" className="label">
+            {t("blocks.designName")}
+          </label>
+          <input
+            id="design-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            className="field"
+          />
+        </div>
+
+        <div className="rounded-card border border-base-border bg-base-panel/80 p-4 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto">
+          {aiFieldError && (
+            <div className="mb-3">
+              <AiErrorMessage code={aiFieldError} />
+            </div>
+          )}
+          <DynamicForm
+            fields={block.fields}
+            values={values}
+            onChange={set}
+            onAiImprove={isLoggedIn ? improveWithAi : undefined}
+            aiBusyField={aiField}
+          />
+        </div>
+      </div>
+
+      {/* ייצוא */}
+      <div className="space-y-4 min-w-0 lg:col-start-2 lg:row-start-2">
         {exported ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -308,37 +343,6 @@ export function BlockEditorClient({
         ) : (
           <p className="text-sm text-ink-muted">{t("editor.noExport")}</p>
         )}
-      </div>
-
-      {/* פאנל הגדרות */}
-      <div className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-24">
-        <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
-          <label htmlFor="design-name" className="label">
-            {t("blocks.designName")}
-          </label>
-          <input
-            id="design-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={80}
-            className="field"
-          />
-        </div>
-
-        <div className="rounded-card border border-base-border bg-base-panel/80 p-4 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto">
-          {aiFieldError && (
-            <div className="mb-3">
-              <AiErrorMessage code={aiFieldError} />
-            </div>
-          )}
-          <DynamicForm
-            fields={block.fields}
-            values={values}
-            onChange={set}
-            onAiImprove={isLoggedIn ? improveWithAi : undefined}
-            aiBusyField={aiField}
-          />
-        </div>
       </div>
     </div>
   );

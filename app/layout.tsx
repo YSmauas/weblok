@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+import { SessionProvider } from "@/lib/auth/use-session";
 import {
   CREDIT_URL,
   GITHUB_PROJECT,
@@ -124,7 +125,9 @@ export default function RootLayout({
           דלג לתוכן
         </a>
         <ThemeProvider>
-          <LocaleProvider>{children}</LocaleProvider>
+          <LocaleProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </LocaleProvider>
           <AnalyticsTracker />
         </ThemeProvider>
       </body>
