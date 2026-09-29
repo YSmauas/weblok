@@ -3,6 +3,7 @@ import Link from "next/link";
 import { blocksRegistry } from "@/lib/blocks-registry";
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 export const metadata: Metadata = {
   title: "קטלוג בלוקים",
@@ -22,7 +23,7 @@ export default function BlocksCatalogPage() {
           <Link key={b.slug} href={`/blocks/${b.slug}`} className="group">
             <Card className="h-full transition-all group-hover:border-accent/60 group-hover:-translate-y-0.5">
               <div className="flex items-start justify-between gap-3">
-                <span className="text-3xl" aria-hidden>{b.icon}</span>
+                <span className="text-3xl" aria-hidden><AppIcon name={b.icon} /></span>
                 <span className="chip"><T k={`blocks.cat.${b.category}`} /></span>
               </div>
               <h2 className="font-semibold text-lg mt-3">{b.name}</h2>

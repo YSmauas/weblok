@@ -3,6 +3,7 @@
 import { getBlockDefinition } from "@/lib/blocks-registry";
 import type { InjectBlock } from "@/lib/inject/core";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 /** רשימת בלוקים לבחירה (תיבות סימון), עם תגית מקור: ברירת מחדל / עיצוב שמור / מהעורך. */
 export function BlockPicker({
@@ -43,7 +44,7 @@ export function BlockPicker({
                 className="accent-[var(--accent)] shrink-0"
               />
               <span className="text-xl shrink-0" aria-hidden>
-                {def?.meta.icon ?? "🧩"}
+                <AppIcon name={def?.meta.icon ?? "puzzle"} />
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-medium truncate">{b.name}</span>

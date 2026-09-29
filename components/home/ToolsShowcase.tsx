@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { Reveal } from "@/components/ui/Reveal";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 const ITEMS = [
-  { href: "/blocks", icon: "🧩", title: "showcase.blocks.title", text: "showcase.blocks.text" },
-  { href: "/tools/inject", icon: "💉", title: "showcase.inject.title", text: "showcase.inject.text" },
-  { href: "/tools/github", icon: "🐙", title: "showcase.github.title", text: "showcase.github.text" },
+  { href: "/blocks", icon: "puzzle", title: "showcase.blocks.title", text: "showcase.blocks.text" },
+  { href: "/tools/inject", icon: "inject", title: "showcase.inject.title", text: "showcase.inject.text" },
+  { href: "/tools/github", icon: "github", title: "showcase.github.title", text: "showcase.github.text" },
 ];
 
 /** שלושת הדברים העיקריים שאפשר לעשות באתר - כרטיסים שנחשפים בגלילה */
@@ -26,7 +27,7 @@ export function ToolsShowcase() {
               className="group block h-full rounded-card border border-base-border bg-base-panel/70 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_18px_40px_-20px_var(--accent)]"
             >
               <span className="text-3xl inline-block transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" aria-hidden>
-                {item.icon}
+                <AppIcon name={item.icon} />
               </span>
               <h3 className="font-bold text-lg mt-3">{t(item.title)}</h3>
               <p className="text-sm text-ink-secondary mt-1.5 leading-relaxed">{t(item.text)}</p>

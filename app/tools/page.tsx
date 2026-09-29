@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 export const metadata: Metadata = {
   title: "כלים מתקדמים",
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 const TOOLS = [
-  { href: "/tools/inject", icon: "💉", k: "inject" },
-  { href: "/tools/github", icon: "🐙", k: "gh" },
+  { href: "/tools/inject", icon: "inject", k: "inject" },
+  { href: "/tools/github", icon: "github", k: "gh" },
 ];
 
 export default function ToolsPage() {
@@ -28,7 +29,7 @@ export default function ToolsPage() {
           <Link key={tool.href} href={tool.href} className="group">
             <Card className="h-full transition-colors group-hover:border-accent/60">
               <div className="text-3xl" aria-hidden>
-                {tool.icon}
+                <AppIcon name={tool.icon} />
               </div>
               <h2 className="font-semibold text-lg mt-2">
                 <T k={`${tool.k}.title`} />
