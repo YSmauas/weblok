@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --font-heebo: "Heebo";
   --bg: #0a0d0a;
   --panel: #10140e;
   --panel-2: #151b13;

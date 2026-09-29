@@ -234,6 +234,7 @@
   "blocks.cat.forms": "Formularios",
   "blocks.cat.marketing": "Marketing",
   "blocks.cat.social-proof": "Prueba social",
+  "blocks.cat.layout": "Estructura",
   "editor.aiApply": "Aplicar",
   "editor.aiEdit": "Editar con IA",
   "editor.aiEditHint": "Describe cómo quieres que se vea el bloque o cómo adaptarlo a tu sitio, por ejemplo \"hazlo minimalista en tonos oscuros\" o \"no tengo espacio abajo, conviértelo en widget flotante\". La IA solo cambia el diseño y la visualización, nunca el contenido.",
