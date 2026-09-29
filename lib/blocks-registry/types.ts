@@ -37,7 +37,7 @@ export interface BlockMeta {
   name: string;
   description: string;
   icon: string;
-  category: "assistant" | "forms" | "marketing" | "social-proof";
+  category: "assistant" | "forms" | "marketing" | "social-proof" | "layout";
 }
 
 export interface BlockDefinition {

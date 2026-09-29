@@ -234,6 +234,7 @@
   "blocks.cat.forms": "Forms",
   "blocks.cat.marketing": "Marketing",
   "blocks.cat.social-proof": "Social proof",
+  "blocks.cat.layout": "Layout",
   "editor.aiApply": "Apply",
   "editor.aiEdit": "Edit with AI",
   "editor.aiEditHint": "Describe how you want the block to look or how to fit it to your site - e.g. \"make it minimal with dark tones\" or \"no room at the bottom, make it a floating widget\". The AI only changes design and display settings, never content.",
