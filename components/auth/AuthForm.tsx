@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Card } from "@/components/ui/Card";
-import { IconGithub, IconGoogle } from "@/components/ui/Icons";
+import { IconGithub } from "@/components/ui/Icons";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/auth/redirect";
@@ -127,7 +128,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               {t("auth.continueGithub")}
             </button>
             <button type="button" disabled={busy} onClick={() => oauth("google")} className={oauthClass}>
-              <IconGoogle className="w-4 h-4" />
+              <Image src="/icons/google.png" alt="" width={18} height={18} aria-hidden="true" className="shrink-0" />
               {t("auth.continueGoogle")}
             </button>
           </div>

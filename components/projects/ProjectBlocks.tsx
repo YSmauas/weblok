@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n/locale-provider";
 import { getBlockDefinition } from "@/lib/blocks-registry";
 import type { InjectBlock } from "@/lib/inject/core";
 import { updateProject, type ProjectBlockRef } from "@/lib/projects/db";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 /** שיוך בלוקים לפרויקט: עיצובים שמורים או בלוקי קטלוג בברירת מחדל. */
 export function ProjectBlocks({
@@ -62,7 +63,7 @@ export function ProjectBlocks({
               >
                 <span className="flex items-center gap-3 min-w-0">
                   <span className="text-xl" aria-hidden>
-                    {def?.meta.icon ?? "🧩"}
+                    <AppIcon name={def?.meta.icon ?? "puzzle"} />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-sm font-medium truncate">{ref.name}</span>

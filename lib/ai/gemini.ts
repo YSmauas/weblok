@@ -5,7 +5,15 @@
  * המפתח נשלח בכותרת x-goog-api-key ולא ב-query string, כדי שלא יופיע
  * בלוגים של שרתים/פרוקסי בדרך.
  */
-export const GEMINI_MODEL = "gemini-2.5-flash";
+/**
+ * רשימת מודלים לפי סדר עדיפות. גוגל הגבילה את משפחת 2.5 למי ששימש בה בעבר,
+ * ומפתחות חדשים מקבלים "model is no longer available" (404) - לכן ברירת המחדל
+ * היא 3.5, ו-2.5 נשארת רק כגיבוי לחשבונות ישנים. כשמודל לא זמין עוברים לבא בתור.
+ */
+export const GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"] as const;
+export const GEMINI_MODEL = GEMINI_MODELS[0];
+
+const MODEL_UNAVAILABLE = /no longer available|not found for API version|is not supported for generateContent/i;
 
 export type GeminiErrorCode =
   | "invalid_key"
@@ -41,30 +49,34 @@ export async function callGemini({
   if (json) generationConfig.responseMimeType = "application/json";
   if (temperature !== undefined) generationConfig.temperature = temperature;
 
-  let res: Response;
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
+  let res: Response | null = null;
+  for (const model of GEMINI_MODELS) {
+    let attempt: Response;
+    try {
+      attempt = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey.trim() },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig }),
         signal,
-      }
-    );
-  } catch (e) {
-    if ((e as Error)?.name === "AbortError") throw e;
-    throw new GeminiError("network");
-  }
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    if (res.status === 429) throw new GeminiError("rate_limited");
-    if (res.status === 401 || res.status === 403 || /API_KEY_INVALID|API key not valid/i.test(body)) {
+      });
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") throw e;
+      throw new GeminiError("network");
+    }
+    if (attempt.ok) {
+      res = attempt;
+      break;
+    }
+    const body = await attempt.text().catch(() => "");
+    // מודל לא זמין לחשבון/הוסר - מנסים את הבא ברשימה
+    if (attempt.status === 404 || MODEL_UNAVAILABLE.test(body)) continue;
+    if (attempt.status === 429) throw new GeminiError("rate_limited");
+    if (attempt.status === 401 || attempt.status === 403 || /API_KEY_INVALID|API key not valid/i.test(body)) {
       throw new GeminiError("invalid_key");
     }
-    throw new GeminiError("failed", `HTTP ${res.status}`);
+    throw new GeminiError("failed", `HTTP ${attempt.status}`);
   }
+  if (!res) throw new GeminiError("failed", "model_unavailable");
 
   const data = await res.json().catch(() => null);
   if (data?.promptFeedback?.blockReason) throw new GeminiError("blocked");

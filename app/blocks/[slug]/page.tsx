@@ -6,6 +6,7 @@ import type { BlockValues } from "@/lib/blocks-registry/types";
 import { BlockEditorClient } from "@/components/blocks/BlockEditorClient";
 import { T } from "@/components/ui/T";
 import { createClient } from "@/lib/supabase/server";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -71,7 +72,7 @@ export default async function BlockEditorPage({
         <span aria-hidden className="inline-block ltr:rotate-180">→</span> <T k="blocks.all" />
       </Link>
       <div className="flex items-center gap-4 mt-4 mb-8">
-        <span className="text-4xl" aria-hidden>{block.meta.icon}</span>
+        <span className="text-4xl" aria-hidden><AppIcon name={block.meta.icon} /></span>
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold">{block.meta.name}</h1>
           <p className="text-ink-secondary mt-1">{block.meta.description}</p>
