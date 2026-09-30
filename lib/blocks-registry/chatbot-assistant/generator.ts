@@ -173,7 +173,7 @@ export function toOutput(raw: BlockValues): BlockOutput {
 .wbai { --wbai-on: ${fg}; font-family: ${fontFamily}; font-size: 15px; line-height: 1.5; }
 .wbai [hidden] { display: none !important; }
 .wbai button, .wbai input, .wbai select, .wbai textarea { font: inherit; color: inherit; }
-.wbai-launch { position: fixed; z-index: 2147483000; bottom: calc(16px + env(safe-area-inset-bottom)); ${side}: calc(16px + env(safe-area-inset-${side})); display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 56px; height: 56px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--wb-accent); color: var(--wbai-on); cursor: pointer; box-shadow: 0 10px 28px -6px rgba(0,0,0,.45); transition: transform .2s; }
+.wbai-launch { position: fixed; z-index: 9998; bottom: calc(16px + env(safe-area-inset-bottom)); ${side}: calc(16px + env(safe-area-inset-${side})); display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 56px; height: 56px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--wb-accent); color: var(--wbai-on); cursor: pointer; box-shadow: 0 10px 28px -6px rgba(0,0,0,.45); transition: transform .2s; }
 .wbai-launch:not(.wbai-pill) { width: 56px; padding: 0; }
 .wbai-launch span { font-weight: 700; font-size: .95rem; white-space: nowrap; }
 .wbai-launch:hover { transform: translateY(-2px); }
@@ -181,7 +181,7 @@ export function toOutput(raw: BlockValues): BlockOutput {
 .wbai-pulse { animation: wbai-pulse 2.4s ease-out infinite; }
 @keyframes wbai-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--wb-accent) 55%, transparent), 0 10px 28px -6px rgba(0,0,0,.45); } 70%, 100% { box-shadow: 0 0 0 14px transparent, 0 10px 28px -6px rgba(0,0,0,.45); } }
 .wbai-open .wbai-launch { display: none; }
-.wbai-panel { position: fixed; z-index: 2147483001; bottom: calc(16px + env(safe-area-inset-bottom)); ${side}: 16px; width: min(390px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 32px)); display: flex; flex-direction: column; overflow: hidden; background: var(--wb-bg); color: var(--wb-text); border: 1px solid var(--wb-border); outline: none; ${panelCss} }
+.wbai-panel { position: fixed; z-index: 10000; bottom: calc(16px + env(safe-area-inset-bottom)); ${side}: 16px; width: min(390px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 32px)); display: flex; flex-direction: column; overflow: hidden; background: var(--wb-bg); color: var(--wb-text); border: 1px solid var(--wb-border); outline: none; ${panelCss} }
 .wbai-open .wbai-panel { animation: wbai-in .22s ease-out; }
 @keyframes wbai-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
 .wbai-head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 12px 14px; background: var(--wb-accent); color: var(--wbai-on); flex-shrink: 0; }

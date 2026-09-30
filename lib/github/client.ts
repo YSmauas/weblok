@@ -165,3 +165,14 @@ export async function importRepoSnapshot(
   const baseSha = await branchHead(ref, branch, token);
   return { result: await importRepoFiles(ref, baseSha, token, budgetBytes), baseSha };
 }
+
+/** קישור שחזר מ-GitHub API מוצג רק אם הוא באמת https://github.com/... (הגנה מ-javascript: וכד') */
+export function githubUrl(u: string | undefined | null): string | undefined {
+  if (!u) return undefined;
+  try {
+    const url = new URL(u);
+    return url.protocol === "https:" && url.hostname === "github.com" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}

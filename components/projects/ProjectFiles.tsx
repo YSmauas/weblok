@@ -17,7 +17,7 @@ import {
   upsertFiles,
   type ProjectFileMeta,
 } from "@/lib/projects/db";
-import { GithubError, importRepoSnapshot, isValidBranch, parseRepo, defaultBranch } from "@/lib/github/client";
+import { GithubError, importRepoSnapshot, isValidBranch, parseRepo, defaultBranch, githubUrl } from "@/lib/github/client";
 import {
   defaultPushBranch,
   directPushRisky,
@@ -421,7 +421,7 @@ export function ProjectFiles({
           {message.text}
           {message.links && (
             <span className="ms-2 inline-flex flex-wrap gap-3">
-              {message.links.map((l) => (
+              {message.links.map((l) => ({ ...l, href: githubUrl(l.href) })).filter((l) => l.href).map((l) => (
                 <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="underline">
                   {l.label}
                 </a>

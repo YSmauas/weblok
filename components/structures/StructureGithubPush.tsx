@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { GithubError, isValidBranch } from "@/lib/github/client";
+import { GithubError, isValidBranch, githubUrl } from "@/lib/github/client";
 import { createRepo, isValidRepoName, listUserRepos, pushEntries, splitFullName, type RepoSummary } from "@/lib/github/manager";
 import { loadSecret, removeSecret, saveSecret } from "@/lib/ai/key-vault";
 import type { PushEntry } from "@/lib/github/manager";
@@ -13,6 +13,7 @@ const TOKEN_SECRET = "github-token";
 type Target = "new" | "existing";
 type Mode = "commit" | "pr";
 type Result = { repo: string; commitUrl: string; prUrl?: string };
+
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -127,7 +128,7 @@ export function StructureGithubPush({
         await sleep(2500);
         out = await run();
       }
-      setResult({ repo: fullName, commitUrl: out.commitUrl, prUrl: out.prUrl });
+      setResult({ repo: fullName, commitUrl: githubUrl(out.commitUrl) ?? "", prUrl: githubUrl(out.prUrl) });
     } catch (e) {
       fail(e);
       // הריפו כבר נוצר - ניסיון נוסף ידחוף אליו במקום לנסות ליצור אותו שוב
@@ -313,11 +314,13 @@ export function StructureGithubPush({
             <a href={`https://github.com/${result.repo}`} target="_blank" rel="noreferrer" className="text-accent underline" dir="ltr">
               {result.repo}
             </a>
-            <a href={result.commitUrl} target="_blank" rel="noreferrer" className="text-accent underline">
-              {t("github.viewCommit")}
-            </a>
+            {githubUrl(result.commitUrl) && (
+              <a href={githubUrl(result.commitUrl)} target="_blank" rel="noreferrer" className="text-accent underline">
+                {t("github.viewCommit")}
+              </a>
+            )}
             {result.prUrl && (
-              <a href={result.prUrl} target="_blank" rel="noreferrer" className="text-accent underline">
+              <a href={githubUrl(result.prUrl)} target="_blank" rel="noreferrer" className="text-accent underline">
                 Pull Request
               </a>
             )}

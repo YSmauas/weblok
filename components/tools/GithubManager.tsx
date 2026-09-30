@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { Card } from "@/components/ui/Card";
-import { GithubError, isValidBranch } from "@/lib/github/client";
+import { GithubError, isValidBranch, githubUrl } from "@/lib/github/client";
 import {
   createRepo,
   downloadZipball,
@@ -586,7 +586,7 @@ export function GithubManager() {
           className={`text-sm ${msg.kind === "error" ? "text-danger" : msg.kind === "ok" ? "text-success" : "text-ink-secondary"}`}
         >
           {msg.text}{" "}
-          {msg.links?.map((l) => (
+          {msg.links?.map((l) => ({ ...l, href: githubUrl(l.href) })).filter((l) => l.href).map((l) => (
             <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="underline me-3">
               {l.label}
             </a>

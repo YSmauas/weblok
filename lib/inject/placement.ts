@@ -182,7 +182,12 @@ const isOurs = (selector: string) => /(^|[\s,>+~])\.(wb[a-z]*-|wb[a-z]*\b|weblok
 
 function styleSources(html: string): { css: string; inline: { tag: string; style: string }[]; classes: string[] } {
   const css: string[] = [];
-  const noComments = html.replace(/<!--[\s\S]*?-->/g, "");
+  // ניתוח בלבד (לא סניטציה), אבל מסירים עד שאין שינוי - גם הערה לא סגורה/מקוננת לא משאירה "<!--"
+  let noComments = html;
+  for (let prev = ""; prev !== noComments; ) {
+    prev = noComments;
+    noComments = noComments.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+  }
   const styleRe = /<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi;
   let m: RegExpExecArray | null;
   while ((m = styleRe.exec(noComments))) css.push(m[1]);
@@ -344,7 +349,8 @@ const HEADER_SCROLL_PAD = 72;
  * שמות מחלקות של המחוללים.
  */
 export function placementCss(code: string, opts: PlacementOptions): string {
-  const blockId = code.match(/data-weblok-block="([a-z0-9-]+)"/)?.[1];
+  // רק אותיות/ספרות/מקף - בטוח גם בתוך מאפיין וגם בתוך <style>
+  const blockId = (code.match(/data-weblok-block="([a-z0-9-]+)"/)?.[1] ?? "").replace(/[^a-z0-9-]/g, "");
   if (!blockId) return "";
   const css = Array.from(code.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi), (m) => m[1]).join("\n");
   const scope = (sel: string) =>
@@ -360,6 +366,8 @@ export function placementCss(code: string, opts: PlacementOptions): string {
 
   for (const r of cssRules(css)) {
     if (/[:]{1,2}(hover|focus|before|after)/i.test(r.selector)) continue;
+    // שום דבר שיכול לסגור את תגית ה-<style> או לצאת מהכלל
+    if (/[<>{}"]/.test(r.selector)) continue;
     const pos = r.body.match(POS_STICKY_OR_FIXED)?.[1]?.toLowerCase();
     if (!pos) continue;
     if (HAS_TOP.test(r.body) && !HAS_BOTTOM.test(r.body) && !FULL_COVER.test(r.body)) {
