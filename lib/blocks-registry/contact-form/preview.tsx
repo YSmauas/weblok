@@ -2,6 +2,13 @@
 
 import type { BlockValues } from "../types";
 import { getTheme } from "./themes";
+import { fontStack } from "../_shared/util";
+
+const Svg = ({ d, size = 14 }: { d: string; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
 
 /**
  * קירוב חזותי לתצוגה החיה בעורך - לא מריץ את ה-HTML/CSS/JS המיוצא בפועל
@@ -20,7 +27,7 @@ export function Preview({ values }: { values: BlockValues }) {
       } ${isWidget && values.widgetPosition === "left" ? "justify-start" : "justify-end"} ${
         !isWidget ? "justify-center" : ""
       }`}
-      style={{ background: t.bg, fontFamily: `'${values.fontSelect || "Heebo"}', sans-serif` }}
+      style={{ background: t.bg, fontFamily: fontStack(values.fontSelect) }}
     >
       {!isWidget && values.sectionTitle?.trim() && (
         <div className="absolute top-4 left-0 right-0 text-center px-4">
@@ -48,7 +55,7 @@ export function Preview({ values }: { values: BlockValues }) {
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
                 style={{ background: "rgba(128,128,128,.2)" }}
               >
-                🌙
+                <Svg d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
               </span>
             )}
             {isWidget && (
@@ -56,7 +63,7 @@ export function Preview({ values }: { values: BlockValues }) {
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
                 style={{ background: "rgba(128,128,128,.2)" }}
               >
-                ✕
+                <Svg d="m18 6-12 12M6 6l12 12" />
               </span>
             )}
           </div>
@@ -94,7 +101,7 @@ export function Preview({ values }: { values: BlockValues }) {
           className={`absolute bottom-4 ${values.widgetPosition === "left" ? "left-4" : "right-4"} w-12 h-12 rounded-full flex items-center justify-center text-lg`}
           style={{ background: values.accentColor || "#38bdf8", color: "#fff" }}
         >
-          ✉️
+          <Svg d="M3 6h18v12H3zM3 7l9 6 9-6" size={20} />
         </div>
       )}
     </div>

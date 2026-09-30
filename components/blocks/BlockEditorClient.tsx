@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getBlockDefinition } from "@/lib/blocks-registry";
 import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
-import { exportBlock, toUnifiedHtml, type ExportFormat } from "@/lib/blocks-registry/export";
+import { exportBlock, type ExportFormat } from "@/lib/blocks-registry/export";
 import { downloadAsZip } from "@/lib/download-zip";
 import { copyText, downloadText } from "@/lib/download";
 import { improveText, redesignBlock, type AiErrorCode } from "@/lib/ai/client";
@@ -14,8 +14,11 @@ import { saveEditorDraft } from "@/lib/inject/options";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { DynamicForm } from "@/components/editor/DynamicForm";
+import { useTf } from "@/components/editor/useTf";
 import { BrowserFrame } from "@/components/ui/BrowserFrame";
-import { HtmlPreview } from "@/components/ui/HtmlPreview";
+import { AppIcon } from "@/components/ui/AppIcon";
+import { LivePreview, type Device } from "@/components/blocks/LivePreview";
+import { buildPreviewDoc, type PageTheme } from "@/components/blocks/previewDoc";
 
 const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: "html", label: "editor.format.html" },
@@ -24,6 +27,29 @@ const FORMATS: { id: ExportFormat; label: string }[] = [
 ];
 
 type PreviewMode = "mock" | "live";
+
+const DEVICES: { id: Device; icon: string; key: string; fb: string }[] = [
+  { id: "mobile", icon: "device-mobile", key: "editor.device.mobile", fb: "מובייל" },
+  { id: "tablet", icon: "device-tablet", key: "editor.device.tablet", fb: "טאבלט" },
+  { id: "desktop", icon: "device-desktop", key: "editor.device.desktop", fb: "מחשב" },
+];
+
+/** העדפות תצוגה אישיות (מכשיר/רקע) - נוחות בלבד, localStorage עטוף ב-try. */
+const PREFS_KEY = "weblok-editor-preview";
+function readPrefs(): { device?: Device; pageTheme?: PageTheme } {
+  try {
+    return JSON.parse(window.localStorage.getItem(PREFS_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+function writePrefs(p: { device: Device; pageTheme: PageTheme }) {
+  try {
+    window.localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+  } catch {
+    /* ignore */
+  }
+}
 
 export function BlockEditorClient({
   slug,
@@ -40,6 +66,7 @@ export function BlockEditorClient({
 }) {
   const router = useRouter();
   const { t } = useLocale();
+  const { tf } = useTf();
   // הרישום (blocks-registry) הוא לוגיקה טהורה בצד לקוח - אין שום סיבה
   // (וגם אי אפשר, כי block.Preview/generate/toOutput הן פונקציות) להעביר
   // את האובייקט הזה משרת ללקוח. הקומפוננטה טוענת אותו בעצמה לפי ה-slug.
@@ -47,7 +74,9 @@ export function BlockEditorClient({
   const [values, setValues] = useState<BlockValues>(initialValues ?? block?.defaultValues() ?? {});
   const [name, setName] = useState(initialName ?? block?.meta.name ?? "");
   const [designId, setDesignId] = useState<string | null>(savedId ?? null);
-  const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
+  const [device, setDevice] = useState<Device>("desktop");
+  const [pageTheme, setPageTheme] = useState<PageTheme>("light");
+  const [replayKey, setReplayKey] = useState(0);
   // ברירת מחדל: הקוד האמיתי רץ בתצוגה (מדויק יותר מההדמיה)
   const [previewMode, setPreviewMode] = useState<PreviewMode>(block?.toOutput ? "live" : "mock");
   const [showCode, setShowCode] = useState(false);
@@ -73,14 +102,28 @@ export function BlockEditorClient({
 
   const output = useMemo(() => (block?.toOutput ? block.toOutput(values) : null), [block, values]);
   const exported = useMemo(() => (output ? exportBlock(output, format) : null), [output, format]);
-  // בתצוגה בלבד (לא בקוד המיוצא): ווידג'טים צפים נפתחים מיד, כדי לראות את התוכן ולא רק בועה
-  const liveHtml = useMemo(
-    () =>
-      output
-        ? `${toUnifiedHtml(output)}\n<script>setTimeout(function(){document.querySelectorAll("[data-wb-toggle],[data-wb-chat-toggle]").forEach(function(b){b.click()})},60)</script>`
-        : "",
-    [output]
+  // התצוגה החיה: הבלוק האמיתי בתוך "אתר לדוגמה" (ר' previewDoc.ts - תוספות לתצוגה בלבד)
+  const previewDir = values.dir === "ltr" ? "ltr" : "rtl";
+  const previewDoc = useMemo(
+    () => (output ? buildPreviewDoc({ output, slug, theme: pageTheme, dir: previewDir }) : ""),
+    [output, slug, pageTheme, previewDir]
   );
+
+  useEffect(() => {
+    const p = readPrefs();
+    if (p.device && p.device in { mobile: 1, tablet: 1, desktop: 1 }) setDevice(p.device);
+    if (p.pageTheme === "dark" || p.pageTheme === "light") setPageTheme(p.pageTheme);
+  }, []);
+
+  const chooseDevice = (d: Device) => {
+    setDevice(d);
+    writePrefs({ device: d, pageTheme });
+  };
+  const togglePageTheme = () => {
+    const next: PageTheme = pageTheme === "light" ? "dark" : "light";
+    setPageTheme(next);
+    writePrefs({ device, pageTheme: next });
+  };
 
   if (!block) {
     return <p className="text-sm text-danger">{t("editor.notFound").replace("{slug}", slug)}</p>;
@@ -191,49 +234,89 @@ export function BlockEditorClient({
     <div className="grid md:grid-cols-[minmax(280px,380px)_minmax(0,1fr)] gap-6 items-start">
       <div className="space-y-3 min-w-0 md:col-start-2 md:row-start-1 md:sticky md:top-20">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
-            {(["mobile", "desktop"] as const).map((w) => (
-              <button key={w} role="tab" aria-selected={previewWidth === w} onClick={() => setPreviewWidth(w)} className={tabClass(previewWidth === w)}>
-                {t(w === "mobile" ? "editor.mobile" : "editor.desktop")}
-              </button>
-            ))}
-          </div>
-          {output && (
-            <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="tablist">
-              {(["live", "mock"] as const).map((m) => (
-                <button key={m} role="tab" aria-selected={previewMode === m} onClick={() => setPreviewMode(m)} className={tabClass(previewMode === m)}>
-                  {t(m === "mock" ? "editor.previewMock" : "editor.previewLive")}
+          {previewMode === "live" && output ? (
+            <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="group" aria-label={tf("editor.device.label", "גודל מסך")}>
+              {DEVICES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  aria-pressed={device === d.id}
+                  onClick={() => chooseDevice(d.id)}
+                  title={tf(d.key, d.fb)}
+                  className={`${tabClass(device === d.id)} inline-flex items-center gap-1.5`}
+                >
+                  <AppIcon name={d.icon} className="!text-current text-[15px]" />
+                  <span className="hidden sm:inline">{tf(d.key, d.fb)}</span>
+                  <span className="sr-only sm:hidden">{tf(d.key, d.fb)}</span>
                 </button>
               ))}
             </div>
+          ) : (
+            <span />
           )}
+          <div className="flex items-center gap-1.5">
+            {previewMode === "live" && output && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setReplayKey((k) => k + 1)}
+                  className="w-8 h-8 rounded-full border border-base-border bg-base-panel2 inline-flex items-center justify-center text-ink-secondary hover:text-accent hover:border-accent transition-colors text-[16px]"
+                  title={tf("editor.replay", "הפעלה מחדש של האנימציות")}
+                  aria-label={tf("editor.replay", "הפעלה מחדש של האנימציות")}
+                >
+                  <AppIcon name="replay" className="!text-current" />
+                </button>
+                <button
+                  type="button"
+                  onClick={togglePageTheme}
+                  aria-pressed={pageTheme === "dark"}
+                  className="w-8 h-8 rounded-full border border-base-border bg-base-panel2 inline-flex items-center justify-center text-ink-secondary hover:text-accent hover:border-accent transition-colors text-[16px]"
+                  title={tf("editor.pageTheme", "רקע כהה לעמוד הדוגמה")}
+                  aria-label={tf("editor.pageTheme", "רקע כהה לעמוד הדוגמה")}
+                >
+                  <AppIcon name={pageTheme === "dark" ? "moon" : "sun"} className="!text-current" />
+                </button>
+              </>
+            )}
+            {output && (
+              <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border" role="group">
+                {(["live", "mock"] as const).map((m) => (
+                  <button key={m} type="button" aria-pressed={previewMode === m} onClick={() => setPreviewMode(m)} className={tabClass(previewMode === m)}>
+                    {t(m === "mock" ? "editor.previewMock" : "editor.previewLive")}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <BrowserFrame url="your-site.com">
-          <div className="flex justify-center bg-base-bg">
-            <div
-              className="h-[380px] md:h-[min(520px,calc(100vh-19rem))] md:min-h-[360px] transition-all max-w-full"
-              style={{ width: previewWidth === "mobile" ? "380px" : "100%" }}
-            >
-              {previewMode === "live" && output ? (
-                <HtmlPreview html={liveHtml} title={t("editor.previewLive")} wrapFragment className="h-full" />
-              ) : (
-                <block.Preview values={values} />
-              )}
+          {previewMode === "live" && output ? (
+            <LivePreview
+              doc={previewDoc}
+              device={device}
+              replayKey={replayKey}
+              title={t("editor.previewLive")}
+              className="h-[420px] md:h-[min(560px,calc(100vh-17rem))] md:min-h-[380px] bg-base-bg"
+            />
+          ) : (
+            <div className="h-[380px] md:h-[min(520px,calc(100vh-19rem))] md:min-h-[360px]">
+              <block.Preview values={values} />
             </div>
-          </div>
+          )}
         </BrowserFrame>
+        {previewMode === "live" && output && <p className="text-[11px] text-ink-muted">{t("editor.previewLiveNote")}</p>}
 
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={saveDesign} disabled={saving} className="btn-primary btn-sm">
             {saving ? t("blocks.saving") : saveState === "saved" ? t("common.saved") : t("editor.saveDesign")}
           </button>
           <button onClick={() => setAiRedesignOpen((v) => !v)} aria-expanded={aiRedesignOpen} className="btn-soft btn-sm">
-            🎨 {t("editor.aiEdit")}
+            <AppIcon name="palette" className="!text-current" /> {t("editor.aiEdit")}
           </button>
           {output && (
             <button onClick={injectIntoProject} className="btn-outline btn-sm">
-              💉 {t("editor.injectToProject")}
+              <AppIcon name="inject" className="!text-current" /> {t("editor.injectToProject")}
             </button>
           )}
           <button onClick={resetDefaults} className="text-xs text-ink-muted hover:text-ink-primary px-2">
@@ -296,7 +379,7 @@ export function BlockEditorClient({
               </div>
               <div className="flex flex-wrap gap-2">
                 <button onClick={download} className="btn-primary btn-sm">
-                  ⬇ {t(Object.keys(exported.files).length > 1 ? "editor.downloadZip" : "editor.downloadFile")}
+                  <AppIcon name="download" className="!text-current" /> {t(Object.keys(exported.files).length > 1 ? "editor.downloadZip" : "editor.downloadFile")}
                 </button>
                 <button onClick={copyCode} className="btn-outline btn-sm">
                   {t(copied ? "common.copied" : "editor.copyCode")}
@@ -347,6 +430,30 @@ export function BlockEditorClient({
           />
         </div>
 
+        {slug === "popup" && values.popupType === "cookie" && (
+          <Link
+            href="/blocks/popup/cookies"
+            className="flex items-start gap-3 rounded-card border border-accent/40 bg-accent-soft p-4 hover:border-accent transition-colors animate-fadeInUp"
+          >
+            <span className="text-2xl shrink-0" aria-hidden>
+              <AppIcon name="cookie" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-sm text-ink-primary">{tf("editor.cookieGuide.title", "איך לגרום לבחירה באמת להשפיע על העוגיות?")}</span>
+              <span className="block text-xs text-ink-secondary mt-1 leading-relaxed">
+                {tf(
+                  "editor.cookieGuide.text",
+                  "הפופאפ שומר את הבחירה ושולח אירוע - אבל את סקריפטי המעקב צריך לחבר אליו. במדריך: טעינת Google Analytics רק אחרי אישור, מחיקת עוגיות בדחייה ו-Consent Mode v2."
+                )}
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent mt-2">
+                {tf("editor.cookieGuide.cta", "למדריך המלא")}
+                <AppIcon name="external-link" className="!text-current" />
+              </span>
+            </span>
+          </Link>
+        )}
+
         <div className="rounded-card border border-base-border bg-base-panel/80 p-4">
           {aiFieldError && (
             <div className="mb-3">
@@ -359,6 +466,7 @@ export function BlockEditorClient({
             onChange={set}
             onAiImprove={isLoggedIn ? improveWithAi : undefined}
             aiBusyField={aiField}
+            storageKey={slug}
           />
         </div>
       </div>

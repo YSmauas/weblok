@@ -1,4 +1,5 @@
 import type { FieldDef, BlockValues } from "../types";
+import { FONT_HINT, FONT_OPTIONS } from "../_shared/util";
 
 export const fields: FieldDef[] = [
   {
@@ -146,6 +147,20 @@ export const fields: FieldDef[] = [
     ],
   },
   {
+    id: "formStyle",
+    aiDesignEditable: true,
+    label: "סגנון שדות",
+    type: "select",
+    icon: "fa-pen-to-square",
+    default: "floating",
+    group: "עיצוב",
+    options: [
+      { value: "floating", label: "תוויות צפות (מודרני)" },
+      { value: "classic", label: "קלאסי - תווית מעל השדה" },
+      { value: "underline", label: "מינימלי - קו תחתון" },
+    ],
+  },
+  {
     id: "themeSelect",
     aiDesignEditable: true,
     label: "סגנון עיצוב",
@@ -204,14 +219,10 @@ export const fields: FieldDef[] = [
     label: "גופן",
     type: "select",
     icon: "fa-font",
-    default: "Heebo",
+    default: "system",
     group: "עיצוב",
-    options: [
-      { value: "Assistant", label: "Assistant" },
-      { value: "Heebo", label: "Heebo" },
-      { value: "Rubik", label: "Rubik" },
-      { value: "Varela Round", label: "Varela Round" },
-    ],
+    hint: FONT_HINT,
+    options: FONT_OPTIONS,
   },
 ];
 

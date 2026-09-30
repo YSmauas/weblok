@@ -27,6 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    { url: url("/blocks/popup/cookies"), lastModified: d(CONTENT_UPDATED.blocks), changeFrequency: "monthly", priority: 0.7 },
     { url: url("/tools"), lastModified: d(CONTENT_UPDATED.tools), changeFrequency: "monthly", priority: 0.6 },
     { url: url("/tools/inject"), lastModified: d(CONTENT_UPDATED.tools), changeFrequency: "monthly", priority: 0.8 },
     { url: url("/tools/github"), lastModified: d(CONTENT_UPDATED.tools), changeFrequency: "monthly", priority: 0.7 },
