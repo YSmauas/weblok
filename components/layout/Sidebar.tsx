@@ -84,8 +84,8 @@ export function Sidebar({
 
       <aside
         className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] max-w-[85vw] surface !border-y-0 !border-e-0 pb-[env(safe-area-inset-bottom)]
-          transition-transform duration-300 ease-out flex flex-col
-          ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full"}`}
+          transition-[transform,visibility] duration-300 ease-out flex flex-col
+          ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full !shadow-none invisible"}`}
         aria-hidden={!open}
         aria-label={t("sidebar.title")}
         ref={asideRef}
