@@ -9,5 +9,5 @@ out
 next-env.d.ts
 *.tsbuildinfo
 
-# TypeScript incremental
-*.tsbuildinfo
+# worktrees של סוכני Claude Code
+.claude/worktrees

@@ -162,3 +162,82 @@ export function IconGlobe({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/* ---------- אייקונים כלליים (קו 1.6, currentColor) - מחליפים אימוג'י בממשק ---------- */
+
+type IconProps = { className?: string };
+
+function Line({ className, children }: IconProps & { children: React.ReactNode }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
+export const IconCheck = ({ className }: IconProps) => (
+  <Line className={className}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Line>
+);
+
+export const IconLock = ({ className }: IconProps) => (
+  <Line className={className}>
+    <rect x="5" y="10.5" width="14" height="9.5" rx="2.2" fill="currentColor" fillOpacity="0.14" />
+    <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2" />
+  </Line>
+);
+
+export const IconSparkle = ({ className }: IconProps) => (
+  <Line className={className}>
+    <path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9-4.9-1.9 4.9-1.9z" fill="currentColor" fillOpacity="0.16" />
+    <path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
+  </Line>
+);
+
+export const IconArrowUpRight = ({ className }: IconProps) => (
+  <Line className={className}>
+    <path d="M7 17 17 7M9 7h8v8" />
+  </Line>
+);
+
+export const IconSend = ({ className }: IconProps) => (
+  <Line className={className}>
+    <path d="M4 12 20 4l-6 16-3-7z" fill="currentColor" fillOpacity="0.14" />
+    <path d="m11 13 3-3" />
+  </Line>
+);
+
+/**
+ * לוגו WEblok: ארבעה "בלוקים" ברשת 2×2 שמתחברים בלשוניות פאזל, והרביעי (בצבע
+ * מלא) בדיוק ננעל למקומו - "החלק שחסר לאתר שלך". currentColor, עובד בשני המצבים.
+ */
+export function IconLogo({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} fill="none" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.22" />
+      <rect x="3" y="17" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.38" />
+      <rect x="17" y="17" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.22" />
+      {/* לשוניות החיבור בין הבלוקים */}
+      <circle cx="9" cy="16" r="2.3" fill="currentColor" fillOpacity="0.38" />
+      <circle cx="16" cy="23" r="2.3" fill="currentColor" fillOpacity="0.38" />
+      {/* החלק האחרון - נכנס למקום בזווית קלה */}
+      <g transform="rotate(-8 23 9)">
+        <path
+          d="M20 2.6h6a3.2 3.2 0 0 1 3.2 3.2v6a3.2 3.2 0 0 1-3.2 3.2h-6a3.2 3.2 0 0 1-3.2-3.2V11a2.2 2.2 0 1 0 0-4.4V5.8A3.2 3.2 0 0 1 20 2.6Z"
+          fill="currentColor"
+        />
+      </g>
+    </svg>
+  );
+}

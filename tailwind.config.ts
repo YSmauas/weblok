@@ -29,11 +29,12 @@ const config: Config = {
           hover: cssVar("accent-hover"),
           soft: "var(--accent-soft)",
         },
-        success: "#7fae6f",
-        danger: "#c96a5a",
+        success: cssVar("success"),
+        danger: cssVar("danger"),
+        surface: cssVar("surface"),
       },
       fontFamily: {
-        sans: ["var(--font-heebo)", "sans-serif"],
+        sans: ["var(--font-heebo-latin)", "var(--font-heebo-hebrew)", "system-ui", "-apple-system", "Segoe UI", "Arial", "sans-serif"],
         mono: ["'JetBrains Mono'", "Consolas", "monospace"],
       },
       borderRadius: {
@@ -52,11 +53,17 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        promoIn: {
+          "0%": { opacity: "0", transform: "translateY(24px) scale(0.96)" },
+          "60%": { opacity: "1", transform: "translateY(-4px) scale(1.01)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
       },
       animation: {
         float: "float 10s ease-in-out infinite",
         floatSlow: "floatSlow 15s ease-in-out infinite",
         fadeInUp: "fadeInUp 0.4s ease-out",
+        promoIn: "promoIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

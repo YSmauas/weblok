@@ -46,7 +46,7 @@
   "stats.registeredUsers": "משתמשים רשומים",
   "stats.loginsThisMonth": "כניסות החודש",
   "stats.blocksInLibrary": "בלוקים בספרייה",
-  "stats.note": "* המספרים מתעדכנים אוטומטית",
+  "stats.note": "* המספרים מתעדכנים אוטומטית. כל ביקור נספר באופן אנונימי, בלי עוגיות; דפדפנים עם Do Not Track לא נספרים.",
   "contact.title": "יש שאלה? דברו איתנו",
   "contact.subtitle": "משתמש רשום? אפשר לשלוח ישירות מהאזור האישי.",
   "contact.name": "שם מלא",
@@ -454,6 +454,8 @@
   "gh.step.commit": "יוצר קומיט ומעדכן את הענף",
   "gh.step.pr": "פותח Pull Request",
   "stats.totalLogins": "כניסות בסה״כ",
+  "stats.totalVisits": "ביקורים באתר",
+  "stats.visits30d": "ביקורים ב-30 יום",
   "showcase.title": "מה אפשר לעשות ב-WEblok?",
   "showcase.blocks.title": "בלוקים מוכנים",
   "showcase.blocks.text": "טפסים, ווידג'טים ועוד - מעצבים בעורך חי ומורידים קוד עצמאי ב-HTML, CSS+JS או React.",
@@ -481,7 +483,11 @@
   "admin.visitors": "גולשים",
   "admin.avgPage": "זמן ממוצע בדף (דק׳:שנ׳)",
   "admin.migrationNeeded": "חלק מהנתונים (כניסות, גרף יומי, דפים פופולריים) יופיעו אחרי הרצת supabase/migrations/0005_login_stats_analytics.sql ב-Supabase.",
+  "admin.total": "סה\"כ",
   "editor.showCode": "הצגת הקוד",
   "editor.hideCode": "הסתרת הקוד",
-  "editor.serverFileNote": "במצב AI מצורף גם api/chat.js - פונקציית שרת שמחזיקה את מפתח ה-API ואת ההוראות. העלו אותה לפרויקט ב-Vercel והגדירו GEMINI_API_KEY."
+  "editor.serverFileNote": "במצב AI מצורף גם api/chat.js - פונקציית שרת שמחזיקה את מפתח ה-API ואת ההוראות. העלו אותה לפרויקט ב-Vercel והגדירו GEMINI_API_KEY.",
+  "promo.title": "ראיתם את זה?",
+  "promo.body": "אתם יכולים לעשות את זה גם באתר שלכם - פופאפ מעוצב, בלי קוד ובלי שרת.",
+  "promo.cta": "לבלוק הפופאפ"
 }

@@ -5,6 +5,7 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { AboutModal } from "./AboutModal";
+import { PromoPopup } from "./PromoPopup";
 
 type AboutTab = "about" | "privacy" | "accessibility";
 
@@ -18,7 +19,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen min-h-dvh flex flex-col">
       <Header
         onOpenAbout={() => openAbout("about")}
         onOpenSidebar={() => setSidebarOpen(true)}
@@ -39,6 +40,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <main id="main" className="flex-1">{children}</main>
 
       <Footer onOpenAbout={openAbout} />
+
+      <PromoPopup />
     </div>
   );
 }

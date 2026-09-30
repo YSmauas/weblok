@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { IconClose, IconPuzzle, IconGithub } from "../ui/Icons";
+import { IconClose, IconLogo, IconGithub } from "../ui/Icons";
 
 type Tab = "about" | "privacy" | "accessibility";
 
@@ -22,6 +22,7 @@ export function AboutModal({
 }) {
   const { t } = useLocale();
   const [tab, setTab] = useState<Tab>(initialTab);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const TABS: { id: Tab; label: string }[] = [
     { id: "about", label: t("about.tabAbout") },
@@ -35,29 +36,54 @@ export function AboutModal({
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const previous = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onClose();
+      // מלכודת פוקוס: Tab לא יוצא מהחלון בזמן שהוא פתוח
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const f = panelRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])");
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      previous?.focus?.();
     };
   }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <button aria-label="close" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("header.about")}
+    >
+      <button aria-label={t("common.close")} tabIndex={-1} onClick={onClose} className="absolute inset-0 overlay animate-fadeInUp" />
 
-      <div className="relative w-full max-w-lg glass rounded-card shadow-2xl">
-        <div className="flex items-center justify-between px-5 pt-5">
-          <div className="flex gap-1 bg-base-bg/50 rounded-full p-1 border border-base-border">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-lg surface rounded-card outline-none animate-fadeInUp">
+        <div className="flex items-center justify-between gap-2 px-5 pt-5">
+          <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border overflow-x-auto no-scrollbar" role="tablist">
             {TABS.map((tItem) => (
               <button
                 key={tItem.id}
+                role="tab"
+                aria-selected={tab === tItem.id}
                 onClick={() => setTab(tItem.id)}
-                className={`text-sm px-4 py-1.5 rounded-full transition-colors ${
+                className={`text-sm px-3 sm:px-4 py-1.5 rounded-full whitespace-nowrap transition-colors ${
                   tab === tItem.id
                     ? "bg-accent text-base-bg font-semibold"
                     : "text-ink-secondary hover:text-ink-primary"
@@ -67,16 +93,16 @@ export function AboutModal({
               </button>
             ))}
           </div>
-          <button onClick={onClose} aria-label="close" className="text-ink-muted hover:text-ink-primary transition-colors">
+          <button onClick={onClose} aria-label={t("common.close")} className="p-1.5 rounded-full text-ink-secondary hover:text-ink-primary hover:bg-base-panel2 transition-colors shrink-0">
             <IconClose className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-6 py-6 text-sm text-ink-secondary leading-relaxed max-h-[65vh] overflow-y-auto">
+        <div className="px-6 py-6 text-sm text-ink-secondary leading-relaxed max-h-[min(65vh,65dvh)] overflow-y-auto overscroll-contain">
           {tab === "about" && (
             <div>
               <div className="flex flex-col items-center text-center gap-3 pb-6 mb-6 border-b border-base-border">
-                <IconPuzzle className="w-12 h-12 text-accent drop-shadow-[0_0_12px_var(--accent)]" />
+                <IconLogo className="w-14 h-14 text-accent" />
                 <h3 className="text-xl font-extrabold text-ink-primary">
                   {t("about.creatorTitle")}
                 </h3>

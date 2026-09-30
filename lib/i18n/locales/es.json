@@ -46,7 +46,7 @@
   "stats.registeredUsers": "Usuarios registrados",
   "stats.loginsThisMonth": "Inicios de sesión este mes",
   "stats.blocksInLibrary": "Bloques en la biblioteca",
-  "stats.note": "* Los números se actualizan automáticamente",
+  "stats.note": "* Las cifras se actualizan automáticamente. Cada visita se cuenta de forma anónima, sin cookies; los navegadores con Do Not Track no se cuentan.",
   "contact.title": "¿Tienes una pregunta? Contáctanos",
   "contact.subtitle": "¿Usuario registrado? Puedes escribirnos directamente desde tu cuenta.",
   "contact.name": "Nombre completo",
@@ -454,6 +454,8 @@
   "gh.step.commit": "Creando el commit y actualizando la rama",
   "gh.step.pr": "Abriendo un pull request",
   "stats.totalLogins": "Inicios de sesión totales",
+  "stats.totalVisits": "Visitas al sitio",
+  "stats.visits30d": "Visitas (30 días)",
   "showcase.title": "¿Qué puedes hacer con WEblok?",
   "showcase.blocks.title": "Bloques listos",
   "showcase.blocks.text": "Formularios, widgets y más: diseña en un editor en vivo y descarga código independiente en HTML, CSS+JS o React.",
@@ -481,7 +483,11 @@
   "admin.visitors": "visitantes",
   "admin.avgPage": "Tiempo medio en la página (m:s)",
   "admin.migrationNeeded": "Algunos datos (inicios de sesión, gráfico diario, páginas populares) aparecerán tras ejecutar supabase/migrations/0005_login_stats_analytics.sql en Supabase.",
+  "admin.total": "Total",
   "editor.showCode": "Mostrar código",
   "editor.hideCode": "Ocultar código",
-  "editor.serverFileNote": "En modo IA también se incluye api/chat.js: una función de servidor que guarda la clave API y las instrucciones. Añádela a tu proyecto en Vercel y configura GEMINI_API_KEY."
+  "editor.serverFileNote": "En modo IA también se incluye api/chat.js: una función de servidor que guarda la clave API y las instrucciones. Añádela a tu proyecto en Vercel y configura GEMINI_API_KEY.",
+  "promo.title": "¿Viste esto?",
+  "promo.body": "También puedes tenerlo en tu propio sitio: un popup con diseño, sin código y sin servidor.",
+  "promo.cta": "Ir al bloque de popup"
 }

@@ -46,7 +46,7 @@
   "stats.registeredUsers": "Registered users",
   "stats.loginsThisMonth": "Logins this month",
   "stats.blocksInLibrary": "Blocks in the library",
-  "stats.note": "* Numbers update automatically",
+  "stats.note": "* Numbers update automatically. Every visit is counted anonymously, without cookies; browsers with Do Not Track aren't counted.",
   "contact.title": "Have a question? Reach out",
   "contact.subtitle": "Registered user? You can message us directly from your account.",
   "contact.name": "Full name",
@@ -454,6 +454,8 @@
   "gh.step.commit": "Creating the commit and updating the branch",
   "gh.step.pr": "Opening a pull request",
   "stats.totalLogins": "Total logins",
+  "stats.totalVisits": "Site visits",
+  "stats.visits30d": "Visits (30 days)",
   "showcase.title": "What can you do with WEblok?",
   "showcase.blocks.title": "Ready-made blocks",
   "showcase.blocks.text": "Forms, widgets and more - design in a live editor and download standalone HTML, CSS+JS or React code.",
@@ -481,7 +483,11 @@
   "admin.visitors": "visitors",
   "admin.avgPage": "Average time on page (m:s)",
   "admin.migrationNeeded": "Some data (logins, daily chart, popular pages) will appear after running supabase/migrations/0005_login_stats_analytics.sql in Supabase.",
+  "admin.total": "Total",
   "editor.showCode": "Show code",
   "editor.hideCode": "Hide code",
-  "editor.serverFileNote": "In AI mode, api/chat.js is included too - a server function that holds the API key and instructions. Add it to your Vercel project and set GEMINI_API_KEY."
+  "editor.serverFileNote": "In AI mode, api/chat.js is included too - a server function that holds the API key and instructions. Add it to your Vercel project and set GEMINI_API_KEY.",
+  "promo.title": "Noticed this?",
+  "promo.body": "You can have this on your own site too - a designed popup, no code and no server.",
+  "promo.cta": "Open the popup block"
 }

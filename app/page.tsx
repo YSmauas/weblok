@@ -11,13 +11,14 @@ export default async function HomePage() {
   const supabase = await createClient();
   // public_stats() היא פונקציה ציבורית שמחזירה רק מספרים מצטברים (בלי מידע
   // אישי) - זמינה גם למי שלא מחובר, לכן אפשר לקרוא לה ישירות מדף הבית.
-  // public_stats_totals() (migration 0005) - סה"כ כניסות. לפני ההרצה פשוט מחזיר שגיאה ומוצג "—".
+  // public_stats_totals() (migrations 0005+0006) - סה"כ ביקורים (כל גולש, לא רק רשומים) וכניסות.
+  // לפני ההרצה פשוט מחזיר שגיאה/שדה חסר ומוצג "—".
   const [{ data }, { data: totalsData }] = await Promise.all([
     supabase.rpc("public_stats"),
     supabase.rpc("public_stats_totals"),
   ]);
   const stats = data as { registered_users: number; logins_this_month: number } | null;
-  const totals = totalsData as { total_logins: number | null } | null;
+  const totals = totalsData as { total_visits?: number | null; visits_30d?: number | null } | null;
 
   return (
     <SiteChrome>
@@ -25,9 +26,9 @@ export default async function HomePage() {
       <JourneyScroll />
       <ToolsShowcase />
       <StatsSection
+        totalVisits={totals?.total_visits ?? null}
+        visitsThisMonth={totals?.visits_30d ?? null}
         registeredUsers={stats?.registered_users ?? null}
-        loginsThisMonth={stats?.logins_this_month ?? null}
-        totalLogins={totals?.total_logins ?? null}
         blocksInLibrary={blocksRegistry.length}
       />
       <ContactSection />

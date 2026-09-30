@@ -5,22 +5,22 @@ import { CountUp } from "@/components/ui/CountUp";
 import { Reveal } from "@/components/ui/Reveal";
 
 export function StatsSection({
+  totalVisits,
+  visitsThisMonth,
   registeredUsers,
-  loginsThisMonth,
-  totalLogins,
   blocksInLibrary,
 }: {
+  totalVisits: number | null;
+  visitsThisMonth: number | null;
   registeredUsers: number | null;
-  loginsThisMonth: number | null;
-  totalLogins: number | null;
   blocksInLibrary: number;
 }) {
   const { t } = useLocale();
 
   const STATS = [
+    { label: t("stats.totalVisits"), value: totalVisits },
+    { label: t("stats.visits30d"), value: visitsThisMonth },
     { label: t("stats.registeredUsers"), value: registeredUsers },
-    { label: t("stats.loginsThisMonth"), value: loginsThisMonth },
-    { label: t("stats.totalLogins"), value: totalLogins },
     { label: t("stats.blocksInLibrary"), value: blocksInLibrary },
   ];
 

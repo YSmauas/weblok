@@ -77,13 +77,13 @@ export function Sidebar({
         aria-hidden={!open}
         tabIndex={-1}
         onClick={onClose}
-        className={`fixed inset-0 z-[55] bg-black/50 backdrop-blur-[2px] transition-opacity ${
+        className={`fixed inset-0 z-[55] overlay transition-opacity ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
 
       <aside
-        className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] max-w-[85vw] glass
+        className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] max-w-[85vw] surface !border-y-0 !border-e-0 pb-[env(safe-area-inset-bottom)]
           transition-transform duration-300 ease-out flex flex-col
           ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full"}`}
         aria-hidden={!open}

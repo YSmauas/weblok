@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
+import { IconGithub } from "@/components/ui/Icons";
 import { DeleteRow, NewProjectButton } from "@/components/dashboard/RowActions";
 import { getSession } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +57,7 @@ export default async function ProjectsPage() {
                   <p className="text-xs text-ink-muted mt-1 flex flex-wrap gap-x-3">
                     <span>{Array.isArray(p.blocks) ? p.blocks.length : 0} <T k="projects.blocks" /></span>
                     <span>{s.count} <T k="projects.files" /> · {formatBytes(s.size)}</span>
-                    {p.github_repo && <span dir="ltr">🐙 {p.github_repo}</span>}
+                    {p.github_repo && <span dir="ltr" className="inline-flex items-center gap-1"><IconGithub className="w-3.5 h-3.5" /> {p.github_repo}</span>}
                   </p>
                 </Link>
                 <div className="flex gap-3 items-center">

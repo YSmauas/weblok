@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth/use-session";
 import { useTheme } from "@/lib/theme-provider";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { IconPuzzle, IconInfo, IconSun, IconMoon, IconMenu } from "../ui/Icons";
+import { IconLogo, IconInfo, IconSun, IconMoon, IconMenu } from "../ui/Icons";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
 
 export function Header({
@@ -29,11 +29,13 @@ export function Header({
   ];
 
   return (
-    <header className="sticky top-0 z-40 glass">
+    <header className="sticky top-0 z-40 glass pt-[env(safe-area-inset-top)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 group" aria-label="WEblok">
-          <IconPuzzle className="w-6 h-6 text-accent group-hover:rotate-12 transition-transform" />
-          <span className="text-lg font-extrabold tracking-tight">WEblok</span>
+          <IconLogo className="w-7 h-7 text-accent transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
+          <span className="text-lg font-extrabold tracking-tight" dir="ltr">
+            WE<span className="text-accent">blok</span>
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 text-sm" aria-label={t("header.menu")}>

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo } from "next/font/google";
 import "../styles/globals.css";
+import { fontVariables } from "./fonts";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
@@ -13,13 +13,6 @@ import {
   SITE_KEYWORDS,
   SITE_NAME,
 } from "@/lib/site";
-
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  weight: ["300", "400", "600", "800"],
-  variable: "--font-heebo",
-  display: "swap",
-});
 
 const DEFAULT_TITLE = "WEblok — בלוקים חכמים לאתר שלך";
 
@@ -61,6 +54,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // מאפשר ל-env(safe-area-inset-*) לעבוד במכשירים עם "חריץ" (הדר, פוטר, מודאלים)
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#0a0d0a" },
     { media: "(prefers-color-scheme: light)", color: "#f5f6f1" },
@@ -109,7 +104,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="he" dir="rtl" className={heebo.variable} suppressHydrationWarning>
+    <html lang="he" dir="rtl" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: initScript }} />
         <script
