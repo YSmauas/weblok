@@ -22,6 +22,7 @@ export function Header({
 
   const NAV = [
     { href: "/blocks", label: t("sidebar.blocks") },
+    { href: "/structures", label: t("sidebar.structures") },
     { href: "/tools/inject", label: t("sidebar.toolInject") },
     loggedIn
       ? { href: "/dashboard", label: t("sidebar.personalArea") }

@@ -13,8 +13,8 @@ import { IconChevronDown, IconClose } from "../ui/Icons";
 
 /** כלים מתקדמים - כל כלי חדש נרשם כאן ומופיע אוטומטית בתפריט */
 const TOOLS = [
-  { href: "/tools/inject", label: "sidebar.toolInject", icon: "💉" },
-  { href: "/tools/github", label: "sidebar.toolGithub", icon: "🐙" },
+  { href: "/tools/inject", label: "sidebar.toolInject", icon: "inject" },
+  { href: "/tools/github", label: "sidebar.toolGithub", icon: "github" },
 ];
 
 /** פריט תפריט שנפתח לתת-רשימה (בלוקים / כלים מתקדמים) */
@@ -122,7 +122,7 @@ export function Sidebar({
           <Expandable label={t("sidebar.blocks")} defaultOpen>
             {blocksRegistry.map((b) => (
               <Link key={b.slug} href={`/blocks/${b.slug}`} onClick={onClose} className={`submenu-link ${active(`/blocks/${b.slug}`)}`}>
-                <span aria-hidden className="me-2">{b.icon}</span>
+                <AppIcon name={b.icon} className="me-2" />
                 {b.name}
               </Link>
             ))}
@@ -146,7 +146,7 @@ export function Sidebar({
           <Expandable label={t("sidebar.tools")} defaultOpen={pathname.startsWith("/tools")}>
             {TOOLS.map((tool) => (
               <Link key={tool.href} href={tool.href} onClick={onClose} className={`submenu-link ${active(tool.href)}`}>
-                <span aria-hidden className="me-2">{tool.icon}</span>
+                <AppIcon name={tool.icon} className="me-2" />
                 {t(tool.label)}
               </Link>
             ))}
