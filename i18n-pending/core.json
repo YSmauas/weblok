@@ -1,7 +1,0 @@
-{
-  "hero.title1": {"he": "החלק שחסר לאתר שלך", "en": "The missing piece for your site", "es": "La pieza que le falta a tu sitio"},
-  "hero.title2": {"he": "נכנס למקום בלחיצה", "en": "clicks into place", "es": "encaja con un clic"},
-  "hero.subtitle": {"he": "בוחרים בלוק, מעצבים בעורך חי ומקבלים קוד עצמאי שמתאים בדיוק לאתר - בלי שרת, בלי מפתחות חשופים ובלי לבנות מאפס.", "en": "Pick a block, style it in a live editor and get self-contained code that fits your site exactly - no server, no exposed keys, no building from scratch.", "es": "Elige un bloque, diséñalo en un editor en vivo y obtén código autónomo que encaja en tu sitio: sin servidor, sin claves expuestas y sin empezar de cero."},
-  "hero.badge": {"he": "חדש: מבנים - פרויקטים מלאים שמוכנים לפריסה", "en": "New: Structures - full projects ready to deploy", "es": "Nuevo: Estructuras, proyectos completos listos para publicar"},
-  "hero.ctaStart": {"he": "בוחרים בלוק", "en": "Pick a block", "es": "Elige un bloque"}
-}
