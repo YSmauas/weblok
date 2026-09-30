@@ -1,25 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo } from "next/font/google";
 import "../styles/globals.css";
+import { fontVariables } from "./fonts";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { T } from "@/components/ui/T";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { SessionProvider } from "@/lib/auth/use-session";
 import {
   CREDIT_URL,
   GITHUB_PROJECT,
+  IS_PRODUCTION_DEPLOY,
   METADATA_BASE,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
 } from "@/lib/site";
-
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  weight: ["300", "400", "600", "800"],
-  variable: "--font-heebo",
-  display: "swap",
-});
 
 const DEFAULT_TITLE = "WEblok — בלוקים חכמים לאתר שלך";
 
@@ -34,7 +29,7 @@ export const metadata: Metadata = {
   creator: "י.מ. מאואס",
   publisher: SITE_NAME,
   category: "technology",
-  alternates: { canonical: "/" },
+  // canonical מוגדר בכל דף בנפרד - ברירת מחדל כאן הייתה "מורישה" את "/" לכל דף בלי canonical משלו
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -49,11 +44,13 @@ export const metadata: Metadata = {
     title: DEFAULT_TITLE,
     description: SITE_DESCRIPTION,
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-  },
+  robots: IS_PRODUCTION_DEPLOY
+    ? {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+      }
+    : { index: false, follow: false, googleBot: { index: false, follow: false } },
   formatDetection: { telephone: false, email: false, address: false },
   other: { "source-code": GITHUB_PROJECT },
 };
@@ -61,6 +58,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // מאפשר ל-env(safe-area-inset-*) לעבוד במכשירים עם "חריץ" (הדר, פוטר, מודאלים)
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#0a0d0a" },
     { media: "(prefers-color-scheme: light)", color: "#f5f6f1" },
@@ -109,7 +108,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="he" dir="rtl" className={heebo.variable} suppressHydrationWarning>
+    <html lang="he" dir="rtl" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: initScript }} />
         <script
@@ -118,14 +117,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:bg-accent focus:text-base-bg focus:px-4 focus:py-2 focus:rounded-full"
-        >
-          דלג לתוכן
-        </a>
         <ThemeProvider>
           <LocaleProvider>
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:bg-accent focus:text-base-bg focus:px-4 focus:py-2 focus:rounded-full"
+            >
+              <T k="common.skipToContent" />
+            </a>
             <SessionProvider>{children}</SessionProvider>
           </LocaleProvider>
           <AnalyticsTracker />

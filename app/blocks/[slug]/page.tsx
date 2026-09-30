@@ -10,24 +10,24 @@ import { AppIcon } from "@/components/ui/AppIcon";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+// Next 15: params/searchParams הם Promise
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const block = getBlockDefinition(params.slug);
   if (!block) return {};
   return {
-    title: block.meta.name,
+    title: `${block.meta.name} - בלוק מוכן להטמעה`,
     description: block.meta.description,
     alternates: { canonical: `/blocks/${block.meta.slug}` },
     openGraph: { url: `/blocks/${block.meta.slug}`, title: block.meta.name, description: block.meta.description },
   };
 }
 
-export default async function BlockEditorPage({
-  params,
-  searchParams,
-}: {
-  params: { slug: string };
-  searchParams: { design?: string };
+export default async function BlockEditorPage(props: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ design?: string }>;
 }) {
+  const [params, searchParams] = await Promise.all([props.params, props.searchParams]);
   const block = getBlockDefinition(params.slug);
   if (!block) notFound();
 

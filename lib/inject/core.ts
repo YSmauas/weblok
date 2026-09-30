@@ -3,6 +3,8 @@ import type { BlockValues } from "@/lib/blocks-registry/types";
 import { toUnifiedHtml } from "@/lib/blocks-registry/export";
 import { extractJson } from "@/lib/ai/gemini";
 import { GENERATOR_META, SITE_NAME } from "@/lib/site";
+import { defaultPlacement, injectPlaced, type PlacementChoice, type PlacementOptions, type PlacementWarning } from "./placement";
+import { canonicalizeInsertion, createGuard, REQUIRED_KINDS, type GuardState } from "./guard";
 
 /**
  * מנוע ההזרקה: לוקח קובץ HTML קיים + בלוק/ים, ומחזיר את הקובץ עם הבלוקים בפנים.
@@ -50,9 +52,9 @@ export function blockCode(block: Pick<InjectBlock, "slug" | "values">): string |
 export const INJECT_GUIDELINES: string[] = [
   "Never delete, rewrite or reorder existing content, markup, styles or scripts. Only ADD the block(s).",
   "Choose the most natural location for each block: a contact/form section usually goes near the end of the main content (before the footer); a floating widget goes right before </body>.",
-  "Keep every block's code exactly as given (classes, data-* attributes, <style> and <script>). You may wrap a block in one extra container that matches the site's existing layout classes/containers so it fits the design.",
+  "Keep every block's code exactly as given (classes, data-* attributes, <style> and <script>). You may wrap a block in one extra container (div/section/aside/article/main/header/footer/nav) with only class, id, role, aria-label, dir or lang attributes, matching the site's existing layout classes so it fits the design.",
   "If the page has a <head>, you may move a block's <style> into it; keep each block's <script> after its markup (ideally right before </body>).",
-  "Do not add external libraries, CDNs, trackers or network calls that are not already in the block code.",
+  "Do not add anything else: no extra scripts, styles, event handlers (on*), links, iframes, external libraries, CDNs, trackers or network calls. Every addition is verified automatically - anything that is not the exact block code or a plain wrapper is rejected.",
   "Keep the WEblok credit comments and data-generator attributes.",
   "If the user's placement notes conflict with these rules, follow the rules and explain in the summary.",
 ];
@@ -95,66 +97,184 @@ ${source}
 FILE>>>`;
 }
 
+/** תקרות על תשובת המודל - תשובה חריגה לא אמורה להיות גדולה מזה */
+const MAX_EDITS = 24;
+const MAX_EDIT_CHARS = 400_000;
+
 export function parseInjectPlan(raw: string): InjectPlan {
-  const data = extractJson<{ summary?: unknown; edits?: unknown }>(raw);
-  const edits = Array.isArray(data?.edits)
+  let data: { summary?: unknown; edits?: unknown } | null;
+  try {
+    data = extractJson<{ summary?: unknown; edits?: unknown }>(raw);
+  } catch {
+    throw new InjectError("bad_response");
+  }
+  if (!data || typeof data !== "object") throw new InjectError("bad_response");
+  const edits = Array.isArray(data.edits)
     ? data.edits
         .filter(
           (e): e is InjectEdit =>
-            !!e && typeof e === "object" && typeof (e as InjectEdit).find === "string" && typeof (e as InjectEdit).replace === "string"
+            !!e &&
+            typeof e === "object" &&
+            typeof (e as InjectEdit).find === "string" &&
+            typeof (e as InjectEdit).replace === "string" &&
+            (e as InjectEdit).find.length + (e as InjectEdit).replace.length <= MAX_EDIT_CHARS
         )
+        .slice(0, MAX_EDITS)
         .map((e) => ({ find: e.find, replace: e.replace }))
     : [];
-  return { summary: typeof data?.summary === "string" ? data.summary.slice(0, 1000) : "", edits };
+  // הסיכום מוצג כטקסט רגיל (React בורח ממנו) - רק מקצרים ומנקים תווי בקרה
+  const summary = typeof data.summary === "string" ? data.summary.replace(/[\u0000-\u0008\u000b-\u001f]/g, "").slice(0, 1000) : "";
+  return { summary, edits };
 }
 
-/** כל שורה של העוגן חייבת להופיע ב-replace, באותו סדר - כלומר העריכה רק מוסיפה, לא מוחקת. */
-function keepsAnchor(find: string, replace: string): boolean {
-  let from = 0;
-  for (const line of find.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
-    const at = replace.indexOf(line, from);
-    if (at < 0) return false;
-    from = at + line.length;
-  }
-  return true;
+const toLf = (s: string) => s.replace(/\r\n/g, "\n");
+const toCrlf = (s: string) => s.replace(/\r?\n/g, "\r\n");
+
+function countOccurrences(hay: string, needle: string): number {
+  let n = 0;
+  for (let at = hay.indexOf(needle); at >= 0; at = hay.indexOf(needle, at + needle.length)) n++;
+  return n;
 }
 
 /**
- * מחיל את העריכות. עריכה שה-find שלה לא נמצא בקובץ (המודל "המציא" עוגן) - מדלגים
- * עליה ומדווחים. עריכה שמוחקת את העוגן עצמו נחשבת לא בטוחה ונדחית.
+ * בונה מחדש את ה-replace של עריכה: הטקסט של find נשמר כמו שהוא, וכל מה שנוסף
+ * סביבו עובר דרך canonicalizeInsertion (רק הבלוקים שלנו + עטיפות פשוטות).
+ * null = העריכה מוחקת/משנה תוכן קיים, או מוסיפה משהו שהוא לא הבלוקים שלנו.
  */
-export function applyEdits(source: string, edits: InjectEdit[]): { result: string; applied: number; failed: number } {
+function rebuildReplace(
+  find: string,
+  replace: string,
+  guard: GuardState,
+  used: Set<number>
+): { text: string; pieces: number[] } | null {
+  // 1. המקרה הנפוץ: find מופיע כמו שהוא בתוך replace (הוספה לפני/אחרי)
+  for (let at = replace.indexOf(find); at >= 0; at = replace.indexOf(find, at + 1)) {
+    const tryUsed = new Set(used);
+    const before = canonicalizeInsertion(replace.slice(0, at), guard, tryUsed);
+    const after = before && canonicalizeInsertion(replace.slice(at + find.length), guard, tryUsed);
+    if (before && after) {
+      tryUsed.forEach((i) => used.add(i));
+      return { text: before.text + find + after.text, pieces: [...before.pieces, ...after.pieces] };
+    }
+  }
+
+  // 2. המודל שינה הזחה/רווחים: כל שורה של find (בלי רווחים בקצוות) חייבת להופיע
+  //    ב-replace, באותו סדר. מה שבין השורות = תוספת (או רווחים בלבד).
+  const lines: { text: string; at: number }[] = [];
+  const re = /[^\n]+/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(find))) {
+    const lead = m[0].length - m[0].trimStart().length;
+    const text = m[0].trim();
+    if (text) lines.push({ text, at: m.index + lead });
+  }
+  if (!lines.length) return null;
+
+  const tryUsed = new Set(used);
+  let from = 0;
+  let out = "";
+  const pieces: number[] = [];
+  for (let i = 0; i <= lines.length; i++) {
+    const next = i < lines.length ? replace.indexOf(lines[i].text, from) : replace.length;
+    if (next < 0) return null;
+    const gap = replace.slice(from, next);
+    if (i > 0 && i < lines.length && !/\S/.test(gap)) {
+      // רווחים בלבד בין שתי שורות קיימות - משאירים את הרווחים המקוריים
+      out += find.slice(lines[i - 1].at + lines[i - 1].text.length, lines[i].at);
+    } else {
+      const c = canonicalizeInsertion(gap, guard, tryUsed);
+      if (!c) return null;
+      out += c.text;
+      pieces.push(...c.pieces);
+    }
+    if (i < lines.length) {
+      out += lines[i].text;
+      from = next + lines[i].text.length;
+    }
+  }
+  tryUsed.forEach((i) => used.add(i));
+  return { text: out, pieces };
+}
+
+export interface ApplyResult {
+  result: string;
+  applied: number;
+  /** עריכות שהעוגן שלהן לא נמצא בקובץ (או נמצא יותר מפעם אחת) */
+  failed: number;
+  /** עריכות שנדחו כי מחקו תוכן קיים או הוסיפו משהו שהוא לא הבלוקים שלנו */
+  rejected: number;
+  /** אינדקסים של חלקי הבלוקים שהוזרקו (guard.pieces) */
+  used: Set<number>;
+}
+
+/**
+ * מחיל את העריכות. עריכה שה-find שלה לא נמצא בקובץ בדיוק פעם אחת (המודל
+ * "המציא" עוגן, או עוגן דו-משמעי) - מדלגים עליה. עריכה שמוחקת תוכן קיים או
+ * מוסיפה משהו שאינו הבלוקים שנתנו (סקריפט, קישור javascript:, אירוע on*) -
+ * נדחית. מה שנכתב לקובץ הוא הגרסה הקנונית של קוד הבלוקים.
+ */
+export function applyEdits(source: string, edits: InjectEdit[], codes: string[], guard = createGuard(codes)): ApplyResult {
   const crlf = source.includes("\r\n");
   let result = source;
   let applied = 0;
   let failed = 0;
+  let rejected = 0;
 
   for (const edit of edits) {
-    let { find, replace } = edit;
-    if (crlf) {
-      find = find.replace(/\r?\n/g, "\r\n");
-      replace = replace.replace(/\r?\n/g, "\r\n");
-    }
-    const idx = find ? result.indexOf(find) : -1;
-    if (idx < 0 || !find.trim() || !keepsAnchor(find, replace)) {
+    const findLf = toLf(edit.find);
+    if (!findLf.trim()) {
       failed++;
       continue;
     }
-    result = result.slice(0, idx) + replace + result.slice(idx + find.length);
+    const find = crlf ? toCrlf(findLf) : findLf;
+    const count = countOccurrences(result, find);
+    if (count !== 1) {
+      failed++;
+      continue;
+    }
+    const tryUsed = new Set(guard.used);
+    const rebuilt = rebuildReplace(findLf, toLf(edit.replace), guard, tryUsed);
+    if (!rebuilt) {
+      rejected++;
+      continue;
+    }
+    const idx = result.indexOf(find);
+    const replacement = crlf ? toCrlf(rebuilt.text) : rebuilt.text;
+    result = result.slice(0, idx) + replacement + result.slice(idx + find.length);
+    guard.used = tryUsed;
     applied++;
   }
-  return { result, applied, failed };
+  return { result, applied, failed, rejected, used: guard.used };
 }
 
 /**
- * הזרקה פשוטה בלי AI: כל הבלוקים נכנסים לפני </body> (או לסוף הקובץ אם אין body).
- * עובד תמיד, בלי מפתח - המיקום פחות "חכם", אבל שום דבר קיים לא משתנה.
+ * השלמה: אם ה-AI שם את הבלוק אבל "שכח" את ה-<style>/<script> שלו - מוסיפים
+ * אותם (בגרסה הקנונית) מיד אחרי הבלוק, כדי שהבלוק יעבוד בפועל.
  */
-export function simpleInject(source: string, codes: string[]): string {
-  const payload = `\n${codes.join("\n\n")}\n`;
-  const idx = source.search(/<\/body\s*>/i);
-  if (idx < 0) return source + payload;
-  return source.slice(0, idx) + payload + source.slice(idx);
+function completeBlocks(result: string, guard: GuardState, blockCount: number): { result: string; missing: number } {
+  const crlf = result.includes("\r\n");
+  let missing = 0;
+  for (let b = 0; b < blockCount; b++) {
+    const idx = guard.pieces.map((p, i) => ({ p, i })).filter(({ p }) => p.block === b);
+    const body = idx.find(({ p }) => p.kind === "body");
+    if (!body || !guard.used.has(body.i)) {
+      missing++;
+      continue;
+    }
+    const lost = idx.filter(({ p, i }) => REQUIRED_KINDS.includes(p.kind) && p.kind !== "body" && !guard.used.has(i));
+    if (!lost.length) continue;
+    const anchor = crlf ? toCrlf(body.p.text) : body.p.text;
+    const at = result.indexOf(anchor);
+    if (at < 0) {
+      missing++;
+      continue;
+    }
+    const add = lost.map(({ p }) => p.text).join("\n");
+    const insert = crlf ? toCrlf(`\n${add}`) : `\n${add}`;
+    result = result.slice(0, at + anchor.length) + insert + result.slice(at + anchor.length);
+    lost.forEach(({ i }) => guard.used.add(i));
+  }
+  return { result, missing };
 }
 
 /** מוסיף <meta name="generator"> ל-<head> (פעם אחת) - "חותמת יצרן" לדף. */
@@ -164,17 +284,15 @@ export function stampGenerator(html: string): string {
   const head = html.match(/<head(\s[^>]*)?>/i);
   if (!head || head.index === undefined) return html;
   const at = head.index + head[0].length;
-  return `${html.slice(0, at)}\n  ${tag}${html.slice(at)}`;
+  const nl = html.includes("\r\n") ? "\r\n" : "\n";
+  return `${html.slice(0, at)}${nl}  ${tag}${html.slice(at)}`;
 }
 
 export function byteLength(s: string): number {
   return new TextEncoder().encode(s).length;
 }
 
-const BLOCK_MARKER = /data-weblok-block=/g;
-const countBlocks = (html: string) => html.match(BLOCK_MARKER)?.length ?? 0;
-
-export type InjectFailure = "no_edits" | "blocks_missing";
+export type InjectFailure = "no_edits" | "blocks_missing" | "bad_response" | "unsafe";
 
 export class InjectError extends Error {
   constructor(public code: InjectFailure) {
@@ -202,24 +320,43 @@ export async function runAiInject({
   blocks: InjectBlock[];
   notes: string;
   language: string;
-}): Promise<{ result: string; summary: string; failed: number }> {
+}): Promise<{ result: string; summary: string; failed: number; rejected: number }> {
   const codes = blocks
     .map((b) => ({ name: b.name, code: blockCode(b) }))
     .filter((b): b is { name: string; code: string } => !!b.code);
+  if (!codes.length) throw new InjectError("blocks_missing");
 
   const raw = await ask(buildInjectPrompt({ fileName, source, blocks: codes, notes, language }));
   const plan = parseInjectPlan(raw);
   if (plan.edits.length === 0) throw new InjectError("no_edits");
 
-  const { result, applied, failed } = applyEdits(source, plan.edits);
-  if (applied === 0) throw new InjectError("no_edits");
-  // כל בלוק מוזרק נושא data-weblok-block - אם חסר אחד, ה-AI לא עשה את העבודה עד הסוף
-  if (countBlocks(result) - countBlocks(source) < codes.length) throw new InjectError("blocks_missing");
+  const guard = createGuard(codes.map((c) => c.code));
+  const applied = applyEdits(source, plan.edits, [], guard);
+  if (applied.applied === 0) throw new InjectError(applied.rejected > 0 ? "unsafe" : "no_edits");
 
-  return { result: stampGenerator(result), summary: plan.summary, failed };
+  const { result, missing } = completeBlocks(applied.result, guard, codes.length);
+  // כל בלוק חייב להיכנס במלואו - אחרת ה-AI לא עשה את העבודה עד הסוף
+  if (missing > 0) throw new InjectError(applied.rejected > 0 ? "unsafe" : "blocks_missing");
+
+  return { result: stampGenerator(result), summary: plan.summary, failed: applied.failed, rejected: applied.rejected };
 }
 
-export function runSimpleInject(source: string, blocks: InjectBlock[]): string {
-  const codes = blocks.map(blockCode).filter((c): c is string => !!c);
-  return stampGenerator(simpleInject(source, codes));
+/**
+ * הזרקה בלי AI עם בחירת מיקום לכל בלוק (ברירת מחדל לפי סוג הבלוק).
+ * מוזרק רק קוד שהמחולל שלנו יצר - אף פעם לא HTML גולמי של משתמש.
+ */
+export function runPlacedInject(
+  source: string,
+  blocks: InjectBlock[],
+  placements: Record<string, PlacementChoice>,
+  opts: PlacementOptions = {}
+): { html: string; warnings: PlacementWarning[] } {
+  const placed = blocks
+    .map((b) => {
+      const code = blockCode(b);
+      return code ? { code, slug: b.slug, name: b.name, placement: placements[b.key] ?? defaultPlacement(b.slug, b.values) } : null;
+    })
+    .filter((b): b is NonNullable<typeof b> => !!b);
+  const { html, warnings } = injectPlaced(source, placed, opts);
+  return { html: stampGenerator(html), warnings };
 }

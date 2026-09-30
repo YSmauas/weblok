@@ -3,17 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --font-heebo: "Heebo";
   --bg: #0a0d0a;
   --panel: #10140e;
   --panel-2: #151b13;
   --border: #26301f;
   --ink-primary: #eaf0e3;
   --ink-secondary: #9cab8e;
-  --ink-muted: #647159;
+  /* ניגודיות: muted ≥ 5:1 על bg/panel-2 (WCAG AA לטקסט קטן) */
+  --ink-muted: #808e72;
   --accent: #8fae6f;
   --accent-hover: #7c9c5c;
   --accent-soft: rgba(143, 174, 111, 0.12);
+  --success: #8fc07f;
+  --danger: #e07b6a;
+  /* משטחים צפים (מודאל, תפריט, בועת הסבר) - כמעט אטומים, כדי שהטקסט יהיה קריא על כל רקע */
+  --surface: #121710;
+  --overlay: rgba(4, 6, 4, 0.72);
+  --shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --code-bg: #0d1117;
+  --code-ink: #a5d6ff;
 }
 
 html.light {
@@ -23,10 +31,17 @@ html.light {
   --border: #dbe0d1;
   --ink-primary: #12160e;
   --ink-secondary: #4a5640;
-  --ink-muted: #7a856e;
+  --ink-muted: #5e6953;
   --accent: #4f7a38;
   --accent-hover: #416630;
   --accent-soft: rgba(79, 122, 56, 0.1);
+  --success: #3f7a34;
+  --danger: #b3453a;
+  --surface: #ffffff;
+  --overlay: rgba(18, 22, 14, 0.45);
+  --shadow: 0 18px 50px -12px rgba(24, 32, 18, 0.28), 0 2px 8px rgba(24, 32, 18, 0.08);
+  --code-bg: #0d1117;
+  --code-ink: #a5d6ff;
   color-scheme: light;
 }
 
@@ -113,7 +128,23 @@ html.light {
     @apply inline-flex items-center gap-1 rounded-full border border-base-border bg-base-panel2 px-2.5 py-0.5 text-[11px] text-ink-secondary;
   }
   .code-panel {
-    @apply rounded-card border border-base-border bg-[#0d1117] p-4 overflow-auto text-xs text-[#a5d6ff] font-mono;
+    @apply rounded-card border border-base-border p-4 overflow-auto text-xs font-mono;
+    background: var(--code-bg);
+    color: var(--code-ink);
+  }
+  /* משטח צף אטום: מודאלים, תפריטים נפתחים, בועות הסבר ופופאפים */
+  .surface {
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    color: var(--ink-primary);
+  }
+  .overlay {
+    background: var(--overlay);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
   }
 }
 
@@ -162,12 +193,17 @@ html.light {
     display: none;
   }
 
+  /* זכוכית - רק למשטחים "קבועים" (הדר); לחלונות צפים משתמשים ב-.surface */
   .glass {
-    background: color-mix(in srgb, var(--panel) 55%, transparent);
+    background: color-mix(in srgb, var(--panel) 72%, transparent);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 30px -12px var(--accent);
+  }
+  html.light .glass {
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    box-shadow: 0 1px 0 var(--border), 0 8px 24px -16px rgba(24, 32, 18, 0.35);
   }
 }
 

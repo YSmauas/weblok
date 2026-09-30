@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { encryptSecret } from "@/lib/crypto";
 import { rateLimit } from "@/lib/rate-limit";
@@ -31,7 +32,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 2048);
   const provider = body?.provider;
   const value = typeof body?.value === "string" ? body.value.trim() : "";
   if (!isProvider(provider) || value.length < 8 || value.length > 500) {

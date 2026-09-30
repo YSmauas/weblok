@@ -1,42 +1,3 @@
-import { useId } from "react";
-
-export function IconPuzzle({ className }: { className?: string }) {
-  const uid = useId();
-  const sheenId = `puzzle-sheen-${uid}`;
-
-  // צורת "החלק האחרון בפאזל": מעלה - זכר בולט החוצה, ימין - נקבה שקועה
-  // פנימה, מטה ושמאל - צלעות חלקות. מראה זכוכית: מילוי שקוף בגוון הנוכחי
-  // (currentColor) + שכבת ברק (highlight) לבנה מלמעלה-שמאל, כדי שיתאים
-  // אוטומטית גם למצב כהה וגם למצב בהיר.
-  return (
-    <svg viewBox="0 0 32 32" className={className} fill="none">
-      <defs>
-        <linearGradient id={sheenId} x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
-          <stop offset="0.55" stopColor="#fff" stopOpacity="0.08" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        fill="currentColor"
-        fillOpacity="0.16"
-      />
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        fill={`url(#${sheenId})`}
-      />
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export function IconInfo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
@@ -136,20 +97,6 @@ export function IconKey({ className }: { className?: string }) {
   );
 }
 
-export function IconTrash({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path
-        d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function IconGlobe({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
@@ -159,6 +106,58 @@ export function IconGlobe({ className }: { className?: string }) {
         stroke="currentColor"
         strokeWidth="1.6"
       />
+    </svg>
+  );
+}
+
+/* ---------- אייקונים כלליים (קו 1.6, currentColor) - מחליפים אימוג'י בממשק ---------- */
+
+type IconProps = { className?: string };
+
+function Line({ className, children }: IconProps & { children: React.ReactNode }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
+export const IconCheck = ({ className }: IconProps) => (
+  <Line className={className}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Line>
+);
+
+/**
+ * לוגו WEblok: ארבעה "בלוקים" ברשת 2×2 שמתחברים בלשוניות פאזל, והרביעי (בצבע
+ * מלא) בדיוק ננעל למקומו - "החלק שחסר לאתר שלך". currentColor, עובד בשני המצבים.
+ */
+export function IconLogo({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} fill="none" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.22" />
+      <rect x="3" y="17" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.38" />
+      <rect x="17" y="17" width="12" height="12" rx="3.2" fill="currentColor" fillOpacity="0.22" />
+      {/* לשוניות החיבור בין הבלוקים */}
+      <circle cx="9" cy="16" r="2.3" fill="currentColor" fillOpacity="0.38" />
+      <circle cx="16" cy="23" r="2.3" fill="currentColor" fillOpacity="0.38" />
+      {/* החלק האחרון - נכנס למקום בזווית קלה */}
+      <g transform="rotate(-8 23 9)">
+        <path
+          d="M20 2.6h6a3.2 3.2 0 0 1 3.2 3.2v6a3.2 3.2 0 0 1-3.2 3.2h-6a3.2 3.2 0 0 1-3.2-3.2V11a2.2 2.2 0 1 0 0-4.4V5.8A3.2 3.2 0 0 1 20 2.6Z"
+          fill="currentColor"
+        />
+      </g>
     </svg>
   );
 }

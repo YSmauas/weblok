@@ -1,13 +1,25 @@
 /**
- * גישה ל-GitHub ישירות מהדפדפן: ייבוא קבצי טקסט מריפו, ודחיפת הקבצים בחזרה
- * כקומיט אחד. הטוקן (אם יש) מוזן ע"י המשתמש לפעולה הזו בלבד ולא נשמר -
- * לא אצלנו בשרת ולא בדפדפן.
+ * גישה ל-GitHub ישירות מהדפדפן: ייבוא קבצי טקסט מריפו (הדחיפה חזרה - sync.ts / manager.ts).
+ * הטוקן (אם יש) נשלח ישירות מהדפדפן ל-GitHub ולא עובר בשרת שלנו; נשמר (מוצפן,
+ * בדפדפן בלבד) רק אם המשתמש ביקש.
  */
-import { classifyPath, MAX_FILES_PER_IMPORT, PROJECT_QUOTA_BYTES, type LoadedFile, type LoadResult } from "@/lib/projects/files";
+import { classifyPath, MAX_FILES_PER_IMPORT, PROJECT_QUOTA_BYTES, type LoadResult } from "@/lib/projects/files";
 
 const API = "https://api.github.com";
 
-export type GithubErrorCode = "not_found" | "unauthorized" | "rate_limited" | "conflict" | "failed";
+/**
+ * unauthorized = טוקן שגוי/פג תוקף (401). forbidden_scope = הטוקן תקין אבל חסרה לו
+ * הרשאה לפעולה/לריפו (403 "Resource not accessible..."). pr_exists = כבר פתוח PR
+ * מאותו ענף.
+ */
+export type GithubErrorCode =
+  | "not_found"
+  | "unauthorized"
+  | "forbidden_scope"
+  | "rate_limited"
+  | "conflict"
+  | "pr_exists"
+  | "failed";
 
 export class GithubError extends Error {
   constructor(public code: GithubErrorCode) {
@@ -50,13 +62,19 @@ export async function gh<T>(path: string, token: string | undefined, init?: Requ
     throw new GithubError("failed");
   }
   if (res.ok) return (await res.json()) as T;
-  if (res.status === 404) throw new GithubError("not_found");
-  if (res.status === 401) throw new GithubError("unauthorized");
-  if (res.status === 403 || res.status === 429) {
-    throw new GithubError(res.headers.get("x-ratelimit-remaining") === "0" ? "rate_limited" : "unauthorized");
-  }
-  if (res.status === 409 || res.status === 422) throw new GithubError("conflict");
-  throw new GithubError("failed");
+  // הודעת השגיאה של GitHub נבדקת רק מול תבניות ידועות - לא מוצגת למשתמש
+  const body = await res.text().catch(() => "");
+  throw new GithubError(classifyGithubError(res.status, body, res.headers.get("x-ratelimit-remaining")));
+}
+
+export function classifyGithubError(status: number, body: string, rateRemaining: string | null): GithubErrorCode {
+  if (status === 404) return "not_found";
+  if (status === 401) return "unauthorized";
+  if (status === 429 || (status === 403 && (rateRemaining === "0" || /rate limit/i.test(body)))) return "rate_limited";
+  if (status === 403) return "forbidden_scope";
+  if (status === 422 && /pull request already exists/i.test(body)) return "pr_exists";
+  if (status === 409 || status === 422) return "conflict";
+  return "failed";
 }
 
 export const branchPath = (b: string) => b.split("/").map(encodeURIComponent).join("/");
@@ -70,12 +88,20 @@ export async function defaultBranch(ref: RepoRef, token?: string): Promise<strin
 function decodeBase64Utf8(b64: string): string {
   const bin = atob(b64.replace(/\n/g, ""));
   const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  // ignoreBOM: שומרים BOM אם יש - אחרת הקובץ "ישתנה" (ה-SHA שלו) בלי שנגענו בו
+  return new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
+}
+
+/** ה-SHA של הקומיט שבראש הענף כרגע */
+export async function branchHead(ref: RepoRef, branch: string, token?: string): Promise<string> {
+  const data = await gh<{ object: { sha: string } }>(`${repoPath(ref)}/git/ref/heads/${branchPath(branch)}`, token);
+  return data.object.sha;
 }
 
 /**
  * מייבא את קבצי הטקסט מהריפו (עד המכסה). בלי טוקן עובד רק לריפו ציבורי,
  * ו-GitHub מגביל ל-60 בקשות בשעה - לכן בוחרים מראש רק קבצים רלוונטיים.
+ * `branch` יכול להיות גם SHA של קומיט (ראו importRepoSnapshot).
  */
 export async function importRepoFiles(
   ref: RepoRef,
@@ -126,33 +152,27 @@ export async function importRepoFiles(
 }
 
 /**
- * דוחף את הקבצים כקומיט אחד על הענף (base_tree = המצב הקיים, כך שקבצים
- * שלא נגענו בהם נשארים כמו שהם). דורש טוקן עם הרשאת Contents: write.
+ * ייבוא "תמונת מצב": קודם נקבע הקומיט שבראש הענף, ואז הקבצים נקראים מהקומיט
+ * הזה בדיוק. את ה-SHA שומרים (baseSha) כדי שבדחיפה חזרה נדע מה השתנה אצלנו
+ * ומה השתנה בגיטהאב מאז.
  */
-export async function pushFiles(
+export async function importRepoSnapshot(
   ref: RepoRef,
   branch: string,
-  token: string,
-  files: LoadedFile[],
-  message: string
-): Promise<{ commitUrl: string }> {
-  const base = repoPath(ref);
-  const head = await gh<{ object: { sha: string } }>(`${base}/git/ref/heads/${branchPath(branch)}`, token);
-  const parent = await gh<{ tree: { sha: string } }>(`${base}/git/commits/${head.object.sha}`, token);
-  const tree = await gh<{ sha: string }>(`${base}/git/trees`, token, {
-    method: "POST",
-    body: JSON.stringify({
-      base_tree: parent.tree.sha,
-      tree: files.map((f) => ({ path: f.path, mode: "100644", type: "blob", content: f.content })),
-    }),
-  });
-  const commit = await gh<{ sha: string; html_url: string }>(`${base}/git/commits`, token, {
-    method: "POST",
-    body: JSON.stringify({ message, tree: tree.sha, parents: [head.object.sha] }),
-  });
-  await gh(`${base}/git/refs/heads/${branchPath(branch)}`, token, {
-    method: "PATCH",
-    body: JSON.stringify({ sha: commit.sha }),
-  });
-  return { commitUrl: commit.html_url };
+  token: string | undefined,
+  budgetBytes: number = PROJECT_QUOTA_BYTES
+): Promise<{ result: LoadResult; baseSha: string }> {
+  const baseSha = await branchHead(ref, branch, token);
+  return { result: await importRepoFiles(ref, baseSha, token, budgetBytes), baseSha };
+}
+
+/** קישור שחזר מ-GitHub API מוצג רק אם הוא באמת https://github.com/... (הגנה מ-javascript: וכד') */
+export function githubUrl(u: string | undefined | null): string | undefined {
+  if (!u) return undefined;
+  try {
+    const url = new URL(u);
+    return url.protocol === "https:" && url.hostname === "github.com" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
 }

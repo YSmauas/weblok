@@ -75,26 +75,42 @@ export type AiErrorCode =
   | "no_key"
   | "invalid_key"
   | "rate_limited"
+  | "quota"
+  | "model_unavailable"
+  | "region"
+  | "api_disabled"
+  | "network"
   | "unauthorized"
   | "blocked"
   | "truncated"
   | "failed";
 
+/** קודים שעוברים כמו שהם משגיאת Gemini / מתשובת השרת לתצוגה */
+const PASS_THROUGH: readonly AiErrorCode[] = [
+  "no_key",
+  "invalid_key",
+  "rate_limited",
+  "quota",
+  "model_unavailable",
+  "region",
+  "api_disabled",
+  "network",
+  "blocked",
+  "truncated",
+];
+
+const isAiErrorCode = (c: unknown): c is AiErrorCode => typeof c === "string" && (PASS_THROUGH as string[]).includes(c);
+
 export type AiResult<T> = { ok: true; data: T } | { ok: false; error: AiErrorCode };
 
 export function toAiError(e: unknown): AiErrorCode {
-  if (e instanceof GeminiError) {
-    if (e.code === "invalid_key") return "invalid_key";
-    if (e.code === "rate_limited") return "rate_limited";
-    if (e.code === "blocked") return "blocked";
-    if (e.code === "truncated") return "truncated";
-  }
+  if (e instanceof GeminiError && isAiErrorCode(e.code)) return e.code;
   return "failed";
 }
 
 function fromApiError(status: number | undefined, code: unknown): AiErrorCode {
-  if (code === "no_key") return "no_key";
-  if (code === "invalid_key") return "invalid_key";
+  if (status === undefined) return "network";
+  if (isAiErrorCode(code)) return code;
   if (status === 401) return "unauthorized";
   if (status === 429) return "rate_limited";
   return "failed";

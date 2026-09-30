@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { useSession } from "@/lib/auth/use-session";
 import { PuzzleBackground } from "../ui/PuzzleBackground";
+import { AppIcon } from "../ui/AppIcon";
 
 export function Hero() {
   const { t } = useLocale();
@@ -13,7 +14,7 @@ export function Hero() {
     <section className="relative overflow-hidden">
       <PuzzleBackground />
       <div className="relative max-w-3xl mx-auto px-6 pt-20 sm:pt-24 pb-28 sm:pb-32 text-center">
-        <Link href="/tools/inject" className="chip hover:border-accent transition-colors animate-rise">
+        <Link href="/structures" className="chip hover:border-accent transition-colors animate-rise">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden />
           {t("hero.badge")}
         </Link>
@@ -30,7 +31,7 @@ export function Hero() {
             {t("hero.ctaStart")}
           </Link>
           <Link href="/tools/inject" className="btn-outline px-7 py-3 text-base">
-            💉 {t("hero.ctaInject")}
+            <AppIcon name="inject" className="!text-current" /> {t("hero.ctaInject")}
           </Link>
         </div>
         {!loggedIn && (

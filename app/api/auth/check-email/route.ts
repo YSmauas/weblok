@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 1024);
   const email = String(body?.email ?? "").trim();
   if (!EMAIL.test(email)) return NextResponse.json({ error: "invalid" }, { status: 400 });
 

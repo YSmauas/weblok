@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { T } from "@/components/ui/T";
+import { DailyChart } from "@/components/admin/DailyChart";
 import { createClient } from "@/lib/supabase/server";
 
 interface Analytics {
@@ -46,7 +47,6 @@ export default async function AdminOverviewPage() {
   const top = a?.top_blocks ?? [];
   const maxViews = Math.max(1, ...top.map((x) => x.views));
   const daily = b?.daily ?? [];
-  const maxDaily = Math.max(1, ...daily.map((d) => Math.max(d.visits, d.logins)));
   const maxPage = Math.max(1, ...(b?.top_pages ?? []).map((p) => p.views));
 
   const GROUPS: { title: string; stats: { k: string; value: string }[] }[] = [
@@ -108,40 +108,14 @@ export default async function AdminOverviewPage() {
 
       {daily.length > 0 && (
         <Card title={<T k="admin.dailyTitle" />} description={<T k="admin.dailyDesc" />}>
-          <div className="flex items-center gap-4 text-xs text-ink-secondary mb-3">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-accent" /><T k="admin.visits" /></span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-ink-secondary/60" /><T k="admin.logins" /></span>
+          <div className="grid lg:grid-cols-2 gap-8">
+            <DailyChart titleKey="admin.visits" data={daily.map((d) => ({ day: d.day, value: Number(d.visits) || 0 }))} />
+            <DailyChart
+              titleKey="admin.logins"
+              tone="muted"
+              data={daily.map((d) => ({ day: d.day, value: Number(d.logins) || 0 }))}
+            />
           </div>
-          <div dir="ltr" className="flex items-end gap-1 sm:gap-2 h-44" role="img" aria-labelledby="daily-table">
-            {daily.map((d) => (
-              <div key={d.day} className="flex-1 min-w-0 h-full flex flex-col justify-end items-center gap-1">
-                <div className="w-full flex items-end justify-center gap-0.5 h-full">
-                  <div
-                    className="w-1/2 max-w-[14px] rounded-t bg-accent transition-all"
-                    style={{ height: `${(d.visits / maxDaily) * 100}%`, minHeight: d.visits ? 2 : 0 }}
-                    title={`${d.day}: ${d.visits}`}
-                  />
-                  <div
-                    className="w-1/2 max-w-[14px] rounded-t bg-ink-secondary/60 transition-all"
-                    style={{ height: `${(d.logins / maxDaily) * 100}%`, minHeight: d.logins ? 2 : 0 }}
-                    title={`${d.day}: ${d.logins}`}
-                  />
-                </div>
-                <span className="text-[9px] sm:text-[10px] text-ink-muted tabular-nums">{d.day.slice(8, 10)}/{d.day.slice(5, 7)}</span>
-              </div>
-            ))}
-          </div>
-          <table id="daily-table" className="sr-only">
-            <tbody>
-              {daily.map((d) => (
-                <tr key={d.day}>
-                  <td>{d.day}</td>
-                  <td>{d.visits}</td>
-                  <td>{d.logins}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </Card>
       )}
 

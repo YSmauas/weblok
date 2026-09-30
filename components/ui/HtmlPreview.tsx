@@ -19,7 +19,7 @@ export function HtmlPreview({
   wrapFragment?: boolean;
 }) {
   const doc = wrapFragment
-    ? `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;min-height:100vh;padding:24px 16px;box-sizing:border-box;font-family:system-ui,sans-serif;background:linear-gradient(135deg,#0f172a,#334155)}</style></head><body>${html}</body></html>`
+    ? `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;min-height:100vh;min-height:100dvh;padding:24px 16px;box-sizing:border-box;font-family:system-ui,sans-serif;background:linear-gradient(135deg,#0f172a,#334155)}</style></head><body>${html}</body></html>`
     : html;
 
   return (
@@ -28,6 +28,7 @@ export function HtmlPreview({
       srcDoc={doc}
       sandbox="allow-scripts allow-forms allow-popups"
       referrerPolicy="no-referrer"
+      // רקע לבן בכוונה: זה "הקנבס" של דף HTML אמיתי (ברירת המחדל של דפדפן), לא חלק מממשק האתר
       className={`w-full bg-white border-0 ${className}`}
     />
   );

@@ -48,7 +48,12 @@ export async function requireAiUser(
 /** ממפה שגיאת Gemini לתשובת API אחידה (בלי לחשוף פרטים פנימיים). */
 export function aiErrorResponse(e: unknown): NextResponse {
   const code = e instanceof GeminiError ? e.code : "failed";
-  if (code === "invalid_key") return NextResponse.json({ error: "invalid_key" }, { status: 400 });
-  if (code === "rate_limited") return NextResponse.json({ error: "ai_rate_limited" }, { status: 429 });
+  if (code === "invalid_key" || code === "api_disabled" || code === "region") {
+    return NextResponse.json({ error: code }, { status: 400 });
+  }
+  if (code === "rate_limited" || code === "quota") return NextResponse.json({ error: code }, { status: 429 });
+  if (code === "blocked" || code === "truncated" || code === "model_unavailable" || code === "network") {
+    return NextResponse.json({ error: code }, { status: 502 });
+  }
   return NextResponse.json({ error: "ai_failed" }, { status: 502 });
 }

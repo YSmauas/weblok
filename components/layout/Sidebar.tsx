@@ -7,12 +7,14 @@ import { useLocale } from "@/lib/i18n/locale-provider";
 import { useSession } from "@/lib/auth/use-session";
 import { roleAtLeast } from "@/lib/auth/roles";
 import { blocksRegistry } from "@/lib/blocks-registry";
+import { structuresRegistry } from "@/lib/structures/catalog";
+import { AppIcon } from "../ui/AppIcon";
 import { IconChevronDown, IconClose } from "../ui/Icons";
 
 /** כלים מתקדמים - כל כלי חדש נרשם כאן ומופיע אוטומטית בתפריט */
 const TOOLS = [
-  { href: "/tools/inject", label: "sidebar.toolInject", icon: "💉" },
-  { href: "/tools/github", label: "sidebar.toolGithub", icon: "🐙" },
+  { href: "/tools/inject", label: "sidebar.toolInject", icon: "inject" },
+  { href: "/tools/github", label: "sidebar.toolGithub", icon: "github" },
 ];
 
 /** פריט תפריט שנפתח לתת-רשימה (בלוקים / כלים מתקדמים) */
@@ -77,15 +79,15 @@ export function Sidebar({
         aria-hidden={!open}
         tabIndex={-1}
         onClick={onClose}
-        className={`fixed inset-0 z-[55] bg-black/50 backdrop-blur-[2px] transition-opacity ${
+        className={`fixed inset-0 z-[55] overlay transition-opacity ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
 
       <aside
-        className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] max-w-[85vw] glass
-          transition-transform duration-300 ease-out flex flex-col
-          ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full"}`}
+        className={`fixed top-0 bottom-0 end-0 z-[56] w-[300px] max-w-[85vw] surface !border-y-0 !border-e-0 pb-[env(safe-area-inset-bottom)]
+          transition-[transform,visibility] duration-300 ease-out flex flex-col
+          ${open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full !shadow-none invisible"}`}
         aria-hidden={!open}
         aria-label={t("sidebar.title")}
         ref={asideRef}
@@ -120,7 +122,7 @@ export function Sidebar({
           <Expandable label={t("sidebar.blocks")} defaultOpen>
             {blocksRegistry.map((b) => (
               <Link key={b.slug} href={`/blocks/${b.slug}`} onClick={onClose} className={`submenu-link ${active(`/blocks/${b.slug}`)}`}>
-                <span aria-hidden className="me-2">{b.icon}</span>
+                <AppIcon name={b.icon} className="me-2" />
                 {b.name}
               </Link>
             ))}
@@ -129,10 +131,22 @@ export function Sidebar({
             </Link>
           </Expandable>
 
+          <Expandable label={t("sidebar.structures")} defaultOpen={pathname.startsWith("/structures")}>
+            {structuresRegistry.map((s) => (
+              <Link key={s.slug} href={`/structures/${s.slug}`} onClick={onClose} className={`submenu-link ${active(`/structures/${s.slug}`)}`}>
+                <AppIcon name={s.icon} className="me-2" />
+                {t(s.name)}
+              </Link>
+            ))}
+            <Link href="/structures" onClick={onClose} className="block px-3 py-2 rounded-lg text-accent hover:underline">
+              {t("sidebar.allStructures")}
+            </Link>
+          </Expandable>
+
           <Expandable label={t("sidebar.tools")} defaultOpen={pathname.startsWith("/tools")}>
             {TOOLS.map((tool) => (
               <Link key={tool.href} href={tool.href} onClick={onClose} className={`submenu-link ${active(tool.href)}`}>
-                <span aria-hidden className="me-2">{tool.icon}</span>
+                <AppIcon name={tool.icon} className="me-2" />
                 {t(tool.label)}
               </Link>
             ))}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { getBlockDefinition } from "@/lib/blocks-registry";
 import { callGemini } from "@/lib/ai/gemini";
 import {
@@ -18,7 +19,7 @@ export const runtime = "nodejs";
  * לא טקסט חופשי. כל תשובה שלא עוברת את הבדיקה נזרקת בשקט.
  */
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 32 * 1024);
   const description = String(body?.description ?? "").trim();
   const rawValues = body?.values;
   const currentValues: Record<string, string> =

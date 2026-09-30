@@ -6,7 +6,7 @@ export function BrowserFrame({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-card border border-base-border bg-base-panel overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)]">
+    <div className="rounded-card border border-base-border bg-base-panel overflow-hidden shadow-[var(--shadow)]">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-base-border bg-base-panel2">
         <div className="flex gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-danger/70" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { downloadAsZip } from "@/lib/download-zip";
@@ -17,11 +17,28 @@ import {
   upsertFiles,
   type ProjectFileMeta,
 } from "@/lib/projects/db";
-import { GithubError, importRepoFiles, isValidBranch, parseRepo, pushFiles, defaultBranch } from "@/lib/github/client";
+import { GithubError, importRepoSnapshot, isValidBranch, parseRepo, defaultBranch, githubUrl } from "@/lib/github/client";
+import {
+  defaultPushBranch,
+  directPushRisky,
+  executeProjectPush,
+  loadImportBase,
+  planProjectPush,
+  saveImportBase,
+  type PushPlan,
+} from "@/lib/github/sync";
+import { loadSecret, removeSecret, saveSecret } from "@/lib/ai/key-vault";
+import { AppIcon } from "@/components/ui/AppIcon";
 
 type Source = "upload" | "github";
+type PushMode = "pr" | "direct";
+type Msg = { kind: "ok" | "error" | "info"; text: string; links?: { href: string; label: string }[] };
 
-/** קבצי הפרויקט: העלאה (קבצים/תיקייה/ZIP) או ייבוא מגיטהאב, רשימה, מכסה, ZIP ודחיפה. */
+/** אותו שם סוד כמו בכלי "ניהול מאגר GitHub" - טוקן שנשמר שם זמין גם כאן */
+const TOKEN_SECRET = "github-token";
+const TOKEN_PERMS_URL = "https://github.com/settings/personal-access-tokens/new";
+
+/** קבצי הפרויקט: העלאה (קבצים/תיקייה/ZIP) או ייבוא מגיטהאב, רשימה, מכסה, ZIP ודחיפה חזרה. */
 export function ProjectFiles({
   userId,
   projectId,
@@ -45,16 +62,38 @@ export function ProjectFiles({
   const router = useRouter();
   const [source, setSource] = useState<Source>(githubRepo ? "github" : "upload");
   const [pending, setPending] = useState<LoadResult | null>(null);
+  /** בסיס הייבוא של ה-pending (נשמר רק כשהקבצים נשמרים בפרויקט) */
+  const [pendingBase, setPendingBase] = useState<{ repo: string; branch: string; sha: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<Msg | null>(null);
   const [repoInput, setRepoInput] = useState(githubRepo ?? "");
   const [branchInput, setBranchInput] = useState(githubBranch ?? "");
   const [token, setToken] = useState("");
+  const [remember, setRemember] = useState(false);
   const [commitMsg, setCommitMsg] = useState("Add blocks via WEblok");
-  const [pushUrl, setPushUrl] = useState<string | null>(null);
+  const [pushMode, setPushMode] = useState<PushMode>("pr");
+  const [newBranch, setNewBranch] = useState(() => defaultPushBranch(projectName));
+  const [plan, setPlan] = useState<PushPlan | null>(null);
+  const [log, setLog] = useState<string[]>([]);
 
   const quotaPct = Math.min(100, (usedBytes / PROJECT_QUOTA_BYTES) * 100);
   const thisProjectBytes = files.reduce((n, f) => n + f.size, 0);
+
+  // טוקן שנשמר (מוצפן, בדפדפן בלבד) בביקור קודם
+  useEffect(() => {
+    loadSecret(TOKEN_SECRET).then((saved) => {
+      if (saved) {
+        setToken((cur) => cur || saved);
+        setRemember(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!remember || token.trim().length < 10) return;
+    const timer = setTimeout(() => saveSecret(TOKEN_SECRET, token.trim()), 600);
+    return () => clearTimeout(timer);
+  }, [remember, token]);
 
   const ghError = (e: unknown) =>
     setMessage({ kind: "error", text: t(`github.err.${e instanceof GithubError ? e.code : "failed"}`) });
@@ -72,6 +111,7 @@ export function ProjectFiles({
     setBusy(true);
     try {
       setPending(await loadUploadedFiles(list));
+      setPendingBase(null);
     } catch {
       setMessage({ kind: "error", text: t("projects.readFailed") });
     } finally {
@@ -89,7 +129,9 @@ export function ProjectFiles({
       const branch = branchInput || (await defaultBranch(ref, token || undefined));
       setBranchInput(branch);
       const budget = PROJECT_QUOTA_BYTES - usedBytes + thisProjectBytes;
-      setPending(await importRepoFiles(ref, branch, token || undefined, budget));
+      const snap = await importRepoSnapshot(ref, branch, token || undefined, budget);
+      setPending(snap.result);
+      setPendingBase({ repo: `${ref.owner}/${ref.repo}`, branch, sha: snap.baseSha });
       await updateProject(projectId, { github_repo: `${ref.owner}/${ref.repo}`, github_branch: branch });
     } catch (e) {
       ghError(e);
@@ -105,8 +147,11 @@ export function ProjectFiles({
     const err = await upsertFiles(projectId, userId, pending.files);
     setBusy(false);
     if (err) return setMessage({ kind: "error", text: t(err === "quota_exceeded" ? "projects.quotaExceeded" : "common.error") });
+    // הקבצים בפרויקט = הקומיט שממנו ייבאנו → זה הבסיס להשוואה בדחיפה חזרה
+    if (pendingBase) saveImportBase(projectId, pendingBase);
     setMessage({ kind: "ok", text: t("projects.filesSaved").replace("{n}", String(pending.files.length)) });
     setPending(null);
+    setPendingBase(null);
     router.refresh();
   }
 
@@ -130,18 +175,76 @@ export function ProjectFiles({
     );
   }
 
+  const repoRef = githubRepo ? parseRepo(githubRepo) : null;
+  const branchOk = pushMode === "direct" || isValidBranch(newBranch.trim());
+  const canPush = !busy && !!repoRef && !!githubBranch && !!token.trim() && branchOk;
+
+  /** שלב 1: מה השתנה אצלנו ומה השתנה בגיטהאב. אם בטוח - ממשיכים לדחיפה מיד. */
   async function push() {
-    const ref = githubRepo ? parseRepo(githubRepo) : null;
-    if (!ref || !githubBranch || !token.trim()) return;
+    if (!canPush || !repoRef || !githubBranch) return;
     setMessage(null);
-    setPushUrl(null);
+    setPlan(null);
+    setLog([]);
     setBusy(true);
     try {
       const all = await fetchAllFiles(projectId);
-      if (!all) throw new GithubError("failed");
-      const { commitUrl } = await pushFiles(ref, githubBranch, token, all, commitMsg.trim() || "Update via WEblok");
-      setPushUrl(commitUrl);
-      setMessage({ kind: "ok", text: t("github.pushed") });
+      if (!all) {
+        setMessage({ kind: "error", text: t("projects.gh.readFailed") });
+        return;
+      }
+      const base = loadImportBase(projectId, githubRepo!, githubBranch);
+      const p = await planProjectPush({
+        ref: repoRef,
+        branch: githubBranch,
+        token,
+        files: all.map((f) => ({ path: f.path, content: f.content })),
+        baseSha: base?.sha ?? null,
+      });
+      if (p.changed.length === 0) {
+        setMessage({ kind: "info", text: t("projects.gh.noChanges") });
+        return;
+      }
+      // קומיט ישיר שעלול לדרוס שינויים מגיטהאב - עוצרים ומבקשים החלטה מפורשת
+      if (pushMode === "direct" && directPushRisky(p)) {
+        setPlan(p);
+        return;
+      }
+      await doPush(p, pushMode);
+    } catch (e) {
+      ghError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** שלב 2: הדחיפה עצמה (ענף חדש + PR, או קומיט ישיר) */
+  async function doPush(p: PushPlan, mode: PushMode) {
+    if (!repoRef || !githubBranch) return;
+    setBusy(true);
+    setPlan(null);
+    try {
+      const res = await executeProjectPush({
+        plan: p,
+        ref: repoRef,
+        branch: githubBranch,
+        token,
+        mode,
+        newBranch: newBranch.trim(),
+        message: commitMsg.trim() || "Update via WEblok",
+        onLog: (step) => setLog((prev) => [...prev, t(`gh.step.${step}`)]),
+      });
+      // קומיט ישיר על ענף שלא זז: הפרויקט זהה עכשיו לקומיט החדש → הוא הבסיס הבא
+      if (mode === "direct" && !p.baseMoved && !p.baseUnknown) {
+        saveImportBase(projectId, { repo: githubRepo!, branch: githubBranch, sha: res.commitSha });
+      }
+      const links = [{ href: res.commitUrl, label: t("github.viewCommit") }];
+      if (res.prUrl) links.unshift({ href: res.prUrl, label: t("projects.gh.viewPr").replace("{n}", String(res.prNumber)) });
+      const text =
+        mode === "pr"
+          ? t(p.conflicts.length ? "projects.gh.prOpenedConflicts" : "projects.gh.prOpened").replace("{n}", String(p.changed.length))
+          : t("projects.gh.committed").replace("{n}", String(p.changed.length));
+      setMessage({ kind: "ok", text, links });
+      if (mode === "pr") setNewBranch(defaultPushBranch(projectName));
     } catch (e) {
       ghError(e);
     } finally {
@@ -150,12 +253,49 @@ export function ProjectFiles({
   }
 
   const tab = (active: boolean) =>
-    `text-xs px-4 py-1.5 rounded-full transition-colors ${
+    `inline-flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-full transition-colors ${
       active ? "bg-accent text-base-bg font-semibold" : "text-ink-secondary hover:text-ink-primary"
     }`;
 
+  const tokenField = (id: string) => (
+    <div>
+      <label htmlFor={id} className="label">
+        {t("projects.gh.tokenLabel")}
+      </label>
+      <input
+        id={id}
+        type="password"
+        autoComplete="off"
+        spellCheck={false}
+        dir="ltr"
+        value={token}
+        onChange={(e) => setToken(e.target.value)}
+        placeholder="github_pat_..."
+        className="field font-mono"
+      />
+      <label className="mt-2 flex items-center gap-2 text-xs text-ink-secondary cursor-pointer w-fit">
+        <input
+          type="checkbox"
+          checked={remember}
+          onChange={(e) => {
+            setRemember(e.target.checked);
+            if (!e.target.checked) removeSecret(TOKEN_SECRET);
+          }}
+          className="accent-[var(--accent)]"
+        />
+        {t("gh.remember")}
+      </label>
+      <p className="text-[11px] text-ink-muted mt-1.5 leading-relaxed">
+        {t("github.tokenPerms")}{" "}
+        <a href={TOKEN_PERMS_URL} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+          {t("github.tokenCreate")}
+        </a>
+      </p>
+    </div>
+  );
+
   return (
-    <fieldset disabled={disabled} className="space-y-5 disabled:opacity-60">
+    <fieldset disabled={disabled} className="space-y-5 disabled:opacity-60 min-w-0">
       {/* מכסה */}
       <div>
         <div className="flex justify-between text-xs text-ink-muted mb-1">
@@ -174,10 +314,12 @@ export function ProjectFiles({
 
       <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit" role="tablist">
         <button role="tab" aria-selected={source === "upload"} onClick={() => setSource("upload")} className={tab(source === "upload")}>
-          ⬆️ {t("projects.srcUpload")}
+          <AppIcon name="upload" className="!text-current" />
+          {t("projects.srcUpload")}
         </button>
         <button role="tab" aria-selected={source === "github"} onClick={() => setSource("github")} className={tab(source === "github")}>
-          🐙 {t("projects.srcGithub")}
+          <AppIcon name="github" className="!text-current" />
+          {t("projects.srcGithub")}
         </button>
       </div>
 
@@ -225,30 +367,7 @@ export function ProjectFiles({
               <input id="gh-branch" dir="ltr" value={branchInput} onChange={(e) => setBranchInput(e.target.value)} placeholder="main" className="field font-mono" />
             </div>
           </div>
-          <div>
-            <label htmlFor="gh-token" className="label">{t("github.token")}</label>
-            <input
-              id="gh-token"
-              type="password"
-              autoComplete="off"
-              dir="ltr"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="github_pat_..."
-              className="field font-mono"
-            />
-            <p className="text-[11px] text-ink-muted mt-1.5 leading-relaxed">
-              {t("github.tokenHint")}{" "}
-              <a
-                href="https://github.com/settings/personal-access-tokens/new"
-                target="_blank"
-                rel="noreferrer"
-                className="text-accent hover:underline"
-              >
-                {t("github.tokenCreate")}
-              </a>
-            </p>
-          </div>
+          {tokenField("gh-token")}
           <button onClick={importGithub} disabled={busy || !repoInput.trim()} className="btn-outline">
             {busy ? t("projects.working") : t("github.import")}
           </button>
@@ -269,20 +388,21 @@ export function ProjectFiles({
               </summary>
               <ul dir="ltr" className="mt-2 max-h-40 overflow-y-auto space-y-0.5 font-mono text-[11px] text-start">
                 {pending.skipped.slice(0, 200).map((s) => (
-                  <li key={s.path}>
+                  <li key={s.path} className="break-all">
                     {s.path} — {t(`projects.skip.${s.reason}`)}
                   </li>
                 ))}
               </ul>
             </details>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={commitPending} disabled={busy || pending.files.length === 0} className="btn-primary btn-sm">
               {busy ? t("projects.working") : t("projects.saveFiles")}
             </button>
             <button
               onClick={() => {
                 setPending(null);
+                setPendingBase(null);
                 setMessage(null);
               }}
               className="btn-outline btn-sm"
@@ -294,14 +414,21 @@ export function ProjectFiles({
       )}
 
       {message && (
-        <p role={message.kind === "error" ? "alert" : "status"} className={`text-sm ${message.kind === "error" ? "text-danger" : "text-success"}`}>
-          {message.text}{" "}
-          {pushUrl && (
-            <a href={pushUrl} target="_blank" rel="noreferrer" className="underline">
-              {t("github.viewCommit")}
-            </a>
+        <div
+          role={message.kind === "error" ? "alert" : "status"}
+          className={`text-sm break-words ${message.kind === "error" ? "text-danger" : message.kind === "ok" ? "text-success" : "text-ink-secondary"}`}
+        >
+          {message.text}
+          {message.links && (
+            <span className="ms-2 inline-flex flex-wrap gap-3">
+              {message.links.map((l) => ({ ...l, href: githubUrl(l.href) })).filter((l) => l.href).map((l) => (
+                <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="underline">
+                  {l.label}
+                </a>
+              ))}
+            </span>
           )}
-        </p>
+        </div>
       )}
 
       {/* רשימת הקבצים */}
@@ -322,7 +449,7 @@ export function ProjectFiles({
           <ul dir="ltr" className="max-h-72 overflow-y-auto rounded-xl border border-base-border divide-y divide-base-border">
             {files.map((f) => (
               <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-                <span className="font-mono truncate">{f.path}</span>
+                <span className="font-mono truncate min-w-0">{f.path}</span>
                 <span className="flex items-center gap-3 shrink-0 text-ink-muted">
                   {formatBytes(f.size)}
                   <button onClick={() => remove(f)} className="text-danger hover:underline">
@@ -335,40 +462,113 @@ export function ProjectFiles({
         )}
       </div>
 
-      {/* דחיפה לגיטהאב */}
+      {/* דחיפה חזרה לגיטהאב */}
       {githubRepo && githubBranch && files.length > 0 && (
-        <div className="rounded-xl border border-base-border bg-base-bg/40 p-4 space-y-3">
-          <p className="text-sm font-semibold">
-            {t("projects.pushGithub")}{" "}
-            <span dir="ltr" className="font-mono text-xs text-ink-muted">
+        <div className="rounded-xl border border-base-border bg-base-bg/40 p-4 space-y-3 min-w-0">
+          <p className="text-sm font-semibold flex flex-wrap items-center gap-x-2 gap-y-1">
+            <AppIcon name="github" />
+            {t("projects.pushGithub")}
+            <span dir="ltr" className="font-mono text-xs text-ink-muted break-all">
               {githubRepo}@{githubBranch}
             </span>
           </p>
-          <input
-            value={commitMsg}
-            onChange={(e) => setCommitMsg(e.target.value)}
-            maxLength={200}
-            aria-label={t("github.commitMessage")}
-            placeholder={t("github.commitMessage")}
-            dir="ltr"
-            className="field"
-          />
-          {source !== "github" && (
-            <input
-              type="password"
-              autoComplete="off"
-              dir="ltr"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder={t("github.token")}
-              aria-label={t("github.token")}
-              className="field font-mono"
-            />
+
+          <div className="flex gap-1 bg-base-panel2 rounded-full p-1 border border-base-border w-fit max-w-full flex-wrap" role="tablist">
+            <button role="tab" aria-selected={pushMode === "pr"} onClick={() => { setPushMode("pr"); setPlan(null); }} className={tab(pushMode === "pr")}>
+              <AppIcon name="pullRequest" className="!text-current" />
+              {t("projects.gh.modePr")}
+            </button>
+            <button role="tab" aria-selected={pushMode === "direct"} onClick={() => { setPushMode("direct"); setPlan(null); }} className={tab(pushMode === "direct")}>
+              {t("projects.gh.modeDirect")}
+            </button>
+          </div>
+          <p className="text-[11px] text-ink-muted leading-relaxed">
+            {t(pushMode === "pr" ? "projects.gh.modePrHint" : "projects.gh.modeDirectHint")}
+          </p>
+
+          <div className={`grid gap-2 ${pushMode === "pr" ? "sm:grid-cols-2" : ""}`}>
+            <div>
+              <label htmlFor="gh-msg" className="label">{t("github.commitMessage")}</label>
+              <input
+                id="gh-msg"
+                value={commitMsg}
+                onChange={(e) => setCommitMsg(e.target.value)}
+                maxLength={200}
+                dir="ltr"
+                className="field"
+              />
+            </div>
+            {pushMode === "pr" && (
+              <div>
+                <label htmlFor="gh-new-branch" className="label">{t("gh.newBranch")}</label>
+                <input
+                  id="gh-new-branch"
+                  value={newBranch}
+                  onChange={(e) => setNewBranch(e.target.value)}
+                  maxLength={200}
+                  dir="ltr"
+                  className="field font-mono"
+                  aria-invalid={!branchOk}
+                />
+                {!branchOk && <p className="text-xs text-danger mt-1">{t("github.badBranch")}</p>}
+              </div>
+            )}
+          </div>
+
+          {source !== "github" && tokenField("gh-token-push")}
+
+          {plan && (
+            <div role="alert" className="rounded-xl border border-danger/40 bg-danger/10 p-3 space-y-2 text-xs text-ink-secondary">
+              <p className="flex gap-2 text-sm text-ink-primary">
+                <AppIcon name="warning" className="shrink-0 mt-0.5 !text-danger" />
+                <span className="min-w-0">
+                  {plan.baseUnknown
+                    ? t("projects.gh.warnNoBase")
+                    : t("projects.gh.warnConflicts").replace("{n}", String(plan.conflicts.length))}
+                </span>
+              </p>
+              {plan.conflicts.length > 0 && (
+                <ul dir="ltr" className="max-h-32 overflow-y-auto font-mono text-[11px] text-start space-y-0.5">
+                  {plan.conflicts.map((p) => (
+                    <li key={p} className="break-all">{p}</li>
+                  ))}
+                </ul>
+              )}
+              {plan.compareTruncated && <p>{t("projects.gh.warnTruncated")}</p>}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    setPushMode("pr");
+                    doPush(plan, "pr");
+                  }}
+                  disabled={busy || !isValidBranch(newBranch.trim())}
+                  className="btn-primary btn-sm"
+                >
+                  {t("projects.gh.switchToPr")}
+                </button>
+                <button onClick={() => doPush(plan, "direct")} disabled={busy} className="btn-outline btn-sm">
+                  {t("projects.gh.commitAnyway")}
+                </button>
+                <button onClick={() => setPlan(null)} disabled={busy} className="btn-outline btn-sm">
+                  {t("inject.cancel")}
+                </button>
+              </div>
+            </div>
           )}
-          <button onClick={push} disabled={busy || !token.trim()} className="btn-primary btn-sm">
-            {busy ? t("projects.working") : t("github.push")}
-          </button>
-          <p className="text-[11px] text-ink-muted">{t("github.pushHint")}</p>
+
+          {!plan && (
+            <button onClick={push} disabled={!canPush} className="btn-primary btn-sm">
+              {busy ? t("projects.working") : t(pushMode === "pr" ? "projects.gh.pushPr" : "projects.gh.pushDirect")}
+            </button>
+          )}
+          {busy && log.length > 0 && (
+            <ul className="text-[11px] text-ink-muted space-y-0.5" aria-live="polite">
+              {log.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
+            </ul>
+          )}
+          <p className="text-[11px] text-ink-muted leading-relaxed">{t("projects.gh.pushHint")}</p>
         </div>
       )}
     </fieldset>

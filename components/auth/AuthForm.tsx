@@ -17,7 +17,7 @@ type Provider = "github" | "google";
 const inputClass =
   "w-full bg-base-bg border border-base-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-accent";
 const oauthClass =
-  "w-full flex items-center justify-center gap-2 border border-base-border rounded-full py-2.5 text-sm hover:border-accent transition-colors disabled:opacity-60";
+  "w-full min-h-[44px] flex items-center justify-center gap-2.5 border border-base-border bg-base-panel2 rounded-full py-2.5 px-4 text-sm font-medium text-ink-primary hover:border-accent transition-colors disabled:opacity-60";
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { t } = useLocale();
@@ -124,11 +124,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <Card className="mt-8">
           <div className="space-y-2">
             <button type="button" disabled={busy} onClick={() => oauth("github")} className={oauthClass}>
-              <IconGithub className="w-4 h-4" />
+              <IconGithub className="w-5 h-5 shrink-0" />
               {t("auth.continueGithub")}
             </button>
             <button type="button" disabled={busy} onClick={() => oauth("google")} className={oauthClass}>
-              <Image src="/icons/google.png" alt="" width={18} height={18} aria-hidden="true" className="shrink-0" />
+              {/* לפי הנחיות המותג של Google: ה-G הצבעוני תמיד על רקע לבן - גם במצב כהה (חריג מכוון לטוקנים) */}
+              <span className="shrink-0 w-6 h-6 rounded-full bg-[#fff] flex items-center justify-center" aria-hidden="true">
+                <Image src="/icons/google.png" alt="" width={16} height={16} />
+              </span>
               {t("auth.continueGoogle")}
             </button>
           </div>

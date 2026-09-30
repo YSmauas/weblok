@@ -51,6 +51,13 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+/**
+ * הקבצים שהמידלוור לא נוגע בהם בכלל. חשוב: קובץ האימות של Google Search Console
+ * (/google<קוד>.html), robots.txt ו-sitemap.xml חייבים לחזור ישירות (200), בלי
+ * redirect, בלי עוגיות ובלי התחברות - Search Console לא עוקב אחרי הפניות.
+ */
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons/|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icons/|fonts/|robots\\.txt|sitemap\\.xml|google[0-9a-f]+\\.html|.*\\.(?:png|jpg|jpeg|svg|webp|ico|woff2)$).*)",
+  ],
 };
