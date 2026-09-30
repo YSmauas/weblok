@@ -14,7 +14,9 @@ export function generateStaticParams() {
   return structuresRegistry.map((s) => ({ slug: s.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+// Next 15: params הוא Promise
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const meta = getStructureMeta(params.slug);
   if (!meta) return {};
   return {
@@ -25,7 +27,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function StructureEditorPage({ params }: { params: { slug: string } }) {
+export default async function StructureEditorPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const meta = getStructureMeta(params.slug);
   if (!meta) notFound();
 
@@ -48,7 +51,7 @@ export default function StructureEditorPage({ params }: { params: { slug: string
         </div>
       </div>
       <p className="mb-8 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-ink-secondary leading-relaxed">
-        <strong className="text-ink-primary">🔒 <T k="structures.privacyTitle" /></strong> <T k="structures.privacy" />{" "}
+        <strong className="text-ink-primary inline-flex items-center gap-1"><AppIcon name="lock" /> <T k="structures.privacyTitle" /></strong> <T k="structures.privacy" />{" "}
         <a href="#guide" className="text-accent hover:underline">
           <T k="structures.toGuide" />
         </a>

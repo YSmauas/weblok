@@ -1,5 +1,6 @@
 "use client";
 
+import { AppIcon } from "@/components/ui/AppIcon";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { getStructureDefinition } from "@/lib/structures";
 import type { StructureImage, StructureValues } from "@/lib/structures/types";
@@ -105,7 +106,7 @@ export function StructureEditorClient({ slug }: { slug: string }) {
           </div>
           <div className="flex flex-wrap gap-2">
             <button onClick={downloadZip} disabled={zipBusy} className="btn-primary btn-sm">
-              ⬇ {zipBusy ? t("projects.working") : t("structures.downloadZip")}
+              <AppIcon name="download" className="!text-current" /> {zipBusy ? t("projects.working") : t("structures.downloadZip")}
             </button>
             <a href="#export" className="btn-outline btn-sm">
               {t("structures.toExport")}
@@ -146,7 +147,7 @@ export function StructureEditorClient({ slug }: { slug: string }) {
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <button onClick={downloadZip} disabled={zipBusy} className="btn-primary btn-sm">
-                  ⬇ {zipBusy ? t("projects.working") : t("structures.downloadZip")}
+                  <AppIcon name="download" className="!text-current" /> {zipBusy ? t("projects.working") : t("structures.downloadZip")}
                 </button>
                 <button onClick={() => setShowFiles((v) => !v)} aria-expanded={showFiles} className="btn-outline btn-sm">
                   {t(showFiles ? "structures.hideFiles" : "structures.showFiles")}

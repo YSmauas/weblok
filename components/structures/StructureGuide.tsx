@@ -1,5 +1,6 @@
 "use client";
 
+import { AppIcon } from "@/components/ui/AppIcon";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { Card } from "@/components/ui/Card";
 
@@ -56,7 +57,7 @@ export function StructureGuide() {
         ))}
       </ol>
 
-      <Card title={`🔒 ${t("structures.security.title")}`} description={t("structures.security.subtitle")}>
+      <Card title={<span className="inline-flex items-center gap-2"><AppIcon name="lock" />{t("structures.security.title")}</span>} description={t("structures.security.subtitle")}>
         <ul className="space-y-3">
           {SECURITY.map((k) => (
             <li key={k} className="text-sm leading-relaxed">

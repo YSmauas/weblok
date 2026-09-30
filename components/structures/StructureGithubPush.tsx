@@ -239,7 +239,7 @@ export function StructureGithubPush({
                 {repos.map((r) => (
                   <option key={r.fullName} value={r.fullName}>
                     {r.fullName}
-                    {r.private ? " 🔒" : ""}
+                    {r.private ? " (private)" : ""}
                   </option>
                 ))}
               </select>

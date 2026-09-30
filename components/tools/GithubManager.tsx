@@ -354,7 +354,7 @@ export function GithubManager() {
                   ＋ {t("gh.newRepo")}
                 </button>
                 <button onClick={downloadZip} disabled={!!busy || !repo} className="btn-outline btn-sm">
-                  ⬇️ {busy === "zip" ? t("projects.working") : t("gh.downloadZip")}
+                  <AppIcon name="download" className="!text-current" /> {busy === "zip" ? t("projects.working") : t("gh.downloadZip")}
                 </button>
               </div>
             </div>

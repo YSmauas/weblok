@@ -925,7 +925,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  if (!verifySession(cookies().get(SESSION_COOKIE)?.value)) {
+  if (!verifySession((await cookies()).get(SESSION_COOKIE)?.value)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const body = await readJson(req, 512);
@@ -953,7 +953,7 @@ function cell(v: unknown): string {
 }
 
 export async function GET() {
-  if (!verifySession(cookies().get(SESSION_COOKIE)?.value)) {
+  if (!verifySession((await cookies()).get(SESSION_COOKIE)?.value)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const { data, error } = await db()
@@ -1065,7 +1065,7 @@ export default async function AdminPage() {
     );
   }
 
-  if (!verifySession(cookies().get(SESSION_COOKIE)?.value)) {
+  if (!verifySession((await cookies()).get(SESSION_COOKIE)?.value)) {
     return (
       <main className="page">
         <section className="card">

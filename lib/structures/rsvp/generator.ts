@@ -18,16 +18,16 @@ const PACKAGE_JSON = {
   },
   engines: { node: ">=18.18" },
   dependencies: {
-    next: "14.2.35",
-    react: "18.3.1",
-    "react-dom": "18.3.1",
+    next: "15.5.26",
+    react: "19.3.0",
+    "react-dom": "19.3.0",
     "@supabase/supabase-js": "2.117.2",
   },
   devDependencies: {
     typescript: "5.5.4",
     "@types/node": "20.14.15",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
   },
 };
 
