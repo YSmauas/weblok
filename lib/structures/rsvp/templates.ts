@@ -1011,7 +1011,7 @@ export function GET() {
   const start = config.time
     ? "DTSTART;TZID=" + config.timeZone + ":" + day + "T" + config.time.replace(":", "") + "00"
     : "DTSTART;VALUE=DATE:" + day;
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const stamp = new Date().toISOString().replace(/-|:/g, "").replace(/\.\d{3}/, "");
   const location = [config.venue, config.address].filter(Boolean).join(", ");
   const lines = [
     "BEGIN:VCALENDAR",

@@ -369,7 +369,7 @@ export function placementCss(code: string, opts: PlacementOptions): string {
   let stickyTop = false;
 
   for (const r of cssRules(css)) {
-    if (/[:]{1,2}(hover|focus|before|after)/i.test(r.selector)) continue;
+    if (/:{1,2}(hover|focus|before|after)/i.test(r.selector)) continue;
     // שום דבר שיכול לסגור את תגית ה-<style> או לצאת מהכלל
     if (/[<>{}"]/.test(r.selector)) continue;
     const pos = r.body.match(POS_STICKY_OR_FIXED)?.[1]?.toLowerCase();

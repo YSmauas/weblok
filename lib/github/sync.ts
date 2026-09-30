@@ -198,6 +198,6 @@ export function defaultPushBranch(projectName: string, now = new Date()): string
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 30) || "project";
-  const stamp = now.toISOString().slice(0, 16).replace(/[-:T]/g, "").replace(/^(\d{8})(\d{4})$/, "$1-$2");
+  const stamp = now.toISOString().slice(0, 16).replace(/-|:|T/g, "").replace(/^(\d{8})(\d{4})$/, "$1-$2");
   return `weblok/${slug}-${stamp}`;
 }
