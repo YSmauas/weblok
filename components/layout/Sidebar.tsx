@@ -7,6 +7,8 @@ import { useLocale } from "@/lib/i18n/locale-provider";
 import { useSession } from "@/lib/auth/use-session";
 import { roleAtLeast } from "@/lib/auth/roles";
 import { blocksRegistry } from "@/lib/blocks-registry";
+import { structuresRegistry } from "@/lib/structures/catalog";
+import { AppIcon } from "../ui/AppIcon";
 import { IconChevronDown, IconClose } from "../ui/Icons";
 
 /** כלים מתקדמים - כל כלי חדש נרשם כאן ומופיע אוטומטית בתפריט */
@@ -126,6 +128,18 @@ export function Sidebar({
             ))}
             <Link href="/blocks" onClick={onClose} className="block px-3 py-2 rounded-lg text-accent hover:underline">
               {t("sidebar.allBlocks")}
+            </Link>
+          </Expandable>
+
+          <Expandable label={t("sidebar.structures")} defaultOpen={pathname.startsWith("/structures")}>
+            {structuresRegistry.map((s) => (
+              <Link key={s.slug} href={`/structures/${s.slug}`} onClick={onClose} className={`submenu-link ${active(`/structures/${s.slug}`)}`}>
+                <AppIcon name={s.icon} className="me-2" />
+                {t(s.name)}
+              </Link>
+            ))}
+            <Link href="/structures" onClick={onClose} className="block px-3 py-2 rounded-lg text-accent hover:underline">
+              {t("sidebar.allStructures")}
             </Link>
           </Expandable>
 

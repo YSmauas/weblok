@@ -1,0 +1,822 @@
+{
+  "sidebar.structures": {
+    "he": "מבנים",
+    "en": "Structures",
+    "es": "Estructuras"
+  },
+  "sidebar.allStructures": {
+    "he": "כל המבנים",
+    "en": "All structures",
+    "es": "Todas las estructuras"
+  },
+  "structures.title": {
+    "he": "מבנים",
+    "en": "Structures",
+    "es": "Estructuras"
+  },
+  "structures.subtitle": {
+    "he": "פרויקטים שלמים ומוכנים לפריסה - לא בלוק להטמעה אלא אתר מלא עם שרת ומסד נתונים. מעצבים כאן, דוחפים לגיטהאב (או מורידים ZIP) ומעלים ל-Vercel שלכם. הכל רץ אצלכם - לנו אין גישה לנתונים.",
+    "en": "Complete, deploy-ready projects - not an embeddable block but a full site with a server and a database. Design it here, push to GitHub (or download a ZIP) and deploy on your own Vercel. Everything runs on your side - we never see the data.",
+    "es": "Proyectos completos y listos para publicar: no un bloque para incrustar, sino un sitio entero con servidor y base de datos. Diséñalo aquí, súbelo a GitHub (o descarga un ZIP) y publícalo en tu propio Vercel. Todo corre de tu lado: nunca vemos los datos."
+  },
+  "structures.chip": {
+    "he": "פרויקט מלא",
+    "en": "Full project",
+    "es": "Proyecto completo"
+  },
+  "structures.open": {
+    "he": "לעורך",
+    "en": "Open editor",
+    "es": "Abrir editor"
+  },
+  "structures.all": {
+    "he": "כל המבנים",
+    "en": "All structures",
+    "es": "Todas las estructuras"
+  },
+  "structures.why.own.title": {
+    "he": "שלכם לגמרי",
+    "en": "Fully yours",
+    "es": "Totalmente tuyo"
+  },
+  "structures.why.own.text": {
+    "he": "הקוד בגיטהאב שלכם, האתר ב-Vercel שלכם והנתונים ב-Supabase שלכם. אפשר לערוך, להרחיב ולהעביר.",
+    "en": "The code lives in your GitHub, the site on your Vercel and the data in your Supabase. Edit, extend or move it freely.",
+    "es": "El código vive en tu GitHub, el sitio en tu Vercel y los datos en tu Supabase. Edítalo, amplíalo o muévelo libremente."
+  },
+  "structures.why.safe.title": {
+    "he": "מאובטח מהקופסה",
+    "en": "Secure out of the box",
+    "es": "Seguro desde el inicio"
+  },
+  "structures.why.safe.text": {
+    "he": "RLS בלי גישה ציבורית, מפתחות בצד השרת בלבד, כניסת מנהל חתומה, הגבלת קצב ו-CSP הדוק.",
+    "en": "RLS with no public access, server-only keys, signed admin sessions, rate limiting and a strict CSP.",
+    "es": "RLS sin acceso público, claves solo en el servidor, sesiones de administrador firmadas, límite de peticiones y CSP estricta."
+  },
+  "structures.why.fast.title": {
+    "he": "באוויר תוך 10 דקות",
+    "en": "Live in 10 minutes",
+    "es": "En línea en 10 minutos"
+  },
+  "structures.why.fast.text": {
+    "he": "החבילות החינמיות של Supabase ו-Vercel מספיקות. מדריך צעד-אחר-צעד בכל מבנה.",
+    "en": "The free tiers of Supabase and Vercel are enough. Every structure comes with a step-by-step guide.",
+    "es": "Los planes gratuitos de Supabase y Vercel son suficientes. Cada estructura incluye una guía paso a paso."
+  },
+  "structures.rsvp.name": {
+    "he": "אישורי הגעה לאירועים",
+    "en": "Event RSVP system",
+    "es": "Sistema de confirmación de asistencia"
+  },
+  "structures.rsvp.description": {
+    "he": "הזמנה דיגיטלית עם טופס אישור הגעה, ניווט ב-Waze ובגוגל מפות, הוספה ליומן ודף ניהול מאובטח עם סיכומים וייצוא לאקסל.",
+    "en": "A digital invitation with an RSVP form, Waze and Google Maps directions, add-to-calendar and a secure admin page with totals and Excel export.",
+    "es": "Una invitación digital con formulario de confirmación, navegación con Waze y Google Maps, añadir al calendario y un panel de administración seguro con totales y exportación a Excel."
+  },
+  "structures.rsvp.g.event": {
+    "he": "האירוע",
+    "en": "The event",
+    "es": "El evento"
+  },
+  "structures.rsvp.g.place": {
+    "he": "מיקום וניווט",
+    "en": "Location & directions",
+    "es": "Ubicación y navegación"
+  },
+  "structures.rsvp.g.form": {
+    "he": "טופס האישור",
+    "en": "RSVP form",
+    "es": "Formulario de confirmación"
+  },
+  "structures.rsvp.g.design": {
+    "he": "עיצוב ושפה",
+    "en": "Design & language",
+    "es": "Diseño e idioma"
+  },
+  "structures.rsvp.f.eventType": {
+    "he": "סוג האירוע",
+    "en": "Event type",
+    "es": "Tipo de evento"
+  },
+  "structures.rsvp.f.eyebrow": {
+    "he": "כותרת עליונה (רשות)",
+    "en": "Top label (optional)",
+    "es": "Etiqueta superior (opcional)"
+  },
+  "structures.rsvp.f.eyebrowHint": {
+    "he": "ריק = לפי סוג האירוע (למשל \"חתונה\").",
+    "en": "Empty = based on the event type (e.g. \"Wedding\").",
+    "es": "Vacío = según el tipo de evento (p. ej. \"Boda\")."
+  },
+  "structures.rsvp.f.title": {
+    "he": "כותרת",
+    "en": "Title",
+    "es": "Título"
+  },
+  "structures.rsvp.f.hosts": {
+    "he": "המזמינים",
+    "en": "Hosts",
+    "es": "Anfitriones"
+  },
+  "structures.rsvp.f.date": {
+    "he": "תאריך האירוע",
+    "en": "Event date",
+    "es": "Fecha del evento"
+  },
+  "structures.rsvp.f.time": {
+    "he": "שעה",
+    "en": "Time",
+    "es": "Hora"
+  },
+  "structures.rsvp.f.timeZone": {
+    "he": "אזור זמן",
+    "en": "Time zone",
+    "es": "Zona horaria"
+  },
+  "structures.rsvp.f.timeZoneHint": {
+    "he": "משמש לסגירת האישורים בזמן ולקובץ היומן.",
+    "en": "Used to close RSVPs on time and for the calendar file.",
+    "es": "Se usa para cerrar las confirmaciones a tiempo y para el archivo de calendario."
+  },
+  "structures.rsvp.f.details": {
+    "he": "פרטים / לוח זמנים",
+    "en": "Details / schedule",
+    "es": "Detalles / horario"
+  },
+  "structures.rsvp.f.venue": {
+    "he": "שם המקום",
+    "en": "Venue name",
+    "es": "Nombre del lugar"
+  },
+  "structures.rsvp.f.address": {
+    "he": "כתובת",
+    "en": "Address",
+    "es": "Dirección"
+  },
+  "structures.rsvp.f.wazeMode": {
+    "he": "קישור ל-Waze",
+    "en": "Waze link",
+    "es": "Enlace de Waze"
+  },
+  "structures.rsvp.f.wazeHint": {
+    "he": "אוטומטי = נבנה מהכתובת. אפשר גם להדביק קישור שיתוף מהאפליקציה.",
+    "en": "Automatic = built from the address. You can also paste a share link from the app.",
+    "es": "Automático = se crea a partir de la dirección. También puedes pegar un enlace compartido desde la app."
+  },
+  "structures.rsvp.f.wazeUrl": {
+    "he": "קישור Waze",
+    "en": "Waze URL",
+    "es": "URL de Waze"
+  },
+  "structures.rsvp.f.wazeUrlHint": {
+    "he": "רק https://waze.com/... או https://www.waze.com/... - קישור אחר יוסר.",
+    "en": "Only https://waze.com/... or https://www.waze.com/... - any other link is dropped.",
+    "es": "Solo https://waze.com/... o https://www.waze.com/...; cualquier otro enlace se descarta."
+  },
+  "structures.rsvp.f.mapsMode": {
+    "he": "קישור לגוגל מפות",
+    "en": "Google Maps link",
+    "es": "Enlace de Google Maps"
+  },
+  "structures.rsvp.f.mapsUrl": {
+    "he": "קישור גוגל מפות",
+    "en": "Google Maps URL",
+    "es": "URL de Google Maps"
+  },
+  "structures.rsvp.f.mapsUrlHint": {
+    "he": "google.com/maps או maps.app.goo.gl בלבד.",
+    "en": "google.com/maps or maps.app.goo.gl only.",
+    "es": "Solo google.com/maps o maps.app.goo.gl."
+  },
+  "structures.rsvp.f.rsvpDeadline": {
+    "he": "אישורים עד תאריך",
+    "en": "RSVP deadline",
+    "es": "Fecha límite de confirmación"
+  },
+  "structures.rsvp.f.rsvpDeadlineHint": {
+    "he": "אחרי התאריך הטופס נסגר (גם בשרת). ריק = בלי הגבלה.",
+    "en": "After this date the form closes (on the server too). Empty = no limit.",
+    "es": "Después de esta fecha el formulario se cierra (también en el servidor). Vacío = sin límite."
+  },
+  "structures.rsvp.f.maxGuests": {
+    "he": "מקסימום מגיעים לתשובה",
+    "en": "Max guests per reply",
+    "es": "Máximo de invitados por respuesta"
+  },
+  "structures.rsvp.f.phoneMode": {
+    "he": "שדה טלפון",
+    "en": "Phone field",
+    "es": "Campo de teléfono"
+  },
+  "structures.rsvp.f.thanks": {
+    "he": "הודעת תודה",
+    "en": "Thank-you message",
+    "es": "Mensaje de agradecimiento"
+  },
+  "structures.rsvp.f.lang": {
+    "he": "שפת האתר",
+    "en": "Site language",
+    "es": "Idioma del sitio"
+  },
+  "structures.rsvp.f.langHint": {
+    "he": "שפת הכפתורים והטופס באתר המוכן.",
+    "en": "Language of the buttons and form on the finished site.",
+    "es": "Idioma de los botones y del formulario en el sitio final."
+  },
+  "structures.rsvp.f.dir": {
+    "he": "כיוון טקסט",
+    "en": "Text direction",
+    "es": "Dirección del texto"
+  },
+  "structures.rsvp.f.theme": {
+    "he": "ערכת עיצוב",
+    "en": "Theme",
+    "es": "Tema"
+  },
+  "structures.rsvp.f.accent": {
+    "he": "צבע מרכזי",
+    "en": "Accent color",
+    "es": "Color principal"
+  },
+  "structures.rsvp.f.font": {
+    "he": "גופן",
+    "en": "Font",
+    "es": "Fuente"
+  },
+  "structures.rsvp.f.fontHint": {
+    "he": "גופני מערכת - נטענים מיד, בלי שרת חיצוני.",
+    "en": "System fonts - load instantly, no external server.",
+    "es": "Fuentes del sistema: cargan al instante, sin servidor externo."
+  },
+  "structures.rsvp.f.bgImage": {
+    "he": "תמונת רקע (ההזמנה / הזוג)",
+    "en": "Background image (invitation / couple)",
+    "es": "Imagen de fondo (invitación / pareja)"
+  },
+  "structures.rsvp.f.bgImageHint": {
+    "he": "JPG / PNG / WEBP עד 1.5MB. נשארת בדפדפן ונכנסת לפרויקט כקובץ - לא מועלית אלינו.",
+    "en": "JPG / PNG / WEBP up to 1.5MB. Stays in your browser and goes into the project as a file - never uploaded to us.",
+    "es": "JPG / PNG / WEBP de hasta 1,5 MB. Se queda en tu navegador y entra al proyecto como archivo; nunca se sube a nuestros servidores."
+  },
+  "structures.rsvp.f.overlay": {
+    "he": "עוצמת שכבת הצבע מעל התמונה",
+    "en": "Overlay strength over the image",
+    "es": "Intensidad de la capa sobre la imagen"
+  },
+  "structures.rsvp.o.type.wedding": {
+    "he": "חתונה",
+    "en": "Wedding",
+    "es": "Boda"
+  },
+  "structures.rsvp.o.type.mitzvah": {
+    "he": "בר / בת מצווה",
+    "en": "Bar / Bat Mitzvah",
+    "es": "Bar / Bat Mitzvá"
+  },
+  "structures.rsvp.o.type.brit": {
+    "he": "ברית / בריתה",
+    "en": "Brit / baby naming",
+    "es": "Brit / presentación del bebé"
+  },
+  "structures.rsvp.o.type.birthday": {
+    "he": "יום הולדת",
+    "en": "Birthday",
+    "es": "Cumpleaños"
+  },
+  "structures.rsvp.o.type.corporate": {
+    "he": "אירוע חברה",
+    "en": "Company event",
+    "es": "Evento de empresa"
+  },
+  "structures.rsvp.o.type.other": {
+    "he": "אחר",
+    "en": "Other",
+    "es": "Otro"
+  },
+  "structures.rsvp.o.tz.Asia_Jerusalem": {
+    "he": "ישראל",
+    "en": "Israel",
+    "es": "Israel"
+  },
+  "structures.rsvp.o.tz.Europe_London": {
+    "he": "לונדון",
+    "en": "London",
+    "es": "Londres"
+  },
+  "structures.rsvp.o.tz.Europe_Madrid": {
+    "he": "מדריד / מרכז אירופה",
+    "en": "Madrid / Central Europe",
+    "es": "Madrid / Europa central"
+  },
+  "structures.rsvp.o.tz.America_New_York": {
+    "he": "ניו יורק",
+    "en": "New York",
+    "es": "Nueva York"
+  },
+  "structures.rsvp.o.tz.America_Los_Angeles": {
+    "he": "לוס אנג'לס",
+    "en": "Los Angeles",
+    "es": "Los Ángeles"
+  },
+  "structures.rsvp.o.tz.UTC": {
+    "he": "UTC",
+    "en": "UTC",
+    "es": "UTC"
+  },
+  "structures.rsvp.o.link.auto": {
+    "he": "אוטומטי מהכתובת",
+    "en": "Automatic from address",
+    "es": "Automático desde la dirección"
+  },
+  "structures.rsvp.o.link.custom": {
+    "he": "קישור משלי",
+    "en": "My own link",
+    "es": "Mi propio enlace"
+  },
+  "structures.rsvp.o.link.off": {
+    "he": "בלי כפתור",
+    "en": "No button",
+    "es": "Sin botón"
+  },
+  "structures.rsvp.o.phone.optional": {
+    "he": "רשות",
+    "en": "Optional",
+    "es": "Opcional"
+  },
+  "structures.rsvp.o.phone.required": {
+    "he": "חובה",
+    "en": "Required",
+    "es": "Obligatorio"
+  },
+  "structures.rsvp.o.phone.hidden": {
+    "he": "לא להציג",
+    "en": "Hidden",
+    "es": "Oculto"
+  },
+  "structures.rsvp.o.lang.he": {
+    "he": "עברית",
+    "en": "Hebrew",
+    "es": "Hebreo"
+  },
+  "structures.rsvp.o.lang.en": {
+    "he": "אנגלית",
+    "en": "English",
+    "es": "Inglés"
+  },
+  "structures.rsvp.o.dir.auto": {
+    "he": "לפי השפה",
+    "en": "By language",
+    "es": "Según el idioma"
+  },
+  "structures.rsvp.o.dir.rtl": {
+    "he": "מימין לשמאל",
+    "en": "Right to left",
+    "es": "De derecha a izquierda"
+  },
+  "structures.rsvp.o.dir.ltr": {
+    "he": "משמאל לימין",
+    "en": "Left to right",
+    "es": "De izquierda a derecha"
+  },
+  "structures.rsvp.o.theme.elegant": {
+    "he": "אלגנטי (שמנת וזהב)",
+    "en": "Elegant (cream & gold)",
+    "es": "Elegante (crema y oro)"
+  },
+  "structures.rsvp.o.theme.modern": {
+    "he": "מודרני כהה",
+    "en": "Modern dark",
+    "es": "Moderno oscuro"
+  },
+  "structures.rsvp.o.theme.floral": {
+    "he": "פרחוני רך",
+    "en": "Soft floral",
+    "es": "Floral suave"
+  },
+  "structures.rsvp.o.theme.night": {
+    "he": "לילה כחול",
+    "en": "Midnight blue",
+    "es": "Azul noche"
+  },
+  "structures.rsvp.o.theme.minimal": {
+    "he": "מינימליסטי לבן",
+    "en": "Minimal white",
+    "es": "Minimalista blanco"
+  },
+  "structures.rsvp.o.theme.festive": {
+    "he": "חגיגי סגול",
+    "en": "Festive purple",
+    "es": "Festivo morado"
+  },
+  "structures.rsvp.o.font.sans": {
+    "he": "נקי (Sans)",
+    "en": "Clean (Sans)",
+    "es": "Limpia (Sans)"
+  },
+  "structures.rsvp.o.font.serif": {
+    "he": "קלאסי עם תגים (Serif)",
+    "en": "Classic serif",
+    "es": "Clásica con serifa"
+  },
+  "structures.rsvp.o.font.rounded": {
+    "he": "מעוגל",
+    "en": "Rounded",
+    "es": "Redondeada"
+  },
+  "structures.rsvp.o.font.classic": {
+    "he": "ספרותי",
+    "en": "Literary",
+    "es": "Literaria"
+  },
+  "structures.form.uploadImage": {
+    "he": "העלאת תמונה",
+    "en": "Upload image",
+    "es": "Subir imagen"
+  },
+  "structures.form.replaceImage": {
+    "he": "החלפת תמונה",
+    "en": "Replace image",
+    "es": "Cambiar imagen"
+  },
+  "structures.form.removeImage": {
+    "he": "הסרה",
+    "en": "Remove",
+    "es": "Quitar"
+  },
+  "structures.img.err.too_big": {
+    "he": "התמונה גדולה מדי (מקסימום {max}). כדאי לכווץ אותה קודם.",
+    "en": "The image is too large (max {max}). Please compress it first.",
+    "es": "La imagen es demasiado grande (máx. {max}). Comprímela primero."
+  },
+  "structures.img.err.bad_type": {
+    "he": "אפשר להעלות רק JPG, PNG או WEBP.",
+    "en": "Only JPG, PNG or WEBP images are allowed.",
+    "es": "Solo se permiten imágenes JPG, PNG o WEBP."
+  },
+  "structures.img.err.read_failed": {
+    "he": "לא הצלחנו לקרוא את הקובץ.",
+    "en": "Could not read the file.",
+    "es": "No se pudo leer el archivo."
+  },
+  "structures.notFound": {
+    "he": "המבנה לא נמצא.",
+    "en": "Structure not found.",
+    "es": "Estructura no encontrada."
+  },
+  "structures.privacyTitle": {
+    "he": "הכל נשאר אצלכם:",
+    "en": "Everything stays with you:",
+    "es": "Todo se queda contigo:"
+  },
+  "structures.privacy": {
+    "he": "העורך רץ בדפדפן בלבד. ההגדרות, התמונה והטוקן של גיטהאב לא נשלחים לשרת של WEblok, והאתר המוכן רץ על ה-Vercel וה-Supabase שלכם - לנו אין גישה לאורחים או לתשובות.",
+    "en": "The editor runs only in your browser. Your settings, image and GitHub token are never sent to WEblok's server, and the finished site runs on your own Vercel and Supabase - we have no access to guests or replies.",
+    "es": "El editor funciona solo en tu navegador. Tus ajustes, la imagen y el token de GitHub nunca se envían al servidor de WEblok, y el sitio final corre en tu propio Vercel y Supabase: no tenemos acceso a invitados ni respuestas."
+  },
+  "structures.settings": {
+    "he": "הגדרות",
+    "en": "Settings",
+    "es": "Ajustes"
+  },
+  "structures.preview": {
+    "he": "תצוגה מקדימה של דף ההזמנה",
+    "en": "Invitation page preview",
+    "es": "Vista previa de la invitación"
+  },
+  "structures.previewNote": {
+    "he": "תצוגה סטטית של דף ההזמנה. השליחה, דף הניהול והנתונים פועלים באתר המוכן.",
+    "en": "A static rendering of the invitation page. Submitting, the admin page and the data work on the deployed site.",
+    "es": "Una vista estática de la invitación. El envío, el panel de administración y los datos funcionan en el sitio publicado."
+  },
+  "structures.draftNote": {
+    "he": "הטיוטה נשמרת בדפדפן הזה בלבד (בלי התמונה).",
+    "en": "Your draft is saved in this browser only (without the image).",
+    "es": "El borrador se guarda solo en este navegador (sin la imagen)."
+  },
+  "structures.resetConfirm": {
+    "he": "לאפס את כל ההגדרות לברירת המחדל?",
+    "en": "Reset all settings to the defaults?",
+    "es": "¿Restablecer todos los ajustes a los valores predeterminados?"
+  },
+  "structures.downloadZip": {
+    "he": "הורדת ZIP",
+    "en": "Download ZIP",
+    "es": "Descargar ZIP"
+  },
+  "structures.toExport": {
+    "he": "ייצוא ופריסה",
+    "en": "Export & deploy",
+    "es": "Exportar y publicar"
+  },
+  "structures.toGuide": {
+    "he": "למדריך הפריסה",
+    "en": "Deployment guide",
+    "es": "Guía de publicación"
+  },
+  "structures.exportTitle": {
+    "he": "ייצוא",
+    "en": "Export",
+    "es": "Exportar"
+  },
+  "structures.zipTitle": {
+    "he": "הורדה כ-ZIP",
+    "en": "Download as ZIP",
+    "es": "Descargar como ZIP"
+  },
+  "structures.zipText": {
+    "he": "כל קבצי הפרויקט בקובץ אחד - להעלאה ידנית לגיטהאב.",
+    "en": "All project files in one archive - for uploading to GitHub manually.",
+    "es": "Todos los archivos del proyecto en un solo archivo, para subirlos a GitHub manualmente."
+  },
+  "structures.showFiles": {
+    "he": "הצגת הקבצים",
+    "en": "Show files",
+    "es": "Ver archivos"
+  },
+  "structures.hideFiles": {
+    "he": "הסתרת הקבצים",
+    "en": "Hide files",
+    "es": "Ocultar archivos"
+  },
+  "structures.filesSummary": {
+    "he": "{n} קבצים · {size}",
+    "en": "{n} files · {size}",
+    "es": "{n} archivos · {size}"
+  },
+  "structures.ghTitle": {
+    "he": "דחיפה לגיטהאב",
+    "en": "Push to GitHub",
+    "es": "Subir a GitHub"
+  },
+  "structures.ghText": {
+    "he": "יוצר ריפו חדש (או מעדכן קיים) ישירות מהדפדפן, עם הטוקן שלכם.",
+    "en": "Creates a new repo (or updates an existing one) straight from your browser, with your own token.",
+    "es": "Crea un repositorio nuevo (o actualiza uno existente) directamente desde tu navegador, con tu propio token."
+  },
+  "structures.gh.newRepo": {
+    "he": "ריפו חדש",
+    "en": "New repo",
+    "es": "Repositorio nuevo"
+  },
+  "structures.gh.existingRepo": {
+    "he": "ריפו קיים",
+    "en": "Existing repo",
+    "es": "Repositorio existente"
+  },
+  "structures.gh.repoName": {
+    "he": "שם הריפו",
+    "en": "Repository name",
+    "es": "Nombre del repositorio"
+  },
+  "structures.gh.badName": {
+    "he": "אותיות באנגלית, ספרות, נקודה, מקף וקו תחתון בלבד.",
+    "en": "English letters, digits, dot, dash and underscore only.",
+    "es": "Solo letras inglesas, dígitos, punto, guion y guion bajo."
+  },
+  "structures.gh.repo": {
+    "he": "ריפו",
+    "en": "Repository",
+    "es": "Repositorio"
+  },
+  "structures.gh.loadRepos": {
+    "he": "טעינת ריפוים",
+    "en": "Load repos",
+    "es": "Cargar repositorios"
+  },
+  "structures.gh.modeCommit": {
+    "he": "קומיט ישיר",
+    "en": "Direct commit",
+    "es": "Commit directo"
+  },
+  "structures.gh.modePr": {
+    "he": "ענף + Pull Request",
+    "en": "Branch + Pull Request",
+    "es": "Rama + Pull Request"
+  },
+  "structures.gh.branch": {
+    "he": "שם הענף החדש",
+    "en": "New branch name",
+    "es": "Nombre de la rama nueva"
+  },
+  "structures.gh.existingNote": {
+    "he": "קבצים עם אותו נתיב יוחלפו; שאר הקבצים בריפו יישארו כמו שהם.",
+    "en": "Files with the same path are replaced; other files in the repo stay as they are.",
+    "es": "Los archivos con la misma ruta se reemplazan; el resto del repositorio no cambia."
+  },
+  "structures.gh.message": {
+    "he": "הודעת קומיט",
+    "en": "Commit message",
+    "es": "Mensaje del commit"
+  },
+  "structures.gh.defaultMessage": {
+    "he": "מערכת אישורי הגעה - נוצר ב-WEblok",
+    "en": "RSVP system - generated with WEblok",
+    "es": "Sistema de confirmación - generado con WEblok"
+  },
+  "structures.gh.push": {
+    "he": "דחיפה לגיטהאב",
+    "en": "Push to GitHub",
+    "es": "Subir a GitHub"
+  },
+  "structures.gh.uploading": {
+    "he": "מעלה קבצים",
+    "en": "Uploading files",
+    "es": "Subiendo archivos"
+  },
+  "structures.gh.done": {
+    "he": "הפרויקט נמצא בגיטהאב!",
+    "en": "The project is on GitHub!",
+    "es": "¡El proyecto está en GitHub!"
+  },
+  "structures.gh.next": {
+    "he": "השלב הבא: ייבוא הריפו ב-Vercel והגדרת משתני הסביבה (ר' המדריך) -",
+    "en": "Next step: import the repo in Vercel and set the environment variables (see the guide) -",
+    "es": "Siguiente paso: importa el repositorio en Vercel y configura las variables de entorno (ver la guía):"
+  },
+  "structures.secrets.title": {
+    "he": "סיסמאות לדף הניהול",
+    "en": "Admin page secrets",
+    "es": "Claves del panel de administración"
+  },
+  "structures.secrets.text": {
+    "he": "הבעלים נכנס לדף /admin עם סיסמה שמוגדרת רק ב-Vercel - היא לעולם לא נכנסת לקוד. אפשר ליצור כאן ערכים חזקים (נוצרים בדפדפן שלכם ולא נשמרים בשום מקום) ולהעתיק למשתני הסביבה.",
+    "en": "The owner signs in to /admin with a password that is set only in Vercel - it never goes into the code. You can generate strong values here (created in your browser and never stored) and copy them to the environment variables.",
+    "es": "El propietario entra en /admin con una contraseña que solo se configura en Vercel; nunca entra en el código. Puedes generar valores seguros aquí (se crean en tu navegador y no se guardan) y copiarlos a las variables de entorno."
+  },
+  "structures.secrets.generate": {
+    "he": "יצירת סיסמה ומפתח",
+    "en": "Generate password & secret",
+    "es": "Generar contraseña y clave"
+  },
+  "structures.secrets.regenerate": {
+    "he": "יצירה מחדש",
+    "en": "Regenerate",
+    "es": "Regenerar"
+  },
+  "structures.secrets.note": {
+    "he": "שמרו את הסיסמה במקום בטוח (למשל מנהל סיסמאות). אחרי רענון הדף הערכים נעלמים.",
+    "en": "Keep the password somewhere safe (e.g. a password manager). The values disappear when you refresh the page.",
+    "es": "Guarda la contraseña en un lugar seguro (p. ej. un gestor de contraseñas). Los valores desaparecen al recargar la página."
+  },
+  "structures.guide.title": {
+    "he": "מדריך ייצוא ופריסה",
+    "en": "Export & deployment guide",
+    "es": "Guía de exportación y publicación"
+  },
+  "structures.guide.subtitle": {
+    "he": "בערך 10 דקות, בחבילות החינמיות של Supabase ו-Vercel. אותו מדריך נמצא גם ב-README.md שבפרויקט.",
+    "en": "About 10 minutes, on the free tiers of Supabase and Vercel. The same guide is included in the project's README.md.",
+    "es": "Unos 10 minutos, con los planes gratuitos de Supabase y Vercel. La misma guía viene en el README.md del proyecto."
+  },
+  "structures.guide.design.title": {
+    "he": "מעצבים ובודקים בתצוגה",
+    "en": "Design and check the preview",
+    "es": "Diseña y revisa la vista previa"
+  },
+  "structures.guide.design.text": {
+    "he": "ממלאים את פרטי האירוע, המיקום והעיצוב. אפשר להעלות תמונת הזמנה או של הזוג לרקע ולכוונן את שכבת הצבע כך שהטקסט יהיה קריא.",
+    "en": "Fill in the event details, location and design. You can upload the invitation or a photo of the couple as the background and tune the overlay so the text stays readable.",
+    "es": "Completa los datos del evento, la ubicación y el diseño. Puedes subir la invitación o una foto de la pareja como fondo y ajustar la capa para que el texto se lea bien."
+  },
+  "structures.guide.supabase.title": {
+    "he": "יוצרים מסד נתונים ב-Supabase",
+    "en": "Create a Supabase database",
+    "es": "Crea una base de datos en Supabase"
+  },
+  "structures.guide.supabase.text": {
+    "he": "ב-supabase.com ← New project. אחר כך SQL Editor ← New query ← מדביקים את התוכן של supabase/schema.sql ← Run.\nב-Project Settings ← API מעתיקים את ה-Project URL ואת ה-Secret key (או service_role בפרויקט ישן).",
+    "en": "On supabase.com → New project. Then SQL Editor → New query → paste the contents of supabase/schema.sql → Run.\nIn Project Settings → API copy the Project URL and the Secret key (or service_role on older projects).",
+    "es": "En supabase.com → New project. Luego SQL Editor → New query → pega el contenido de supabase/schema.sql → Run.\nEn Project Settings → API copia la Project URL y la Secret key (o service_role en proyectos antiguos)."
+  },
+  "structures.guide.github.title": {
+    "he": "מעבירים את הקוד לגיטהאב",
+    "en": "Get the code into GitHub",
+    "es": "Sube el código a GitHub"
+  },
+  "structures.guide.github.text": {
+    "he": "הכי פשוט: \"דחיפה לגיטהאב\" למעלה (ריפו חדש, מומלץ פרטי). לחלופין מורידים ZIP, יוצרים ריפו ומעלים את הקבצים דרך Add file ← Upload files.",
+    "en": "Easiest: use \"Push to GitHub\" above (new repo, private recommended). Or download the ZIP, create a repo and upload the files via Add file → Upload files.",
+    "es": "Lo más fácil: usa \"Subir a GitHub\" arriba (repositorio nuevo, se recomienda privado). O descarga el ZIP, crea un repositorio y sube los archivos con Add file → Upload files."
+  },
+  "structures.guide.vercel.title": {
+    "he": "מפרסמים ב-Vercel",
+    "en": "Deploy on Vercel",
+    "es": "Publica en Vercel"
+  },
+  "structures.guide.vercel.text": {
+    "he": "ב-vercel.com/new מייבאים את הריפו. לפני Deploy פותחים Environment Variables ומוסיפים ארבעה משתנים:",
+    "en": "On vercel.com/new import the repo. Before Deploy, open Environment Variables and add four variables:",
+    "es": "En vercel.com/new importa el repositorio. Antes de Deploy, abre Environment Variables y añade cuatro variables:"
+  },
+  "structures.guide.env.url": {
+    "he": "ה-Project URL מ-Supabase",
+    "en": "The Project URL from Supabase",
+    "es": "La Project URL de Supabase"
+  },
+  "structures.guide.env.secret": {
+    "he": "ה-Secret key מ-Supabase - סודי, צד שרת בלבד",
+    "en": "The Secret key from Supabase - secret, server only",
+    "es": "La Secret key de Supabase: secreta, solo servidor"
+  },
+  "structures.guide.env.password": {
+    "he": "סיסמת הכניסה ל-/admin (לפחות 10 תווים)",
+    "en": "The /admin sign-in password (10+ characters)",
+    "es": "La contraseña para /admin (10 caracteres o más)"
+  },
+  "structures.guide.env.session": {
+    "he": "מחרוזת אקראית של 32+ תווים לחתימת העוגייה",
+    "en": "A random 32+ character string for signing the cookie",
+    "es": "Una cadena aleatoria de 32+ caracteres para firmar la cookie"
+  },
+  "structures.guide.test.title": {
+    "he": "בודקים",
+    "en": "Test it",
+    "es": "Pruébalo"
+  },
+  "structures.guide.test.text": {
+    "he": "פותחים את הכתובת ש-Vercel נתן ושולחים אישור לדוגמה. נכנסים ל-/admin עם הסיסמה - התשובה מופיעה שם, עם סיכום מגיעים וייצוא לאקסל. את תשובת הבדיקה אפשר למחוק.",
+    "en": "Open the address Vercel gave you and send a test RSVP. Go to /admin with your password - the reply shows up there, with attendance totals and Excel export. You can delete the test reply.",
+    "es": "Abre la dirección que te dio Vercel y envía una confirmación de prueba. Entra en /admin con tu contraseña: la respuesta aparece allí, con totales y exportación a Excel. Puedes borrar la respuesta de prueba."
+  },
+  "structures.guide.share.title": {
+    "he": "שולחים לאורחים ומעדכנים",
+    "en": "Share with guests and update",
+    "es": "Comparte con los invitados y actualiza"
+  },
+  "structures.guide.share.text": {
+    "he": "שולחים את הקישור בוואטסאפ או SMS (אפשר לחבר דומיין משלכם ב-Vercel). שינוי פרטים בהמשך: עורכים את config/event.json בגיטהאב, ו-Vercel מעדכן את האתר לבד.",
+    "en": "Send the link over WhatsApp or SMS (you can connect your own domain in Vercel). To change details later, edit config/event.json on GitHub and Vercel updates the site automatically.",
+    "es": "Envía el enlace por WhatsApp o SMS (puedes conectar tu propio dominio en Vercel). Para cambiar datos más tarde, edita config/event.json en GitHub y Vercel actualiza el sitio automáticamente."
+  },
+  "structures.security.title": {
+    "he": "אבטחה ופרטיות",
+    "en": "Security & privacy",
+    "es": "Seguridad y privacidad"
+  },
+  "structures.security.subtitle": {
+    "he": "מה נשאר אצלכם - הכל. מה נשאר אצלנו - כלום.",
+    "en": "What stays with you: everything. What stays with us: nothing.",
+    "es": "Lo que queda contigo: todo. Lo que queda con nosotros: nada."
+  },
+  "structures.security.where.title": {
+    "he": "איפה הכל יושב:",
+    "en": "Where everything lives:",
+    "es": "Dónde vive todo:"
+  },
+  "structures.security.where.text": {
+    "he": "הקוד בגיטהאב שלכם, האתר ב-Vercel שלכם, והאורחים והתשובות ב-Supabase שלכם.",
+    "en": "The code in your GitHub, the site on your Vercel, and guests and replies in your Supabase.",
+    "es": "El código en tu GitHub, el sitio en tu Vercel, y los invitados y respuestas en tu Supabase."
+  },
+  "structures.security.weblok.title": {
+    "he": "מה WEblok שומר:",
+    "en": "What WEblok keeps:",
+    "es": "Qué guarda WEblok:"
+  },
+  "structures.security.weblok.text": {
+    "he": "כלום. העורך רץ בדפדפן, התמונה לא מועלית, הטוקן של גיטהאב נשלח ישירות ל-GitHub, ואין לנו שום חיבור לאתר המוכן.",
+    "en": "Nothing. The editor runs in your browser, the image is never uploaded, your GitHub token goes straight to GitHub, and we have no connection to the finished site.",
+    "es": "Nada. El editor funciona en tu navegador, la imagen nunca se sube, tu token de GitHub va directo a GitHub y no tenemos ninguna conexión con el sitio final."
+  },
+  "structures.security.db.title": {
+    "he": "מסד הנתונים:",
+    "en": "Database:",
+    "es": "Base de datos:"
+  },
+  "structures.security.db.text": {
+    "he": "RLS מופעל בלי שום הרשאה ציבורית - אי אפשר לקרוא או לכתוב מהדפדפן. רק השרת, עם המפתח הסודי שנמצא ב-Vercel בלבד, ניגש לנתונים.",
+    "en": "RLS is on with no public access - nothing can be read or written from the browser. Only the server, with the secret key stored only in Vercel, touches the data.",
+    "es": "RLS activado sin acceso público: no se puede leer ni escribir desde el navegador. Solo el servidor, con la clave secreta guardada únicamente en Vercel, accede a los datos."
+  },
+  "structures.security.admin.title": {
+    "he": "דף הניהול:",
+    "en": "Admin page:",
+    "es": "Panel de administración:"
+  },
+  "structures.security.admin.text": {
+    "he": "סיסמה ממשתנה סביבה, השוואה בזמן קבוע, 5 ניסיונות ל-15 דקות, ועוגייה חתומה (HMAC) מסוג httpOnly + Secure + SameSite=Strict לשמונה שעות.",
+    "en": "Password from an environment variable, constant-time comparison, 5 attempts per 15 minutes, and a signed (HMAC) httpOnly + Secure + SameSite=Strict cookie for eight hours.",
+    "es": "Contraseña desde una variable de entorno, comparación en tiempo constante, 5 intentos cada 15 minutos y una cookie firmada (HMAC) httpOnly + Secure + SameSite=Strict durante ocho horas."
+  },
+  "structures.security.form.title": {
+    "he": "טופס האישור:",
+    "en": "RSVP form:",
+    "es": "Formulario:"
+  },
+  "structures.security.form.text": {
+    "he": "בדיקת כל השדות בשרת, תקרת גודל לבקשה, מלכודת בוטים, הגבלת קצב לפי IP (נשמר רק hash), הגנת CSRF ו-CSP הדוק שלא מרשה טעינה משרתים זרים.",
+    "en": "Server-side validation of every field, a request size cap, a bot trap, per-IP rate limiting (only a hash is stored), CSRF protection and a strict CSP that blocks foreign servers.",
+    "es": "Validación de cada campo en el servidor, límite de tamaño, trampa para bots, límite de peticiones por IP (solo se guarda un hash), protección CSRF y una CSP estricta que bloquea servidores ajenos."
+  },
+  "structures.security.you.title": {
+    "he": "מה עליכם:",
+    "en": "Your part:",
+    "es": "Tu parte:"
+  },
+  "structures.security.you.text": {
+    "he": "סיסמה חזקה, לא לשתף את המפתח הסודי (ואם דלף - להחליף מיד ב-Supabase), ולמחוק את הנתונים אחרי האירוע.",
+    "en": "Use a strong password, never share the secret key (if it leaks, rotate it in Supabase right away), and delete the data after the event.",
+    "es": "Usa una contraseña fuerte, no compartas nunca la clave secreta (si se filtra, cámbiala en Supabase de inmediato) y borra los datos después del evento."
+  }
+}
