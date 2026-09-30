@@ -348,15 +348,19 @@ const HEADER_SCROLL_PAD = 72;
  * אלמנטים שלו position: fixed/sticky בראש/בתחתית המסך - כך שלא צריך לשכפל כאן
  * שמות מחלקות של המחוללים.
  */
+/** בריחה מלאה לערך שנכנס למאפיין HTML/CSS (no-op לערכים תקינים; שכבת הגנה נוספת) */
+const escAttr = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export function placementCss(code: string, opts: PlacementOptions): string {
   // רק אותיות/ספרות/מקף - בטוח גם בתוך מאפיין וגם בתוך <style>
-  const blockId = (code.match(/data-weblok-block="([a-z0-9-]+)"/)?.[1] ?? "").replace(/[^a-z0-9-]/g, "");
+  const blockId = escAttr((code.match(/data-weblok-block="([a-z0-9-]+)"/)?.[1] ?? "").replace(/[^a-z0-9-]/g, ""));
   if (!blockId) return "";
   const css = Array.from(code.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi), (m) => m[1]).join("\n");
   const scope = (sel: string) =>
     sel
       .split(",")
-      .map((s) => `[data-weblok-block="${blockId}"] ${s.trim()}`)
+      .map((s) => `[data-weblok-block="${blockId}"] ${s.replace(/[<>{}"'\\]/g, "").trim()}`)
       .join(", ");
 
   const top = clampPx(opts.headerOffset);

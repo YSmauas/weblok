@@ -14,6 +14,12 @@ type Target = "new" | "existing";
 type Mode = "commit" | "pr";
 type Result = { repo: string; commitUrl: string; prUrl?: string };
 
+/** owner/repo → כתובת בטוחה (כל מקטע מקודד; שם לא תקין → דף הבית של GitHub) */
+function repoUrl(fullName: string): string {
+  const m = fullName.match(/^([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100})$/);
+  return m ? `https://github.com/${encodeURIComponent(m[1])}/${encodeURIComponent(m[2])}` : "https://github.com/";
+}
+
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -311,7 +317,7 @@ export function StructureGithubPush({
         <div role="status" className="rounded-xl border border-accent/40 bg-accent-soft p-3 text-sm space-y-2">
           <p className="font-semibold text-success">{t("structures.gh.done")}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <a href={`https://github.com/${result.repo}`} target="_blank" rel="noreferrer" className="text-accent underline" dir="ltr">
+            <a href={repoUrl(result.repo)} target="_blank" rel="noreferrer" className="text-accent underline" dir="ltr">
               {result.repo}
             </a>
             {githubUrl(result.commitUrl) && (
