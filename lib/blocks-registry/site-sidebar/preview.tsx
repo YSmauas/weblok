@@ -13,16 +13,20 @@ export function Preview({ values }: { values: BlockValues }) {
   const w = values.drawerWidth === "narrow" ? "w-[55%]" : values.drawerWidth === "wide" ? "w-[80%]" : "w-[68%]";
 
   return (
-    <div className="relative h-full w-full overflow-hidden" style={{ background: "#64748b33", fontFamily: `'${font}', sans-serif` }} dir={dir}>
+    <div className="relative h-full w-full overflow-hidden" style={{ background: "#64748b33", fontFamily: font }} dir={dir}>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,.45)" }} />
       <div
-        className={`absolute top-0 bottom-0 ${w} max-w-[340px] flex flex-col ${left ? "left-0" : "right-0"}`}
+        className={`absolute ${w} max-w-[340px] flex flex-col ${
+          values.panelStyle === "floating"
+            ? `top-2 bottom-2 rounded-2xl overflow-hidden shadow-2xl ${left ? "left-2" : "right-2"}`
+            : `top-0 bottom-0 ${left ? "left-0" : "right-0"}`
+        }`}
         style={{ background: t.bg, color: t.text, [left ? "borderRight" : "borderLeft"]: `1px solid ${t.border}` }}
       >
         <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
           <span className="font-extrabold">{clip(values.drawerTitle, 60) || "תפריט"}</span>
           <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs" style={{ border: `1px solid ${t.border}` }}>
-            {"✕"}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg>
           </span>
         </div>
         <div className="flex-1 p-2 space-y-0.5 overflow-hidden">

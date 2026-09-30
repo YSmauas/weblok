@@ -1,0 +1,31 @@
+{
+  "editor.device.label": { "he": "גודל מסך", "en": "Screen size", "es": "Tamaño de pantalla" },
+  "editor.device.mobile": { "he": "מובייל", "en": "Mobile", "es": "Móvil" },
+  "editor.device.tablet": { "he": "טאבלט", "en": "Tablet", "es": "Tableta" },
+  "editor.device.desktop": { "he": "מחשב", "en": "Desktop", "es": "Escritorio" },
+  "editor.replay": { "he": "הפעלה מחדש של האנימציות", "en": "Replay animations", "es": "Repetir animaciones" },
+  "editor.pageTheme": { "he": "רקע כהה לעמוד הדוגמה", "en": "Dark background for the sample page", "es": "Fondo oscuro para la página de ejemplo" },
+  "editor.cookieGuide.title": {
+    "he": "איך לגרום לבחירה באמת להשפיע על העוגיות?",
+    "en": "How do you make the choice actually control cookies?",
+    "es": "¿Cómo hacer que la elección controle realmente las cookies?"
+  },
+  "editor.cookieGuide.text": {
+    "he": "הפופאפ שומר את הבחירה ושולח אירוע - אבל את סקריפטי המעקב צריך לחבר אליו. במדריך: טעינת Google Analytics רק אחרי אישור, מחיקת עוגיות בדחייה ו-Consent Mode v2.",
+    "en": "The popup stores the choice and fires an event - but your tracking scripts need to be wired to it. In the guide: load Google Analytics only after consent, delete cookies on decline, and Consent Mode v2.",
+    "es": "El popup guarda la elección y emite un evento, pero tus scripts de seguimiento deben conectarse a él. En la guía: cargar Google Analytics solo tras aceptar, borrar cookies al rechazar y Consent Mode v2."
+  },
+  "editor.cookieGuide.cta": { "he": "למדריך המלא", "en": "Read the full guide", "es": "Ver la guía completa" },
+  "editor.group.type": { "he": "סוג", "en": "Type", "es": "Tipo" },
+  "editor.group.content": { "he": "תוכן", "en": "Content", "es": "Contenido" },
+  "editor.group.behavior": { "he": "התנהגות", "en": "Behavior", "es": "Comportamiento" },
+  "editor.group.display": { "he": "תצוגה", "en": "Display", "es": "Visualización" },
+  "editor.group.design": { "he": "עיצוב", "en": "Design", "es": "Diseño" },
+  "editor.group.animation": { "he": "אנימציה", "en": "Animation", "es": "Animación" },
+  "editor.group.brand": { "he": "מותג", "en": "Brand", "es": "Marca" },
+  "editor.group.nav": { "he": "ניווט", "en": "Navigation", "es": "Navegación" },
+  "editor.group.links": { "he": "קישורים", "en": "Links", "es": "Enlaces" },
+  "editor.group.target": { "he": "יעד", "en": "Destination", "es": "Destino" },
+  "editor.group.fields": { "he": "שדות", "en": "Fields", "es": "Campos" },
+  "editor.group.general": { "he": "כללי", "en": "General", "es": "General" }
+}

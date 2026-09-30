@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    // תאריך קבוע: עדכנו ידנית כשהמדריך משתנה (לא new Date() - זה היה מסמן "שונה" בכל בנייה)
+    { url: url("/blocks/popup/cookies"), lastModified: new Date("2026-09-30"), changeFrequency: "monthly", priority: 0.7 },
     { url: url("/tools"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: url("/tools/inject"), lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: url("/tools/github"), lastModified: now, changeFrequency: "monthly", priority: 0.7 },
