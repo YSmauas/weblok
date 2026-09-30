@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { blocksRegistry } from "@/lib/blocks-registry";
+import { structuresRegistry } from "@/lib/structures/catalog";
 import { CONTENT_UPDATED, METADATA_BASE } from "@/lib/site";
 
 /**
@@ -16,6 +17,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...blocksRegistry.map((b) => ({
       url: url(`/blocks/${b.slug}`),
       lastModified: d(CONTENT_UPDATED.blocks),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    { url: url("/structures"), lastModified: d(CONTENT_UPDATED.structures), changeFrequency: "monthly", priority: 0.9 },
+    ...structuresRegistry.map((s) => ({
+      url: url(`/structures/${s.slug}`),
+      lastModified: d(CONTENT_UPDATED.structures),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
