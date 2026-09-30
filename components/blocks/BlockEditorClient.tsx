@@ -311,7 +311,6 @@ export function BlockEditorClient({
                 {Object.keys(exported.files).join(" · ")}
               </p>
             )}
-            {exported.files["api/chat.js"] && <p className="text-[11px] text-ink-muted">{t("editor.serverFileNote")}</p>}
             {showCode && (
               <div className="code-panel max-h-72 space-y-4 animate-fadeInUp">
                 {Object.entries(exported.files).map(([fileName, content]) => (

@@ -1,79 +1,96 @@
 "use client";
 
 import type { BlockValues } from "../types";
+import { clip, previewTheme } from "../_shared/util";
+import { STRINGS, type Lang } from "./strings";
+import { PROVIDER_INFO, onAccent, type ProviderId } from "./config.schema";
 
-/** קירוב חזותי מהיר; התצוגה "קוד אמיתי" בעורך מריצה את הצ'אט בפועל. */
+const SYSTEM_FONT = `system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif`;
+const SAMPLE: Record<Lang, { q: string; a: string }> = {
+  he: { q: "מה שעות הפעילות?", a: "אנחנו זמינים בימים א'-ה' בין 9:00 ל-18:00. אפשר גם להשאיר פרטים ונחזור אליכם." },
+  en: { q: "What are your opening hours?", a: "We're available Sunday-Thursday, 9:00-18:00. You can also leave your details and we'll get back to you." },
+  es: { q: "¿Cuál es el horario?", a: "Atendemos de domingo a jueves, de 9:00 a 18:00. También puedes dejar tus datos y te contactamos." },
+};
+
+/** קירוב חזותי (מצב "דמו") - הצ'אט פתוח עם שיחה לדוגמה. התצוגה "חיה" מריצה את הקוד האמיתי. */
 export function Preview({ values }: { values: BlockValues }) {
-  const accent = values.accentColor || "#e8a33d";
-  const isWidget = values.displayMode !== "fullscreen";
-  const light = values.themeMode === "light";
-  const quick = (values.quickReplies || "").split(",").map((q) => q.trim()).filter(Boolean).slice(0, 4);
-  const pal = light
-    ? { bg: "#ffffff", panel: "#f4f4f5", text: "#18181b", muted: "#71717a", bot: "#f0f0f3", border: "rgba(0,0,0,.1)" }
-    : { bg: "#16161d", panel: "#1f1f29", text: "#f4f4f5", muted: "#a1a1aa", bot: "#2a2a36", border: "rgba(255,255,255,.1)" };
+  const { t, accent, dir } = previewTheme(values);
+  const lang: Lang = values.widgetLang === "en" || values.widgetLang === "es" ? values.widgetLang : "he";
+  const S = STRINGS[lang];
+  const font = ["Assistant", "Heebo", "Rubik", "Varela Round"].includes(values.fontSelect) ? `'${values.fontSelect}', ${SYSTEM_FONT}` : SYSTEM_FONT;
+  const pos = values.widgetPosition;
+  const right = pos === "right" || pos === "left" ? pos === "right" : (pos === "start") === (dir === "rtl");
+  const name = clip(values.titleText, 60) || S.defaultName;
+  const quick = (values.quickReplies || "").split(/[,،]/).map((q) => q.trim()).filter(Boolean).slice(0, 4);
+  const mode = values.providerMode as ProviderId | "choice";
+  const provName = mode === "choice" ? PROVIDER_INFO.gemini.name + " / …" : (PROVIDER_INFO[mode as ProviderId] ?? PROVIDER_INFO.gemini).name;
+  const pill = values.launcherStyle === "pill";
+  const sample = SAMPLE[lang];
+  const fg = /^#[0-9a-fA-F]{6}$/.test(accent) ? onAccent(accent) : "#fff";
 
   return (
     <div
-      dir="rtl"
-      className={`relative h-full w-full flex p-4 sm:p-6 bg-[linear-gradient(135deg,#0f172a,#334155)] ${
-        isWidget ? `items-end ${values.widgetPosition === "left" ? "justify-end" : "justify-start"}` : "items-center justify-center"
-      }`}
-      style={{ fontFamily: `'${values.fontSelect || "Heebo"}', sans-serif` }}
+      dir={dir}
+      lang={lang}
+      className="relative h-full w-full overflow-hidden bg-[linear-gradient(135deg,#0f172a,#334155)]"
+      style={{ fontFamily: font }}
     >
       <div
-        className="flex flex-col rounded-2xl overflow-hidden shadow-2xl"
-        style={{
-          width: isWidget ? 300 : "100%",
-          maxWidth: 520,
-          height: isWidget ? "calc(100% - 64px)" : "100%",
-          maxHeight: 440,
-          background: pal.bg,
-          color: pal.text,
-          border: `1px solid ${pal.border}`,
-          marginBottom: isWidget ? 64 : 0,
-        }}
+        className={`absolute top-4 bottom-20 ${right ? "right-4" : "left-4"} flex w-[min(330px,calc(100%-32px))] flex-col overflow-hidden rounded-2xl shadow-2xl`}
+        style={{ background: t.bg, color: t.text, border: `1px solid ${t.border}` }}
       >
-        <div className="flex items-center gap-2 px-4 py-3 text-white" style={{ background: accent }}>
-          <span className="w-7 h-7 rounded-full bg-black/20 flex items-center justify-center text-sm">🤖</span>
-          <p className="text-sm font-bold flex-1 truncate">{values.titleText || "העוזר החכם"}</p>
-          {isWidget && <span className="text-xs opacity-80">✕</span>}
+        <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: accent, color: fg }}>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/15 text-sm" aria-hidden>
+            {"🤖"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold">{name}</p>
+            <p className="truncate text-[10px] opacity-85">{provName}</p>
+          </div>
+          <span className="text-xs opacity-80" aria-hidden>
+            {"🔑 🗑 ✕"}
+          </span>
         </div>
-        <div className="flex-1 p-3 space-y-2 overflow-hidden">
-          <div className="text-xs rounded-2xl rounded-ss-sm px-3 py-2 w-fit max-w-[85%]" style={{ background: pal.bot }}>
-            {values.welcomeMsg || "שלום! איך אפשר לעזור היום?"}
+        <div className="flex-1 space-y-2 overflow-hidden p-3 text-xs leading-relaxed">
+          {values.welcomeMsg?.trim() && (
+            <div className="w-fit max-w-[88%] rounded-2xl rounded-ss-sm px-3 py-2" style={{ background: t.panel, border: `1px solid ${t.border}` }}>
+              {clip(values.welcomeMsg, 200)}
+            </div>
+          )}
+          <div className="ms-auto w-fit max-w-[88%] rounded-2xl rounded-se-sm px-3 py-2" style={{ background: accent, color: fg }}>
+            {sample.q}
+          </div>
+          <div className="w-fit max-w-[88%] rounded-2xl rounded-ss-sm px-3 py-2" style={{ background: t.panel, border: `1px solid ${t.border}` }}>
+            {sample.a}
           </div>
           {quick.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {quick.map((q) => (
-                <span key={q} className="text-[11px] rounded-full px-2.5 py-1" style={{ border: `1px solid ${accent}`, color: accent }}>
+                <span key={q} className="rounded-full px-2.5 py-1 text-[11px]" style={{ border: `1px solid ${accent}` }}>
                   {q}
                 </span>
               ))}
             </div>
           )}
         </div>
-        <div className="flex gap-1.5 p-2" style={{ background: pal.panel, borderTop: `1px solid ${pal.border}` }}>
-          {values.voiceInput !== "no" && (
-            <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs" style={{ border: `1px solid ${pal.border}`, color: pal.muted }}>
-              🎤
-            </span>
-          )}
-          <span className="flex-1 text-[11px] rounded-full px-3 py-2 truncate" style={{ border: `1px solid ${pal.border}`, color: pal.muted, background: pal.bg }}>
-            {values.placeholder || "הקלד הודעה כאן..."}
+        <div className="flex items-center gap-2 p-2" style={{ background: t.panel, borderTop: `1px solid ${t.border}` }}>
+          <span className="flex-1 truncate rounded-full px-3 py-2 text-[11px] opacity-70" style={{ border: `1px solid ${t.border}`, background: t.inputBg }}>
+            {clip(values.placeholder, 80) || S.placeholder}
           </span>
-          <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs" style={{ background: accent }}>
-            ➤
+          <span className="flex h-8 w-8 items-center justify-center rounded-full text-xs" style={{ background: accent, color: fg }} aria-hidden>
+            {"➤"}
           </span>
         </div>
       </div>
-      {isWidget && (
-        <div
-          className={`absolute bottom-4 ${values.widgetPosition === "left" ? "left-4" : "right-4"} w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg`}
-          style={{ background: accent }}
-        >
-          💬
-        </div>
-      )}
+      <div
+        className={`absolute bottom-4 ${right ? "right-4" : "left-4"} flex h-12 items-center justify-center gap-2 rounded-full text-sm font-bold shadow-lg ${pill ? "px-4" : "w-12"} ${
+          values.launcherPulse === "yes" ? "motion-safe:animate-pulse" : ""
+        }`}
+        style={{ background: accent, color: fg }}
+      >
+        <span aria-hidden>{"💬"}</span>
+        {pill && <span>{clip(values.launcherLabel, 30) || S.open}</span>}
+      </div>
     </div>
   );
 }
