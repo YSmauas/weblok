@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Hero } from "@/components/home/Hero";
 import { JourneyScroll } from "@/components/home/JourneyScroll";
@@ -6,6 +7,11 @@ import { ToolsShowcase } from "@/components/home/ToolsShowcase";
 import { ContactSection } from "@/components/home/ContactSection";
 import { blocksRegistry } from "@/lib/blocks-registry";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/" },
+};
 
 export default async function HomePage() {
   const supabase = await createClient();

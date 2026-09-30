@@ -8,6 +8,7 @@ import { SessionProvider } from "@/lib/auth/use-session";
 import {
   CREDIT_URL,
   GITHUB_PROJECT,
+  IS_PRODUCTION_DEPLOY,
   METADATA_BASE,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   creator: "י.מ. מאואס",
   publisher: SITE_NAME,
   category: "technology",
-  alternates: { canonical: "/" },
+  // canonical מוגדר בכל דף בנפרד - ברירת מחדל כאן הייתה "מורישה" את "/" לכל דף בלי canonical משלו
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -42,11 +43,13 @@ export const metadata: Metadata = {
     title: DEFAULT_TITLE,
     description: SITE_DESCRIPTION,
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-  },
+  robots: IS_PRODUCTION_DEPLOY
+    ? {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+      }
+    : { index: false, follow: false, googleBot: { index: false, follow: false } },
   formatDetection: { telephone: false, email: false, address: false },
   other: { "source-code": GITHUB_PROJECT },
 };

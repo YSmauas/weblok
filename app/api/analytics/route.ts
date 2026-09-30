@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     return new NextResponse(null, { status: 429 });
   }
 
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 1024);
   const kind = body?.kind;
   const sid = body?.sid;
   const path = body?.path;

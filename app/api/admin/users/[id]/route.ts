@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { getSession } from "@/lib/auth/session";
 import { roleAtLeast, canManageAdmins } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
@@ -20,7 +21,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
   }
   if (!UUID.test(params.id)) return NextResponse.json({ error: "invalid" }, { status: 400 });
 
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 1024);
   const supabase = await createClient();
 
   if (typeof body?.status === "string") {

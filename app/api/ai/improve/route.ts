@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { callGemini } from "@/lib/ai/gemini";
 import { buildImprovePrompt, cleanImproved, IMPROVE_MAX_LENGTH } from "@/lib/ai/prompts";
 import { aiErrorResponse, requireAiUser } from "@/lib/ai/server";
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
  * guardrail: prompt קבוע ששומר על המשמעות והאורך - לא יצירה חופשית.
  */
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 8 * 1024);
   const text = String(body?.text ?? "").trim();
   const label = String(body?.label ?? "טקסט").slice(0, 80);
   if (!text || text.length > IMPROVE_MAX_LENGTH) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJson } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
-  const body = await request.json().catch(() => null);
+  const body = await readJson<any>(request, 16 * 1024);
   const name = String(body?.name ?? "").trim();
   const email = String(body?.email ?? "").trim();
   const subject = String(body?.subject ?? "").trim() || null;
