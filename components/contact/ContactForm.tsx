@@ -52,7 +52,7 @@ export function ContactForm({
       {!prefill && (
         <>
           <input required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("contact.name")} className={cls} />
-          <input required type="email" maxLength={200} dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("contact.email")} className={cls} />
+          <input required type="email" maxLength={200} dir={email ? "ltr" : undefined} value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("contact.email")} className={cls} />
         </>
       )}
       {showSubject && (
