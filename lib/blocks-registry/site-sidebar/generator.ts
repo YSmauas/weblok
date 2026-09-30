@@ -41,14 +41,15 @@ export function toOutput(raw: BlockValues): BlockOutput {
       ? `top: 50%; ${side}: 0; width: 36px; height: 64px; margin-top: -32px; border-radius: ${side === "left" ? "0 12px 12px 0" : "12px 0 0 12px"};`
       : `${style === "button-bottom" ? "bottom: max(16px, env(safe-area-inset-bottom));" : "top: max(16px, env(safe-area-inset-top));"} ${side}: 16px; width: 48px; height: 48px; border-radius: 50%;`;
 
+  // z-index לפי הסולם ב-lib/inject/placement.ts: כפתור 9998 (צף), מגירה פתוחה 10001-10002 (מעל כפתורים צפים, מתחת לפופאפ)
   const { css: vars } = designCss(".wbd", d);
   const css = `${fontImport(d)}
 ${vars}
 .wbd-trigger { position: fixed; ${triggerPos} z-index: 9998; display: flex; align-items: center; justify-content: center; background: var(--wb-accent); color: #fff; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,.3); transition: transform .2s; }
 .wbd-trigger:hover, .wbd-trigger:focus-visible { transform: scale(1.06); outline: 2px solid #fff; outline-offset: 2px; }
-.wbd-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.wbd-overlay { position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .3s; }
 .wbd-open .wbd-overlay { opacity: 1; pointer-events: auto; }
-.wbd-panel { position: fixed; top: 0; bottom: 0; ${side}: 0; z-index: 10000; width: min(${width}px, 88vw); height: 100dvh; display: flex; flex-direction: column; background: var(--wb-bg); color: var(--wb-text); border-${side === "left" ? "right" : "left"}: 1px solid var(--wb-border); box-shadow: 0 0 40px rgba(0,0,0,.4); transform: translateX(${off}); visibility: hidden; transition: transform .3s ease, visibility 0s linear .3s; outline: none; overflow-y: auto; }
+.wbd-panel { position: fixed; top: 0; bottom: 0; ${side}: 0; z-index: 10002; width: min(${width}px, 88vw); height: 100dvh; display: flex; flex-direction: column; background: var(--wb-bg); color: var(--wb-text); border-${side === "left" ? "right" : "left"}: 1px solid var(--wb-border); box-shadow: 0 0 40px rgba(0,0,0,.4); transform: translateX(${off}); visibility: hidden; transition: transform .3s ease, visibility 0s linear .3s; outline: none; overflow-y: auto; }
 .wbd-open .wbd-panel { transform: translateX(0); visibility: visible; transition-delay: 0s; }
 .wbd-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--wb-border); }
 .wbd-head h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }

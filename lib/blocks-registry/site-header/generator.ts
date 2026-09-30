@@ -29,6 +29,7 @@ export function toOutput(raw: BlockValues): BlockOutput {
   </div>
 </header>`;
 
+  // z-index 1000 לפי הסולם ב-lib/inject/placement.ts: מעל התוכן, מתחת לכפתורים צפים/מגירה/פופאפ
   const { css: vars } = designCss(".wbh", d);
   const css = `${fontImport(d)}
 .weblok-site-header { display: contents; }

@@ -90,6 +90,12 @@ export interface PushOptions {
   baseBranch: string;
   /** null = קומיט ישיר ל-baseBranch; אחרת נוצר ענף חדש ונפתח PR */
   newBranch: string | null;
+  /**
+   * במצב PR: הקומיט שממנו ייווצר הענף החדש (למשל הקומיט שממנו ייבאנו), במקום
+   * ראש baseBranch הנוכחי - כך GitHub מחשב קונפליקטים אמיתיים מול מה שהשתנה מאז.
+   */
+  baseSha?: string;
+  prBody?: string;
   message: string;
   prTitle?: string;
   files: PushEntry[];
@@ -101,7 +107,9 @@ export interface PushOptions {
  * דחיפת קבצים כקומיט אחד: blobs במקביל (5) → tree על בסיס הקיים → commit →
  * עדכון ה-ref (בלי force). במצב PR: קודם נוצר ענף מה-base, ובסוף נפתח PR.
  */
-export async function pushEntries(o: PushOptions): Promise<{ commitUrl: string; prUrl?: string; prNumber?: number }> {
+export async function pushEntries(
+  o: PushOptions
+): Promise<{ commitUrl: string; commitSha: string; prUrl?: string; prNumber?: number }> {
   const base = repoPath(o.ref);
   const log = o.onLog ?? (() => {});
 
@@ -114,7 +122,7 @@ export async function pushEntries(o: PushOptions): Promise<{ commitUrl: string; 
     try {
       await gh(`${base}/git/refs`, o.token, {
         method: "POST",
-        body: JSON.stringify({ ref: `refs/heads/${o.newBranch}`, sha: baseRef.object.sha }),
+        body: JSON.stringify({ ref: `refs/heads/${o.newBranch}`, sha: o.baseSha ?? baseRef.object.sha }),
       });
     } catch (e) {
       // ענף שכבר קיים - ממשיכים לדחוף אליו
@@ -160,12 +168,12 @@ export async function pushEntries(o: PushOptions): Promise<{ commitUrl: string; 
     body: JSON.stringify({ sha: commit.sha, force: false }),
   });
 
-  if (!o.newBranch) return { commitUrl: commit.html_url };
+  if (!o.newBranch) return { commitUrl: commit.html_url, commitSha: commit.sha };
 
   log("pr");
   const pr = await gh<{ html_url: string; number: number }>(`${base}/pulls`, o.token, {
     method: "POST",
-    body: JSON.stringify({ title: o.prTitle || o.message, head: o.newBranch, base: o.baseBranch, body: "Created with WEblok" }),
+    body: JSON.stringify({ title: o.prTitle || o.message, head: o.newBranch, base: o.baseBranch, body: o.prBody || "Created with WEblok" }),
   });
-  return { commitUrl: commit.html_url, prUrl: pr.html_url, prNumber: pr.number };
+  return { commitUrl: commit.html_url, commitSha: commit.sha, prUrl: pr.html_url, prNumber: pr.number };
 }
