@@ -1,42 +1,3 @@
-import { useId } from "react";
-
-export function IconPuzzle({ className }: { className?: string }) {
-  const uid = useId();
-  const sheenId = `puzzle-sheen-${uid}`;
-
-  // צורת "החלק האחרון בפאזל": מעלה - זכר בולט החוצה, ימין - נקבה שקועה
-  // פנימה, מטה ושמאל - צלעות חלקות. מראה זכוכית: מילוי שקוף בגוון הנוכחי
-  // (currentColor) + שכבת ברק (highlight) לבנה מלמעלה-שמאל, כדי שיתאים
-  // אוטומטית גם למצב כהה וגם למצב בהיר.
-  return (
-    <svg viewBox="0 0 32 32" className={className} fill="none">
-      <defs>
-        <linearGradient id={sheenId} x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
-          <stop offset="0.55" stopColor="#fff" stopOpacity="0.08" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        fill="currentColor"
-        fillOpacity="0.16"
-      />
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        fill={`url(#${sheenId})`}
-      />
-      <path
-        d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export function IconInfo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
@@ -136,20 +97,6 @@ export function IconKey({ className }: { className?: string }) {
   );
 }
 
-export function IconTrash({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path
-        d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function IconGlobe({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
@@ -188,33 +135,6 @@ function Line({ className, children }: IconProps & { children: React.ReactNode }
 export const IconCheck = ({ className }: IconProps) => (
   <Line className={className}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />
-  </Line>
-);
-
-export const IconLock = ({ className }: IconProps) => (
-  <Line className={className}>
-    <rect x="5" y="10.5" width="14" height="9.5" rx="2.2" fill="currentColor" fillOpacity="0.14" />
-    <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2" />
-  </Line>
-);
-
-export const IconSparkle = ({ className }: IconProps) => (
-  <Line className={className}>
-    <path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9-4.9-1.9 4.9-1.9z" fill="currentColor" fillOpacity="0.16" />
-    <path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
-  </Line>
-);
-
-export const IconArrowUpRight = ({ className }: IconProps) => (
-  <Line className={className}>
-    <path d="M7 17 17 7M9 7h8v8" />
-  </Line>
-);
-
-export const IconSend = ({ className }: IconProps) => (
-  <Line className={className}>
-    <path d="M4 12 20 4l-6 16-3-7z" fill="currentColor" fillOpacity="0.14" />
-    <path d="m11 13 3-3" />
   </Line>
 );
 
