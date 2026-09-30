@@ -190,6 +190,7 @@
   "common.close": "Cerrar",
   "common.copy": "Copiar",
   "common.copied": "¡Copiado!",
+  "common.skipToContent": "Saltar al contenido",
   "auth.noAccountFound": "No encontramos una cuenta con este correo. Puedes registrarte ahora o volver y revisar la dirección.",
   "auth.errorExists": "Este correo ya está registrado. Intenta iniciar sesión.",
   "notFound.title": "Página no encontrada",

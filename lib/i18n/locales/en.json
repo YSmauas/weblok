@@ -190,6 +190,7 @@
   "common.close": "Close",
   "common.copy": "Copy",
   "common.copied": "Copied!",
+  "common.skipToContent": "Skip to content",
   "auth.noAccountFound": "We couldn't find an account with this email. You can sign up now, or go back and check the address.",
   "auth.errorExists": "This email is already registered. Try logging in instead.",
   "notFound.title": "Page not found",

@@ -3,6 +3,7 @@ import "../styles/globals.css";
 import { fontVariables } from "./fonts";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { T } from "@/components/ui/T";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { SessionProvider } from "@/lib/auth/use-session";
 import {
@@ -116,14 +117,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:bg-accent focus:text-base-bg focus:px-4 focus:py-2 focus:rounded-full"
-        >
-          דלג לתוכן
-        </a>
         <ThemeProvider>
           <LocaleProvider>
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:bg-accent focus:text-base-bg focus:px-4 focus:py-2 focus:rounded-full"
+            >
+              <T k="common.skipToContent" />
+            </a>
             <SessionProvider>{children}</SessionProvider>
           </LocaleProvider>
           <AnalyticsTracker />

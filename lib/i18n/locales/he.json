@@ -190,6 +190,7 @@
   "common.close": "סגירה",
   "common.copy": "העתקה",
   "common.copied": "הועתק!",
+  "common.skipToContent": "דלג לתוכן",
   "auth.noAccountFound": "לא מצאנו חשבון עם האימייל הזה. אפשר להירשם עכשיו, או לחזור ולבדוק את הכתובת.",
   "auth.errorExists": "האימייל הזה כבר רשום. נסו להתחבר במקום.",
   "notFound.title": "הדף לא נמצא",
