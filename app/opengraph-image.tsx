@@ -23,13 +23,15 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <svg width="96" height="96" viewBox="0 0 32 32">
-            <path
-              d="M8,8 L12,8 C12,4 14,2 16,2 C18,2 20,4 20,8 L24,8 L24,12 C20,12 20,20 24,20 L24,24 L8,24 Z"
-              fill="rgba(143,174,111,0.25)"
-              stroke="#8fae6f"
-              strokeWidth="1.4"
-            />
+          <svg width="96" height="96" viewBox="0 0 32 32" fill="#8fae6f">
+            <rect x="3" y="3" width="12" height="12" rx="3.2" fillOpacity="0.38" />
+            <rect x="3" y="17" width="12" height="12" rx="3.2" fillOpacity="0.6" />
+            <rect x="17" y="17" width="12" height="12" rx="3.2" fillOpacity="0.38" />
+            <circle cx="9" cy="16" r="2.3" fillOpacity="0.6" />
+            <circle cx="16" cy="23" r="2.3" fillOpacity="0.6" />
+            <g transform="rotate(-8 23 9)">
+              <path d="M20 2.6h6a3.2 3.2 0 0 1 3.2 3.2v6a3.2 3.2 0 0 1-3.2 3.2h-6a3.2 3.2 0 0 1-3.2-3.2V11a2.2 2.2 0 1 0 0-4.4V5.8A3.2 3.2 0 0 1 20 2.6Z" />
+            </g>
           </svg>
           <div style={{ fontSize: 96, fontWeight: 800, letterSpacing: -2 }}>WEblok</div>
         </div>
