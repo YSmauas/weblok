@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { INJECT_MAX_FILE_BYTES, type InjectBlock } from "@/lib/inject/core";
 import { defaultInjectBlocks, readEditorDraft } from "@/lib/inject/options";
 import { formatBytes } from "@/lib/projects/files";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { BlockPicker } from "./BlockPicker";
 import { InjectWorkbench } from "./InjectWorkbench";
 
@@ -57,7 +58,11 @@ export function GuestInject() {
         </ol>
         <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-ink-secondary leading-relaxed">
           <p>
-            <strong className="text-ink-primary">🔒 {t("inject.privacyTitle")}</strong> {t("inject.privacyBody")}
+            <strong className="text-ink-primary inline-flex items-center gap-1">
+              <AppIcon name="lock" />
+              {t("inject.privacyTitle")}
+            </strong>{" "}
+            {t("inject.privacyBody")}
           </p>
         </div>
       </Card>
@@ -78,9 +83,7 @@ export function GuestInject() {
             dragging ? "border-accent bg-accent-soft" : "border-base-border hover:border-accent/60"
           }`}
         >
-          <span className="text-3xl" aria-hidden>
-            📄
-          </span>
+          <AppIcon name="file" className="text-3xl" />
           <span className="text-sm font-medium">{file ? file.name : t("inject.dropHere")}</span>
           <span className="text-xs text-ink-muted">
             {file
@@ -120,9 +123,7 @@ export function GuestInject() {
         <ul className="mt-3 grid sm:grid-cols-2 gap-2 text-sm text-ink-secondary">
           {["inject.more1", "inject.more2", "inject.more3", "inject.more4"].map((k) => (
             <li key={k} className="flex gap-2">
-              <span className="text-accent" aria-hidden>
-                ✓
-              </span>
+              <AppIcon name="check" className="shrink-0 mt-0.5" />
               {t(k)}
             </li>
           ))}

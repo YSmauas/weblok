@@ -24,6 +24,7 @@ import {
   type RepoEntry,
 } from "@/lib/github/files";
 import { formatBytes } from "@/lib/projects/files";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { loadSecret, removeSecret, saveSecret } from "@/lib/ai/key-vault";
 
 type Mode = "commit" | "pr";
@@ -270,7 +271,11 @@ export function GithubManager() {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-ink-secondary leading-relaxed">
-        <strong className="text-ink-primary">🔒 {t("inject.privacyTitle")}</strong> {t("gh.privacy")}
+        <strong className="text-ink-primary inline-flex items-center gap-1">
+          <AppIcon name="lock" />
+          {t("inject.privacyTitle")}
+        </strong>{" "}
+        {t("gh.privacy")}
       </div>
 
       {/* 1. חיבור וריפו */}
@@ -314,7 +319,7 @@ export function GithubManager() {
             </span>
           </div>
           <p className="text-[11px] text-ink-muted leading-relaxed">
-            {t("gh.tokenHint")}{" "}
+            {t("github.tokenPerms")} {t("gh.tokenHintExtra")}{" "}
             <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" className="text-accent hover:underline">
               {t("github.tokenCreate")}
             </a>
@@ -334,7 +339,7 @@ export function GithubManager() {
                   >
                     {repos.map((r) => (
                       <option key={r.fullName} value={r.fullName}>
-                        {r.fullName} {r.private ? "🔒" : ""}
+                        {r.fullName}{r.private ? ` · ${t("gh.private")}` : ""}
                       </option>
                     ))}
                   </select>
@@ -426,7 +431,7 @@ export function GithubManager() {
               dragging ? "border-accent bg-accent-soft" : "border-base-border hover:border-accent/60"
             }`}
           >
-            <span className="text-3xl" aria-hidden>📦</span>
+            <AppIcon name="archive" className="text-3xl" />
             <span className="text-sm font-medium">
               {busy === "read"
                 ? t("projects.working")
@@ -446,7 +451,8 @@ export function GithubManager() {
             />
           </label>
           <label className="btn-outline btn-sm cursor-pointer w-fit">
-            📁 {t("projects.pickFolder")}
+            <AppIcon name="folder" className="me-1" />
+            {t("projects.pickFolder")}
             <input
               type="file"
               multiple
@@ -611,7 +617,8 @@ function TreeView({
             <li key={name}>
               <label className="flex items-center gap-2 cursor-pointer text-ink-primary">
                 <input type="checkbox" checked={allOn} onChange={(e) => onToggle(paths, e.target.checked)} className="accent-[var(--accent)]" />
-                📁 {name}/
+                <AppIcon name="folder" className="shrink-0" />
+                <span className="truncate">{name}/</span>
               </label>
               <div className="ps-5 border-s border-base-border ms-1.5">
                 <TreeView node={child} unchecked={unchecked} onToggle={onToggle} />
@@ -628,7 +635,8 @@ function TreeView({
               onChange={(e) => onToggle([entry.path], e.target.checked)}
               className="accent-[var(--accent)]"
             />
-            <span className="truncate">📄 {name}</span>
+            <AppIcon name="file" className="shrink-0 !text-ink-muted" />
+            <span className="truncate">{name}</span>
             <span className="ms-auto text-ink-muted shrink-0">{formatBytes(entry.size)}</span>
           </label>
         </li>
