@@ -162,7 +162,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("auth.email")}
-              dir="ltr"
+              dir={email ? "ltr" : undefined}
               className={inputClass}
             />
             <input
@@ -173,7 +173,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t("auth.password")}
-              dir="ltr"
+              dir={password ? "ltr" : undefined}
               className={inputClass}
             />
 
