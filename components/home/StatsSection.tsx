@@ -36,7 +36,7 @@ export function StatsSection({
           </Reveal>
         ))}
       </div>
-      <p className="text-center text-xs text-ink-muted pb-8">{t("stats.note")}</p>
+      <p className="text-center text-xs text-ink-muted pb-8 px-4 max-w-2xl mx-auto leading-relaxed">{t("stats.note")}</p>
     </section>
   );
 }
