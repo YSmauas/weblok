@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "i18n:merge": "node scripts/i18n-merge.mjs"
   },
   "dependencies": {
     "next": "14.2.15",

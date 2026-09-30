@@ -5,19 +5,19 @@
  * המפתח נשלח בכותרת x-goog-api-key ולא ב-query string, כדי שלא יופיע
  * בלוגים של שרתים/פרוקסי בדרך.
  */
-/**
- * רשימת מודלים לפי סדר עדיפות. גוגל הגבילה את משפחת 2.5 למי ששימש בה בעבר,
- * ומפתחות חדשים מקבלים "model is no longer available" (404) - לכן ברירת המחדל
- * היא 3.5, ו-2.5 נשארת רק כגיבוי לחשבונות ישנים. כשמודל לא זמין עוברים לבא בתור.
- */
-export const GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"] as const;
-export const GEMINI_MODEL = GEMINI_MODELS[0];
+import { GEMINI_ENDPOINT, GEMINI_MODELS } from "./models";
 
-const MODEL_UNAVAILABLE = /no longer available|not found for API version|is not supported for generateContent/i;
+export { GEMINI_MODEL, GEMINI_MODELS } from "./models";
+
+const MODEL_UNAVAILABLE = /no longer available|not found for API version|is not supported for generateContent|models\/[^ ]+ is not found/i;
 
 export type GeminiErrorCode =
   | "invalid_key"
   | "rate_limited"
+  | "quota"
+  | "model_unavailable"
+  | "region"
+  | "api_disabled"
   | "blocked"
   | "truncated"
   | "empty"
@@ -53,7 +53,7 @@ export async function callGemini({
   for (const model of GEMINI_MODELS) {
     let attempt: Response;
     try {
-      attempt = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      attempt = await fetch(`${GEMINI_ENDPOINT}/${model}:generateContent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey.trim() },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig }),
@@ -70,13 +70,9 @@ export async function callGemini({
     const body = await attempt.text().catch(() => "");
     // מודל לא זמין לחשבון/הוסר - מנסים את הבא ברשימה
     if (attempt.status === 404 || MODEL_UNAVAILABLE.test(body)) continue;
-    if (attempt.status === 429) throw new GeminiError("rate_limited");
-    if (attempt.status === 401 || attempt.status === 403 || /API_KEY_INVALID|API key not valid/i.test(body)) {
-      throw new GeminiError("invalid_key");
-    }
-    throw new GeminiError("failed", `HTTP ${attempt.status}`);
+    throw new GeminiError(classifyHttpError(attempt.status, body), `HTTP ${attempt.status}`);
   }
-  if (!res) throw new GeminiError("failed", "model_unavailable");
+  if (!res) throw new GeminiError("model_unavailable");
 
   const data = await res.json().catch(() => null);
   if (data?.promptFeedback?.blockReason) throw new GeminiError("blocked");
@@ -92,6 +88,21 @@ export async function callGemini({
   }
   if (candidate?.finishReason === "MAX_TOKENS" && json) throw new GeminiError("truncated");
   return text;
+}
+
+/**
+ * ממפה תשובת שגיאה של Gemini לקוד ברור. גוף התשובה נבדק רק מול תבניות
+ * ידועות ולא מוצג למשתמש ולא נכתב ללוג (עלול לכלול פרטי חשבון).
+ */
+export function classifyHttpError(status: number, body: string): GeminiErrorCode {
+  if (/API_KEY_INVALID|API key not valid|API_KEY_EXPIRED|expired/i.test(body)) return "invalid_key";
+  if (/location is not supported|FAILED_PRECONDITION/i.test(body)) return "region";
+  if (/SERVICE_DISABLED|has not been used in project|is disabled/i.test(body)) return "api_disabled";
+  // 429: מכסה יומית (בדרך כלל Free tier) שונה מהגבלת קצב לדקה - הראשונה לא תיפתר בעוד רגע
+  if (status === 429) return /per ?day|PerDay|free_tier/i.test(body) ? "quota" : "rate_limited";
+  if (status === 401 || status === 403) return "invalid_key";
+  if (status === 400 && /SAFETY|blocked/i.test(body)) return "blocked";
+  return "failed";
 }
 
 /** מחלץ JSON מתשובת מודל, גם אם נעטפה ב-```json או כללה טקסט מסביב. */
