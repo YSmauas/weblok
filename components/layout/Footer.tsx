@@ -21,7 +21,7 @@ export function Footer({
         <div className="flex items-center gap-3 flex-wrap justify-center">
           <span>
             {t("footer.creditPrefix")} {t("footer.creditName")}{" "}
-            <span dir="ltr">
+            <span>
               {t("footer.creditTeam").replace("cloud", "")}
               <a
                 href={CLOUD_LINK}
