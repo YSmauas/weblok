@@ -105,6 +105,53 @@ export function classifyHttpError(status: number, body: string): GeminiErrorCode
   return "failed";
 }
 
+export type KeyCheckResult =
+  /** המפתח תקין ויש לו גישה לפחות למודל אחד מהרשימה */
+  | { status: "valid" }
+  /** המפתח תקין, אבל אין לו גישה לאף מודל שהמערכת משתמשת בו */
+  | { status: "no_model" }
+  /** הגוגל דחתה את המפתח - לא לשמור */
+  | { status: "invalid"; code: "invalid_key" | "region" | "api_disabled" }
+  /** לא הצלחנו לאמת (רשת, הגבלת קצב, מכסה) - המפתח עשוי להיות תקין */
+  | { status: "unverified"; code: GeminiErrorCode };
+
+/**
+ * בדיקת מפתח לפני שמירה: GET על רשימת המודלים. זו קריאה קלה שלא צורכת
+ * מכסת יצירה ולא עולה כסף. התשובה מכילה גם את המודלים שהמפתח רשאי להשתמש
+ * בהם, ולכן אפשר לזהות מפתח תקין שאין לו גישה למודלים שלנו (בדיוק מה שקרה
+ * ב-gemini-2.5-flash). המפתח נשלח בכותרת, לא ב-URL, ולא נכתב ללוג.
+ */
+export async function validateGeminiKey(apiKey: string, timeoutMs = 8000): Promise<KeyCheckResult> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${GEMINI_ENDPOINT}?pageSize=1000`, {
+      headers: { "x-goog-api-key": apiKey.trim() },
+      signal: ctrl.signal,
+    });
+    if (!res.ok) {
+      const code = classifyHttpError(res.status, await res.text().catch(() => ""));
+      if (code === "invalid_key" || code === "region" || code === "api_disabled") return { status: "invalid", code };
+      return { status: "unverified", code };
+    }
+    const data = await res.json().catch(() => null);
+    const models: { name?: unknown; supportedGenerationMethods?: unknown }[] = Array.isArray(data?.models)
+      ? data.models
+      : [];
+    if (!models.length) return { status: "unverified", code: "failed" };
+    const usable = new Set(
+      models
+        .filter((m) => !Array.isArray(m.supportedGenerationMethods) || m.supportedGenerationMethods.includes("generateContent"))
+        .map((m) => String(m.name ?? "").replace(/^models\//, ""))
+    );
+    return GEMINI_MODELS.some((m) => usable.has(m)) ? { status: "valid" } : { status: "no_model" };
+  } catch {
+    return { status: "unverified", code: "network" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** מחלץ JSON מתשובת מודל, גם אם נעטפה ב-```json או כללה טקסט מסביב. */
 export function extractJson<T = unknown>(raw: string): T {
   const cleaned = raw.replace(/```(?:json)?/gi, "").trim();
