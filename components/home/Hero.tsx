@@ -13,7 +13,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <PuzzleBackground />
-      <div className="relative max-w-3xl mx-auto px-6 pt-20 sm:pt-24 pb-28 sm:pb-32 text-center">
+      <div className="relative max-w-3xl mx-auto px-6 pt-16 sm:pt-20 pb-14 sm:pb-16 text-center">
         <Link href="/structures" className="chip hover:border-accent transition-colors animate-rise">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden />
           {t("hero.badge")}
