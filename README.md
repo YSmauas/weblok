@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/brand/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./public/brand/logo-light.svg">
+    <img alt="WEblok" src="./public/brand/logo-dark.svg" width="360">
+  </picture>
+</p>
+
 # WEblok
 
 ספריית בלוקים חכמים להטמעה באתרים — כל בלוק ניתן לעריכה חיה בעורך, ומופק כקוד הטמעה עצמאי ובטוח (ללא חשיפת מפתחות API). בנוסף: **מבנים** — פרויקטים שלמים (כרגע: אישורי הגעה לאירועים) שמוכנים לפריסה ב-Vercel שלכם.
@@ -78,6 +86,7 @@ lib/
   theme-provider.tsx        ניהול מצב כהה/בהיר
 
 public/icons/               google.png (כפתור ההתחברות), topmentors.png (פוטר ומודאל אודות)
+public/brand/               לוגו WEblok: logo-dark/light (SVG+PNG), logo-mark, social-preview.png
 ```
 
 ## הבלוקים
