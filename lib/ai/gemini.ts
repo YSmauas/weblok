@@ -18,18 +18,34 @@ export type GeminiErrorCode =
   | "model_unavailable"
   | "region"
   | "api_disabled"
+  | "denied"
   | "blocked"
   | "truncated"
   | "empty"
   | "network"
   | "failed";
 
+/** פרטים טכניים לא רגישים על הכשל (קוד HTTP, סטטוס Google, מודל) - לאבחון בלבד */
+export interface GeminiErrorDetail {
+  status?: number;
+  apiStatus?: string;
+  model?: string;
+}
+
 export class GeminiError extends Error {
-  constructor(public code: GeminiErrorCode, message?: string) {
+  constructor(public code: GeminiErrorCode, message?: string, public detail?: GeminiErrorDetail) {
     super(message ?? code);
     this.name = "GeminiError";
   }
 }
+
+/** "HTTP 403 · PERMISSION_DENIED · gemini-3.8-flash" - בלי טקסט חופשי מהתשובה (עלול לכלול פרטי חשבון) */
+export function formatGeminiDetail(d?: GeminiErrorDetail): string {
+  if (!d) return "";
+  return [d.status ? `HTTP ${d.status}` : "", d.apiStatus ?? "", d.model ?? ""].filter(Boolean).join(" · ");
+}
+
+const apiStatusOf = (body: string) => /"status"\s*:\s*"([A-Z_]{3,40})"/.exec(body)?.[1];
 
 export async function callGemini({
   apiKey,
@@ -45,12 +61,13 @@ export async function callGemini({
   temperature?: number;
   signal?: AbortSignal;
 }): Promise<string> {
-  const generationConfig: Record<string, unknown> = {};
-  if (json) generationConfig.responseMimeType = "application/json";
-  if (temperature !== undefined) generationConfig.temperature = temperature;
-
   let res: Response | null = null;
+  let lastError: GeminiError | null = null;
   for (const model of GEMINI_MODELS) {
+    const generationConfig: Record<string, unknown> = {};
+    if (json) generationConfig.responseMimeType = "application/json";
+    // בדור 3 ההנחיה של גוגל היא להשאיר temperature ברירת מחדל (ערך נמוך עלול לגרום ללולאות/ירידה באיכות)
+    if (temperature !== undefined && model.startsWith("gemini-2")) generationConfig.temperature = temperature;
     let attempt: Response;
     try {
       attempt = await fetch(`${GEMINI_ENDPOINT}/${model}:generateContent`, {
@@ -68,11 +85,21 @@ export async function callGemini({
       break;
     }
     const body = await attempt.text().catch(() => "");
+    const detail: GeminiErrorDetail = { status: attempt.status, apiStatus: apiStatusOf(body), model };
     // מודל לא זמין לחשבון/הוסר - מנסים את הבא ברשימה
-    if (attempt.status === 404 || MODEL_UNAVAILABLE.test(body)) continue;
-    throw new GeminiError(classifyHttpError(attempt.status, body), `HTTP ${attempt.status}`);
+    if (attempt.status === 404 || MODEL_UNAVAILABLE.test(body)) {
+      lastError = new GeminiError("model_unavailable", `HTTP ${attempt.status}`, detail);
+      continue;
+    }
+    const code = classifyHttpError(attempt.status, body);
+    // המכסה/הגבלת הקצב נספרות לכל מודל בנפרד - מודל אחר עשוי לעבוד
+    if (code === "rate_limited" || code === "quota") {
+      lastError = new GeminiError(code, `HTTP ${attempt.status}`, detail);
+      continue;
+    }
+    throw new GeminiError(code, `HTTP ${attempt.status}`, detail);
   }
-  if (!res) throw new GeminiError("model_unavailable");
+  if (!res) throw lastError ?? new GeminiError("model_unavailable");
 
   const data = await res.json().catch(() => null);
   if (data?.promptFeedback?.blockReason) throw new GeminiError("blocked");
@@ -98,6 +125,8 @@ export function classifyHttpError(status: number, body: string): GeminiErrorCode
   if (/API_KEY_INVALID|API key not valid|API_KEY_EXPIRED|expired/i.test(body)) return "invalid_key";
   if (/location is not supported|FAILED_PRECONDITION/i.test(body)) return "region";
   if (/SERVICE_DISABLED|has not been used in project|is disabled/i.test(body)) return "api_disabled";
+  // 403 "Your project has been denied access": הפרויקט חסום ב-Google, לא שהמפתח שגוי
+  if (/project has been denied access|denied access/i.test(body)) return "denied";
   // 429: מכסה יומית (בדרך כלל Free tier) שונה מהגבלת קצב לדקה - הראשונה לא תיפתר בעוד רגע
   if (status === 429) return /per ?day|PerDay|free_tier/i.test(body) ? "quota" : "rate_limited";
   if (status === 401 || status === 403) return "invalid_key";

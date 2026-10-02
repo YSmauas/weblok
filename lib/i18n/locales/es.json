@@ -222,6 +222,7 @@
   "ai.err.model_unavailable": "Ningún modelo Gemini está disponible para esta clave ahora. Puede que Google haya cambiado los nombres de los modelos; avísanos.",
   "ai.err.region": "Gemini no está disponible en la región desde la que se envió la solicitud.",
   "ai.err.api_disabled": "La API de Gemini no está habilitada en el proyecto de esta clave. Crea una clave nueva en Google AI Studio.",
+  "ai.err.denied": "Google denegó el acceso a la API de Gemini para el proyecto de esta clave (403 denied access). No se trata de que la clave sea incorrecta y se ha reportado recientemente en proyectos gratuitos. Cree una clave nueva en un proyecto nuevo en Google AI Studio, o active la facturación.",
   "ai.err.network": "No se pudo conectar con el servicio de IA. Revisa tu conexión (o bloqueador de anuncios) e inténtalo de nuevo.",
   "blocks.injectCtaTitle": "¿Ya tienes un sitio web?",
   "blocks.injectCtaText": "Sube un archivo HTML y la IA colocará el bloque en el lugar correcto, en tu navegador, sin subir nada a nuestro servidor.",

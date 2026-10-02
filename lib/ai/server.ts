@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret } from "@/lib/crypto";
 import { rateLimit } from "@/lib/rate-limit";
-import { GeminiError } from "./gemini";
+import { formatGeminiDetail, GeminiError } from "./gemini";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
@@ -48,12 +48,14 @@ export async function requireAiUser(
 /** ממפה שגיאת Gemini לתשובת API אחידה (בלי לחשוף פרטים פנימיים). */
 export function aiErrorResponse(e: unknown): NextResponse {
   const code = e instanceof GeminiError ? e.code : "failed";
+  // detail: קוד HTTP + סטטוס Google + מודל בלבד (לא טקסט חופשי) - כדי שאפשר יהיה לאבחן מהמסך
+  const detail = e instanceof GeminiError ? formatGeminiDetail(e.detail) : "";
   if (code === "invalid_key" || code === "api_disabled" || code === "region") {
-    return NextResponse.json({ error: code }, { status: 400 });
+    return NextResponse.json({ error: code, detail }, { status: 400 });
   }
-  if (code === "rate_limited" || code === "quota") return NextResponse.json({ error: code }, { status: 429 });
-  if (code === "blocked" || code === "truncated" || code === "model_unavailable" || code === "network") {
-    return NextResponse.json({ error: code }, { status: 502 });
+  if (code === "rate_limited" || code === "quota") return NextResponse.json({ error: code, detail }, { status: 429 });
+  if (code === "blocked" || code === "truncated" || code === "model_unavailable" || code === "network" || code === "denied") {
+    return NextResponse.json({ error: code, detail }, { status: 502 });
   }
-  return NextResponse.json({ error: "ai_failed" }, { status: 502 });
+  return NextResponse.json({ error: "ai_failed", detail }, { status: 502 });
 }

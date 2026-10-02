@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { callGemini, GeminiError } from "@/lib/ai/gemini";
+import { callGemini, formatGeminiDetail, GeminiError } from "@/lib/ai/gemini";
 import { toAiError } from "@/lib/ai/client";
 import {
   blockCode,
@@ -159,7 +159,8 @@ export function InjectWorkbench({
     if (e instanceof InjectError) return t(`inject.err.${e.code}`);
     // תשובה ריקה מהמודל = אין תוכנית עריכה, לא "תקלה כללית"
     if (e instanceof GeminiError && e.code === "empty") return t("inject.err.bad_response");
-    return t(`ai.err.${toAiError(e)}`);
+    const detail = e instanceof GeminiError ? formatGeminiDetail(e.detail) : "";
+    return t(`ai.err.${toAiError(e)}`) + (detail ? ` (${detail})` : "");
   }
 
   async function apply() {

@@ -1,7 +1,7 @@
 "use client";
 
 import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
-import { callGemini, GeminiError } from "./gemini";
+import { callGemini, formatGeminiDetail, GeminiError } from "./gemini";
 import { decryptFromBrowser, encryptForBrowser } from "./key-vault";
 import { buildImprovePrompt, buildRedesignPrompt, cleanImproved, parseRedesignChanges } from "./prompts";
 
@@ -79,6 +79,7 @@ export type AiErrorCode =
   | "model_unavailable"
   | "region"
   | "api_disabled"
+  | "denied"
   | "network"
   | "unauthorized"
   | "blocked"
@@ -94,12 +95,17 @@ const PASS_THROUGH: readonly AiErrorCode[] = [
   "model_unavailable",
   "region",
   "api_disabled",
+  "denied",
   "network",
   "blocked",
   "truncated",
 ];
 
 const isAiErrorCode = (c: unknown): c is AiErrorCode => typeof c === "string" && (PASS_THROUGH as string[]).includes(c);
+
+/** פרטי הכשל האחרון (HTTP · סטטוס Google · מודל) - מוצג ליד הודעת השגיאה לאבחון */
+let lastDetail = "";
+export const getLastAiDetail = () => lastDetail;
 
 export type AiResult<T> = { ok: true; data: T } | { ok: false; error: AiErrorCode };
 
@@ -131,13 +137,19 @@ export async function improveText(text: string, label: string): Promise<AiResult
   if (browserKey) {
     try {
       const improved = cleanImproved(await callGemini({ apiKey: browserKey, prompt: buildImprovePrompt(text, label) }));
+      lastDetail = "";
       return improved ? { ok: true, data: improved } : { ok: false, error: "failed" };
     } catch (e) {
+      lastDetail = e instanceof GeminiError ? formatGeminiDetail(e.detail) : "";
       return { ok: false, error: toAiError(e) };
     }
   }
   const { res, data } = await postJson("/api/ai/improve", { text, label });
-  if (res?.ok && typeof data?.text === "string") return { ok: true, data: data.text };
+  if (res?.ok && typeof data?.text === "string") {
+    lastDetail = "";
+    return { ok: true, data: data.text };
+  }
+  lastDetail = typeof data?.detail === "string" && data.detail ? data.detail : res ? `HTTP ${res.status}` : "";
   return { ok: false, error: fromApiError(res?.status, data?.error) };
 }
 
@@ -156,12 +168,18 @@ export async function redesignBlock(
         json: true,
       });
       const changes = parseRedesignChanges(raw, fields);
+      lastDetail = Object.keys(changes).length ? "" : "no_valid_changes";
       return Object.keys(changes).length ? { ok: true, data: changes } : { ok: false, error: "failed" };
     } catch (e) {
+      lastDetail = e instanceof GeminiError ? formatGeminiDetail(e.detail) : "";
       return { ok: false, error: toAiError(e) };
     }
   }
   const { res, data } = await postJson("/api/ai/redesign", { blockSlug: slug, description, values });
-  if (res?.ok && data?.changes && typeof data.changes === "object") return { ok: true, data: data.changes };
+  if (res?.ok && data?.changes && typeof data.changes === "object") {
+    lastDetail = "";
+    return { ok: true, data: data.changes };
+  }
+  lastDetail = typeof data?.detail === "string" && data.detail ? data.detail : res ? `HTTP ${res.status}` : "";
   return { ok: false, error: fromApiError(res?.status, data?.error) };
 }
