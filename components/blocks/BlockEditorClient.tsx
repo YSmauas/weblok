@@ -8,7 +8,7 @@ import type { BlockValues, FieldDef } from "@/lib/blocks-registry/types";
 import { exportBlock, type ExportFormat } from "@/lib/blocks-registry/export";
 import { downloadAsZip } from "@/lib/download-zip";
 import { copyText, downloadText } from "@/lib/download";
-import { improveText, redesignBlock, type AiErrorCode } from "@/lib/ai/client";
+import { getLastAiDetail, improveText, redesignBlock, type AiErrorCode } from "@/lib/ai/client";
 import { REDESIGN_MAX_LENGTH } from "@/lib/ai/prompts";
 import { saveEditorDraft } from "@/lib/inject/options";
 import { createClient } from "@/lib/supabase/client";
@@ -477,9 +477,15 @@ export function BlockEditorClient({
 /** הודעת שגיאת AI - עם קישור לפרופיל כשהבעיה היא מפתח חסר/שגוי. */
 function AiErrorMessage({ code }: { code: AiErrorCode }) {
   const { t } = useLocale();
+  const detail = getLastAiDetail();
   return (
     <p role="alert" className="text-xs text-danger">
       {t(`ai.err.${code}`)}{" "}
+      {detail && (
+        <span dir="ltr" className="inline-block opacity-70 font-mono text-[10px]">
+          ({detail}){" "}
+        </span>
+      )}
       {(code === "no_key" || code === "invalid_key") && (
         <Link href="/dashboard/profile" className="underline font-semibold">
           {t("ai.goToProfile")}
