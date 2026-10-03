@@ -54,6 +54,7 @@ export function aiErrorResponse(e: unknown): NextResponse {
     return NextResponse.json({ error: code, detail }, { status: 400 });
   }
   if (code === "rate_limited" || code === "quota") return NextResponse.json({ error: code, detail }, { status: 429 });
+  if (code === "overloaded") return NextResponse.json({ error: code, detail }, { status: 503 });
   if (code === "blocked" || code === "truncated" || code === "model_unavailable" || code === "network" || code === "denied") {
     return NextResponse.json({ error: code, detail }, { status: 502 });
   }

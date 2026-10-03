@@ -19,6 +19,7 @@ export type GeminiErrorCode =
   | "region"
   | "api_disabled"
   | "denied"
+  | "overloaded"
   | "blocked"
   | "truncated"
   | "empty"
@@ -92,8 +93,8 @@ export async function callGemini({
       continue;
     }
     const code = classifyHttpError(attempt.status, body);
-    // המכסה/הגבלת הקצב נספרות לכל מודל בנפרד - מודל אחר עשוי לעבוד
-    if (code === "rate_limited" || code === "quota") {
+    // המכסה/הגבלת הקצב נספרות לכל מודל בנפרד, ועומס (503) לרוב פוקד מודל אחד - מודל אחר עשוי לעבוד
+    if (code === "rate_limited" || code === "quota" || code === "overloaded") {
       lastError = new GeminiError(code, `HTTP ${attempt.status}`, detail);
       continue;
     }
@@ -131,6 +132,8 @@ export function classifyHttpError(status: number, body: string): GeminiErrorCode
   if (status === 429) return /per ?day|PerDay|free_tier/i.test(body) ? "quota" : "rate_limited";
   if (status === 401 || status === 403) return "invalid_key";
   if (status === 400 && /SAFETY|blocked/i.test(body)) return "blocked";
+  // 5xx = בעיה זמנית בצד Google (למשל 503 UNAVAILABLE כשהמודל עמוס)
+  if (status === 500 || status === 502 || status === 503 || status === 504) return "overloaded";
   return "failed";
 }
 
