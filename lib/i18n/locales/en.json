@@ -223,6 +223,7 @@
   "ai.err.region": "Gemini isn't available in the region the request came from.",
   "ai.err.api_disabled": "The Gemini API isn't enabled for this key's project. Create a new key in Google AI Studio.",
   "ai.err.denied": "Google denied access to the Gemini API for this key's project (403 denied access). This isn't about the key being wrong, and has been reported recently on free-tier projects. Try creating a new key in a new project in Google AI Studio, or enable billing.",
+  "ai.err.overloaded": "Google's service is overloaded right now and couldn't answer (including the fallback models). This is a temporary problem on Google's side, not your key. Try again in a minute.",
   "ai.err.network": "Couldn't reach the AI service. Check your connection (or ad blocker) and try again.",
   "blocks.injectCtaTitle": "Already have a website?",
   "blocks.injectCtaText": "Upload an HTML file and the AI will place the block in the right spot - in your browser, nothing uploaded to our server.",

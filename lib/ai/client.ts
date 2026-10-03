@@ -80,6 +80,7 @@ export type AiErrorCode =
   | "region"
   | "api_disabled"
   | "denied"
+  | "overloaded"
   | "network"
   | "unauthorized"
   | "blocked"
@@ -96,6 +97,7 @@ const PASS_THROUGH: readonly AiErrorCode[] = [
   "region",
   "api_disabled",
   "denied",
+  "overloaded",
   "network",
   "blocked",
   "truncated",
