@@ -47,19 +47,24 @@ export const CREDIT_URL = SITE_URL ?? GITHUB_PROJECT;
 export const GENERATOR_META = `${SITE_NAME} - ${CREDIT_URL}`;
 
 export const SITE_DESCRIPTION =
-  "ספריית בלוקים חכמים להטמעה באתרים: טפסי יצירת קשר, ווידג'טים ועוד - עריכה חיה, עריכה עם AI, הורדת קוד עצמאי והזרקה אוטומטית לפרויקט קיים.";
+  "בלוקים חכמים לאתר: כותרת, פוטר, פופאפ, טופס קשר ועוזר AI. עורכים בעורך חי ומורידים קוד עצמאי - בלי שרת ובלי מפתחות חשופים. כולל מבנים מוכנים, כמו אישורי הגעה לאירועים.";
 
 export const SITE_KEYWORDS = [
   "WEblok",
   "בלוקים לאתר",
   "טופס יצירת קשר",
-  "ווידג'ט לאתר",
+  "וידג'ט לאתר",
+  "פופאפ לאתר",
+  "אישור עוגיות",
+  "אישורי הגעה לאירועים",
   "קוד הטמעה",
   "עורך בלוקים",
   "בינה מלאכותית",
-  "הזרקת קוד",
+  "הזרקת קוד לאתר",
   "HTML",
   "website blocks",
   "embed widgets",
+  "cookie consent popup",
+  "event RSVP",
   "contact form generator",
 ];
