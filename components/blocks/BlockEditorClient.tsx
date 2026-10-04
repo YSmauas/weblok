@@ -28,6 +28,31 @@ const FORMATS: { id: ExportFormat; label: string }[] = [
 
 type PreviewMode = "mock" | "live";
 
+/** שינוי בודד שה-AI ביצע בעיצוב - להצגה למשתמש ולביטול */
+interface AiChange {
+  id: string;
+  label: string;
+  from: string;
+  to: string;
+  fromText: string;
+  toText: string;
+  isColor: boolean;
+}
+
+/** משווה את מה שה-AI החזיר למצב שלפני: מחזיר רק שינויים אמיתיים, עם שמות קריאים לאפשרויות. */
+function describeAiChanges(fields: FieldDef[], before: BlockValues, data: Record<string, string>): AiChange[] {
+  const out: AiChange[] = [];
+  for (const [id, to] of Object.entries(data)) {
+    const field = fields.find((f) => f.id === id);
+    if (!field) continue;
+    const from = before[id] ?? "";
+    if (from === to) continue;
+    const text = (v: string) => field.options?.find((o) => o.value === v)?.label ?? v;
+    out.push({ id, label: field.label, from, to, fromText: text(from), toText: text(to), isColor: field.type === "color" });
+  }
+  return out;
+}
+
 const DEVICES: { id: Device; icon: string; key: string; fb: string }[] = [
   { id: "mobile", icon: "device-mobile", key: "editor.device.mobile", fb: "מובייל" },
   { id: "tablet", icon: "device-tablet", key: "editor.device.tablet", fb: "טאבלט" },
@@ -90,9 +115,12 @@ export function BlockEditorClient({
   const [aiDescription, setAiDescription] = useState("");
   const [aiRedesignBusy, setAiRedesignBusy] = useState(false);
   const [aiRedesignError, setAiRedesignError] = useState<AiErrorCode | null>(null);
+  // תוצאת העריכה האחרונה עם AI: רשימת שינויים, או "none" כשה-AI לא שינה כלום
+  const [aiResult, setAiResult] = useState<AiChange[] | "none" | null>(null);
   const [copied, setCopied] = useState(false);
 
   const isLoggedIn = !!userId;
+  const hasAiFields = !!block?.fields.some((f) => f.aiDesignEditable);
   const loginHref = `/auth/login?redirectedFrom=${encodeURIComponent(`/blocks/${slug}`)}`;
 
   const set = (id: string, v: string) => {
@@ -144,19 +172,36 @@ export function BlockEditorClient({
 
   async function applyAiRedesign() {
     if (!block || !aiDescription.trim() || aiRedesignBusy) return;
+    const before = values;
     setAiRedesignBusy(true);
     setAiRedesignError(null);
-    const res = await redesignBlock(slug, block.fields, values, aiDescription.trim());
+    setAiResult(null);
+    const res = await redesignBlock(slug, block.fields, before, aiDescription.trim());
     setAiRedesignBusy(false);
-    if (res.ok) {
-      setValues((prev) => ({ ...prev, ...res.data }));
-      setUsedAi(true);
-      setSaveState("idle");
-      setAiDescription("");
-      setAiRedesignOpen(false);
+    if (!res.ok) {
+      setAiRedesignError(res.error);
       return;
     }
-    setAiRedesignError(res.error);
+    const changes = describeAiChanges(block.fields, before, res.data);
+    if (!changes.length) {
+      // ה-AI ענה, אבל כל הערכים זהים למה שכבר מוגדר - אומרים את זה במפורש (הטקסט נשאר לניסוח מחדש)
+      setAiResult("none");
+      return;
+    }
+    setValues((prev) => ({ ...prev, ...Object.fromEntries(changes.map((c) => [c.id, c.to])) }));
+    setUsedAi(true);
+    setSaveState("idle");
+    setAiDescription("");
+    setAiResult(changes);
+  }
+
+  /** מחזיר רק את ההגדרות שה-AI שינה (עריכות ידניות אחרות נשארות) */
+  function undoAiRedesign() {
+    if (!Array.isArray(aiResult)) return;
+    const changes = aiResult;
+    setValues((prev) => ({ ...prev, ...Object.fromEntries(changes.map((c) => [c.id, c.from])) }));
+    setSaveState("idle");
+    setAiResult(null);
   }
 
   async function saveDesign() {
@@ -335,10 +380,15 @@ export function BlockEditorClient({
             {isLoggedIn ? (
               <>
                 <p className="text-xs text-ink-secondary leading-relaxed">{t("editor.aiEditHint")}</p>
+                {!hasAiFields && <p role="status" className="text-xs text-ink-secondary">{t("editor.aiNoEditable")}</p>}
                 <div className="flex gap-2">
                   <input
                     value={aiDescription}
-                    onChange={(e) => setAiDescription(e.target.value)}
+                    disabled={!hasAiFields}
+                    onChange={(e) => {
+                      setAiDescription(e.target.value);
+                      if (aiResult === "none") setAiResult(null);
+                    }}
                     onKeyDown={(e) => e.key === "Enter" && applyAiRedesign()}
                     placeholder={t("editor.aiEditPlaceholder")}
                     maxLength={REDESIGN_MAX_LENGTH}
@@ -347,13 +397,43 @@ export function BlockEditorClient({
                   />
                   <button
                     onClick={applyAiRedesign}
-                    disabled={aiRedesignBusy || !aiDescription.trim()}
+                    disabled={aiRedesignBusy || !aiDescription.trim() || !hasAiFields}
                     className="btn-primary rounded-lg shrink-0"
                   >
                     {aiRedesignBusy ? "..." : t("editor.aiApply")}
                   </button>
                 </div>
+                {aiRedesignBusy && (
+                  <p role="status" className="text-xs text-ink-muted">
+                    {t("editor.aiBusy")}
+                  </p>
+                )}
                 {aiRedesignError && <AiErrorMessage code={aiRedesignError} />}
+                {aiResult === "none" && (
+                  <p role="status" className="text-xs text-ink-secondary">
+                    {t("editor.aiNoChange")}
+                  </p>
+                )}
+                {Array.isArray(aiResult) && (
+                  <div role="status" className="rounded-lg border border-base-border bg-base-panel/70 p-3 text-xs space-y-2">
+                    <div className="font-semibold text-ink-primary">{t("editor.aiResultTitle")}</div>
+                    <ul className="space-y-1.5">
+                      {aiResult.map((c) => (
+                        <li key={c.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                          <span className="text-ink-muted">{c.label}:</span>
+                          <ChangeValue text={c.fromText} color={c.isColor ? c.from : undefined} />
+                          <span aria-hidden className="inline-block ltr:rotate-180 text-ink-muted">
+                            ←
+                          </span>
+                          <ChangeValue text={c.toText} color={c.isColor ? c.to : undefined} strong />
+                        </li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={undoAiRedesign} className="text-accent font-semibold hover:underline">
+                      {t("editor.aiUndo")}
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <p className="text-sm text-ink-secondary">
@@ -471,6 +551,18 @@ export function BlockEditorClient({
         </div>
       </div>
     </div>
+  );
+}
+
+/** ערך לפני/אחרי בסיכום שינויי ה-AI; בצבע מוצג גם דוגמית צבע */
+function ChangeValue({ text, color, strong }: { text: string; color?: string; strong?: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1 ${strong ? "font-semibold text-ink-primary" : "text-ink-secondary"}`}>
+      {color && /^#[0-9a-fA-F]{6}$/.test(color) && (
+        <span className="inline-block w-3 h-3 rounded-sm border border-base-border" style={{ background: color }} aria-hidden />
+      )}
+      <span dir="auto">{text}</span>
+    </span>
   );
 }
 
