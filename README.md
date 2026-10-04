@@ -174,11 +174,11 @@ docs/                       מסמכי עזר
 
 ### בעבודה / מתוכנן
 
-- [ ] מעבר ידני ב-Vercel Preview מול Supabase ו-GitHub אמיתיים
+- [x] מעבר ידני ב-Vercel Preview מול Supabase ו-GitHub אמיתיים
 - [ ] nonce ל-CSP במקום `'unsafe-inline'`
 - [ ] מעבר מ-`next lint` ל-ESLint CLI; שדרוג ל-Next 16 (`middleware` → `proxy`)
 - [ ] תרגום הטקסטים הקבועים בתוך הבלוקים המיוצאים
-- [ ] החלפת `public/icons/google.png` בנכס הרשמי של גוגל
+- [x] החלפת `public/icons/google.png` בנכס הרשמי של גוגל
 - [ ] מבנים נוספים
 
 ## קרדיטים ורישיון
