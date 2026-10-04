@@ -2,7 +2,7 @@
 
 מסמך הקשר מלא: מה האתר, איך הוא בנוי, איפה כל דבר, **למה** הוא בנוי כך, ומה כבר נשבר בעבר.
 פותחים שיחה חדשה עם AI? הדביקו את הקובץ הזה ואמרו "בוא נמשיך מ-X".
-עודכן לאחרונה: ספטמבר 2026.
+עודכן לאחרונה: אוקטובר 2026.
 
 ---
 
@@ -45,6 +45,8 @@
 - לבעלים יש גישת MCP ל-Supabase (migrations, advisors) ול-Vercel (read-only).
 - **SECURITY.md מחייב.** האתר מציג ומייצא קוד שמשתמשים עורכים — XSS והזרקת קוד הם הסיכון המרכזי.
 - לא לגעת ב-`public/google*.html` (שם/תוכן), לא להוסיף תגית `verification` ל-layout.
+- **קבצים עוברים אצל הבעלים ב-ZIP/העלאה ידנית ל-GitHub.** לפני שמחליפים קובץ קיים: לוודא שהוא לא השתנה בינתיים (History), ולבקש את הגרסה העדכנית אם כן. שינויים הולכים ב-PR (CI + Preview של Vercel), לא ישר ל-`main`.
+- ה-PR האוטומטי של Dependabot ל-Next 16 **לא למזג** בלי מעבר מסודר (`middleware` → `proxy`, Turbopack, ראו מלכודת 12).
 
 ## 5. מודל הרשאות
 
@@ -86,7 +88,7 @@
 | `page.tsx` | דף הבית: Hero, JourneyScroll, ToolsShowcase, מונה (`public_stats` + `public_stats_totals`), יצירת קשר |
 | `blocks/page.tsx`, `blocks/[slug]/page.tsx` | קטלוג + עורך (שרת: טוען עיצוב שמור לפי `?design=`, מעביר ללקוח **רק slug**) |
 | `blocks/popup/cookies/` | מדריך "אישור עוגיות" (page, CookieGuide, content בשלוש שפות, snippets — קוד שנבדק בדפדפן) |
-| `structures/page.tsx`, `structures/[slug]/page.tsx` | קטלוג מבנים + עורך (סטטי, `generateStaticParams`) |
+| `structures/layout.tsx`, `structures/page.tsx`, `structures/[slug]/page.tsx` | layout עם `SiteChrome` (הדר+פוטר), קטלוג מבנים (מבנה בודד = כרטיס ברוחב מלא) + עורך (סטטי, `generateStaticParams`) |
 | `tools/` | `page.tsx` (רשימה), `inject/` (הזרקה), `github/` (ניהול מאגר) |
 | `dashboard/` | layout (noindex), ברכה, profile (מפתחות API, GitHub), saved, projects, `projects/[id]`, contact |
 | `admin/` | layout (noindex), סקירה+אנליטיקה (`DailyChart`), users, contacts |
@@ -95,22 +97,22 @@
 | `api/keys` | שמירה/מחיקה של מפתח (מוצפן; לעולם לא מוחזר ללקוח) |
 | `api/analytics` | אנליטיקה אנונימית (sid אקראי, בלי IP/משתמש/עוגיות) |
 | `api/contact`, `api/auth/check-email`, `api/admin/users/[id]` | טופס פנייה / בדיקת רישום (fail-closed) / ניהול משתמש |
-| `sitemap.ts`, `robots.ts`, `opengraph-image.tsx`, `icon.svg`, `not-found.tsx` | SEO |
+| `sitemap.ts`, `robots.ts`, `opengraph-image.tsx`, `icon.svg`, `not-found.tsx` | SEO. `icon.svg` (favicon) ו-`opengraph-image.tsx` משתמשים בלוגו הפאזל החדש — לעדכן יחד עם `IconLogo` ו-`public/brand/` |
 
 ### `components/`
-- `layout/`: `SiteChrome` (עטיפה), `Header` (לוגו `IconLogo`, ניווט), `Sidebar` (מגירה: בלוקים/מבנים/כלים), `Footer`, `AboutModal` (אודות/פרטיות/נגישות, מלכודת פוקוס), `PromoPopup` (קידום לבלוק הפופאפ, מגבלת תדירות)
-- `home/`: `Hero`, `JourneyScroll` (דביק, `dvh`), `ToolsShowcase`, `StatsSection`, `ContactSection`
+- `layout/`: `SiteChrome` (עטיפה), `Header` (לוגו `IconLogo`, ניווט), `Sidebar` (מגירה: בלוקים/מבנים/כלים), `Footer` (שורת הקרדיט ללא `dir` כפוי — ראו מלכודת 11), `AboutModal` (אודות/פרטיות/נגישות, מלכודת פוקוס), `PromoPopup` (קידום לבלוק הפופאפ, מגבלת תדירות)
+- `home/`: `Hero`, `JourneyScroll` (בדסקטופ/טאבלט: אזור דביק קטן, **מרחק גלילה קבוע `STEP_PX` לכל טיפ** — לא תלוי באורך הגלילה; טבעת עם נקודות לחיצות לכל טיפ וקפיץ rAF עם overshoot קטן; במובייל כרטיסים), `ToolsShowcase`, `StatsSection`, `ContactSection`
 - `blocks/`: `BlockEditorClient` (העורך), `LivePreview` (iframe מבודד בגדלי מכשיר, דף לדוגמה, replay), `previewDoc.ts` (בונה את מסמך התצוגה)
 - `editor/`: `DynamicForm` (קבוצות מתקפלות, `dependsOn`, `Popover` להסברים), `useTf.ts` (t עם גיבוי)
 - `structures/`: `StructureEditorClient`, `StructureForm` (כולל תאריך/שעה/מספר/תמונה), `StructureGithubPush`, `SecretsHelper` (מייצר סיסמאות בדפדפן), `StructureGuide`
 - `inject/`: `InjectWorkbench` (AI או מיקום ידני, לפני/אחרי, קוד), `GuestInject`, `BlockPicker`, `ApiKeyInput`
 - `projects/`: `ProjectWorkspace`, `ProjectBlocks`, `ProjectFiles` (העלאה, ייבוא ודחיפה לגיטהאב עם PR), `ProjectInject`
-- `tools/GithubManager.tsx`, `dashboard/*`, `admin/*` (`UsersTable`, `DailyChart`, `AdminNav`)
+- `tools/GithubManager.tsx`, `dashboard/*` (`ApiKeysManager` בודק את המפתח מול Google לפני שמירה), `admin/*` (`UsersTable`, `DailyChart`, `AdminNav`)
 - `ui/`: `AppIcon` (אייקוני SVG לפי מפתח — בלוקים/כלים/ממשק), `Icons` (לוגו, גלובוס, שמש/ירח, GitHub...), `Popover` (בועה אטומה שמתהפכת/נצמדת לגבולות המסך), `HtmlPreview` (iframe sandbox), `BrowserFrame`, `Card`, `T` (טקסט מתורגם בתוך Server Component), `LanguageSwitcher`, `CountUp`, `Reveal`, `PuzzleBackground`
 - `AnalyticsTracker.tsx` — צפייה + זמן שהייה; מכבד DNT/GPC
 
 ### `lib/`
-- `ai/`: `models.ts` (**מקום יחיד** לשמות מודלים + `NEXT_PUBLIC_GEMINI_MODELS`), `gemini.ts` (קריאה + fallback בין מודלים + סיווג שגיאות), `client.ts` (דפדפן: מפתח בדפדפן או דרך השרת; `AiErrorCode` → `ai.err.<code>`), `server.ts` (אימות משתמש, rate limit, פענוח מפתח), `prompts.ts` (guardrails משותפים), `key-vault.ts` (הצפנת מפתחות/טוקנים בדפדפן — מפתח non-extractable ב-IndexedDB)
+- `ai/`: `models.ts` (**מקום יחיד** לשמות מודלים + `NEXT_PUBLIC_GEMINI_MODELS`), `gemini.ts` (קריאה + fallback לדגם הבא ב-404/429/5xx; סיווג שגיאות כולל `denied` ו-`overloaded`; `GeminiErrorDetail` + `formatGeminiDetail` = קוד HTTP · סטטוס Google · מודל, **בלי טקסט חופשי**; `validateGeminiKey` = בדיקת מפתח לפני שמירה דרך רשימת המודלים; `temperature` נשלח רק למודלי 2.x), `client.ts` (דפדפן; `getLastAiDetail` מציג ליד השגיאה את פרטי הכשל לאבחון; מפתח בדפדפן או דרך השרת; `AiErrorCode` → `ai.err.<code>`), `server.ts` (אימות משתמש, rate limit, פענוח מפתח), `prompts.ts` (guardrails משותפים), `key-vault.ts` (הצפנת מפתחות/טוקנים בדפדפן — מפתח non-extractable ב-IndexedDB)
 - `blocks-registry/`: `types.ts`, `index.ts` (רישום), `export.ts` + `export-types.ts` (3 פורמטים + קרדיט), `_shared/util.ts` (`esc`, `jsStr`, `safeLink`, `safeAsset`, שדות עיצוב, גופן מערכת כברירת מחדל, אנימציות), ותיקייה לכל בלוק (`meta`, `config.schema`, `generator`, `preview`): `chatbot-assistant` (+`strings.ts`), `contact-form` (+`themes.ts`), `site-header`, `site-footer`, `site-sidebar`, `popup`
 - `structures/`: `types.ts`, `catalog.ts` (מטא בלבד — לתפריט), `index.ts`, `image.ts` (בדיקת magic bytes), `export.ts` (ZIP), `rsvp/` (`fields`, `config` — סניטציה, `generator`, `templates` — קבצי הפרויקט המיוצא, `strings`, `theme`, `readme`, `preview`, `meta`)
 - `inject/`: `core.ts` (הזרקת AI: prompt → עריכות find/replace → אימות), `guard.ts` (**שומר סף**: עריכה מותרת להוסיף רק את קוד הבלוק שלנו + עטיפות פשוטות), `placement.ts` (הזרקה לפי מיקום, זיהוי הדר קבוע/כפתורים צפים, סולם z-index), `options.ts`
@@ -123,6 +125,7 @@
 
 ### אחר
 - `public/google60885fcb8d60a516.html` — אימות Search Console. **לא לגעת.**
+- `public/brand/` — לוגו WEblok: `logo-dark/light` (SVG+PNG), `logo-mark`, `social-preview.png` (ל-Settings → Social preview בגיטהאב). נבנה מהגיאומטריה של `IconLogo`; אם הלוגו משתנה — לעדכן גם כאן, ב-`app/icon.svg` ובתמונת ה-OG
 - `public/icons/google.png` (כפתור התחברות; שחזור — להחליף בנכס הרשמי לפני פרסום רחב), `public/icons/topmentors.png` (לא לגעת)
 - `supabase/migrations/0006_public_visit_stats.sql` — מונה ביקורים ציבורי + אינדקס
 
@@ -148,6 +151,10 @@
 8. **`100vh` באנדרואיד** קופץ עם סרגל הכתובת — להשתמש ב-`dvh`, ו-`env(safe-area-inset-*)` (`viewportFit: "cover"`).
 9. **canonical בלייאאוט השורש** "הוריש" `/` לכל דף בלי canonical — הוסר; כל דף מגדיר משלו.
 10. **משטחים שקופים** (`.glass`) בחלונות צפים = טקסט לא קריא במצב בהיר. חלונות צפים → `.surface`.
+11. **`dir="ltr"` כפוי הופך סדר בעברית.** על `<span>` עם עברית (שורת הקרדיט בפוטר) הוא מציג "© צוות" הפוך. בשדות אימייל/סיסמה הוא מזיז את הטקסט הרקע שמאלה. פתרון: `dir` מותנה בתוכן (`dir={value ? "ltr" : undefined}`), ובטקסט עוטף — בלי `dir`.
+12. **Tailwind מפרש טקסט כמחלקה.** מחרוזת בצורת `[x:y]` בתוך קבצי `app|components|lib` (למשל רגקס `/[-:T]/g`) הופכת לכלל CSS לא תקין (`-: T;`). Webpack התעלם, **Turbopack (Next 16) מפיל את ה-build**. כותבים `/-|:|T/g`. ה-PR של Dependabot ל-Next 16 נכשל בגלל זה (תוקן ב-`sync.ts`, `rsvp/templates.ts`, `inject/placement.ts`); עדיין לא עוברים ל-16.
+13. **Gemini: מכסה ועומס הם לפי מודל, וגם הפרויקט יכול להיחסם.** 429 (מכסה) ו-5xx (למשל 503 UNAVAILABLE) → עוברים למודל הבא. 403 "Your project has been denied access" הוא חסימת פרויקט (דווח בפרויקטים חינמיים) ולא מפתח שגוי — ו-`models.list` עדיין מחזיר 200, ולכן `validateGeminiKey` לא תופס אותו. `temperature` נמוך נשלח רק למודלי 2.x (בדור 3 גוגל ממליצה להשאיר ברירת מחדל). קוד הכשל מוצג למשתמש בסוגריים — מבקשים צילום מסך עם הקוד לפני שמנחשים.
+14. **כפתור "המשך עם גוגל".** `public/icons/google.png` הוא שחזור של ה-`G`, לא הנכס הרשמי. להחליף בנכס מ-`signin-assets.zip` לפני פרסום רחב / אימות אפליקציה (ראו SETUP_GUIDE).
 
 ## 10. אבטחה — תקציר (הפירוט ב-SECURITY.md)
 
@@ -168,6 +175,10 @@
 - `next lint` מסומן deprecated ב-Next 15 (עדיין עובד) — מעבר ל-ESLint CLI בהמשך.
 - Leaked Password Protection כבוי (Pro); אימות מייל בהרשמה כבוי (אין SMTP).
 - `npm audit`: נשארה אזהרת postcss פנימית של Next (build-time בלבד).
+- **Next 16 לא אומץ.** ה-PR של Dependabot דורש מעבר `middleware.ts` → `proxy.ts` (שכבת ההרשאות הראשונה יושבת שם), Turbopack וסימון Edge Runtime כמיושן. לעשות במכוון, בענף נפרד, עם Preview.
+- **קישורי אתר בחיפוש (sitelinks)** נדחו: דורש לפתוח לאינדוקס `/auth/login` ו-`/auth/signup` (כרגע חסומים ב-`robots.ts` ומסומנים noindex), להוסיפם ל-sitemap, ובעיקר מוניטין/דומיין. גוגל מחליטה לבד.
+- **גלילת הטיפים בדף הבית** מבוססת מרחק קבוע לכל טיפ, לא "גלילה אחת = טיפ אחד" אמיתי (זה דורש חטיפת גלילה, שנשברת במגע ובתנופה).
+- **חסימת פרויקט Gemini חינמי (403 denied)** — מחוץ לשליטה שלנו; המשתמש צריך מפתח בפרויקט אחר או חיוב.
 
 ## 12. הוספת דברים
 

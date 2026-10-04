@@ -128,10 +128,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
               {t("auth.continueGithub")}
             </button>
             <button type="button" disabled={busy} onClick={() => oauth("google")} className={oauthClass}>
-              {/* לפי הנחיות המותג של Google: ה-G הצבעוני תמיד על רקע לבן - גם במצב כהה (חריג מכוון לטוקנים) */}
-              <span className="shrink-0 w-6 h-6 rounded-full bg-[#fff] flex items-center justify-center" aria-hidden="true">
-                <Image src="/icons/google.png" alt="" width={16} height={16} />
-              </span>
+              {/* הנכס הרשמי של Google (Light, Square, ללא טקסט): ה-G מופיע על האריח הלבן שלו, כך שנראה נכון גם במצב כהה וגם בהיר.
+                  ה-G תופס בערך חצי מהאריח, ולכן האריח מוצג ב-28px (G ≈ 14px) */}
+              <Image src="/icons/google.png" alt="" width={28} height={28} aria-hidden="true" className="shrink-0" />
               {t("auth.continueGoogle")}
             </button>
           </div>
