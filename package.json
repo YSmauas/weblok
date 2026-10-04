@@ -1,6 +1,27 @@
 {
   "name": "weblok",
   "version": "0.1.0",
+  "description": "WEblok - smart website blocks: design in a live editor, export self-contained code",
+  "homepage": "https://weblok-alpha.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YSmauas/weblok.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YSmauas/weblok/issues"
+  },
+  "author": "Y.M. Mauas (YSmauas)",
+  "keywords": [
+    "website-blocks",
+    "widgets",
+    "nextjs",
+    "supabase",
+    "rsvp",
+    "cookie-consent",
+    "html-generator",
+    "rtl",
+    "hebrew"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",
